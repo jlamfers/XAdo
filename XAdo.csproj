@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DE35B1AF-D6A1-4324-840A-11854787DED4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XAdo</RootNamespace>
+    <AssemblyName>XAdo</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core\DtoTypeBuilder.cs" />
+    <Compile Include="Core\AnonymousTypeHelper.cs" />
+    <Compile Include="Core\Interface\IActivatorFactory.cs" />
+    <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
+    <Compile Include="Core\Interface\IAdoRow.cs" />
+    <Compile Include="Core\Impl\ActivatorFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
+    <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
+    <Compile Include="Core\Impl\ConcreteTypeBuilderImpl.cs" />
+    <Compile Include="DbConnectionExtensions.cs" />
+    <Compile Include="AdoContext.cs" />
+    <Compile Include="DbConnectionExtensions.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\AdoMultiResultReaderAsync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Interface\IAdoConnectionQueryManager.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Interface\IAdoDataReaderManager.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Interface\IAdoSession.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Impl\AdoConnectionQueryManagerImpl.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Impl\AdoDataReaderManagerImpl.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Impl\AdoSessionImpl.Async.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\AdoException.cs" />
+    <Compile Include="Core\CollectionDataReader.cs" />
+    <Compile Include="Core\Interface\IAdoSessionInitializer.cs" />
+    <Compile Include="Core\Interface\IAdoTypeConverterFactory.cs" />
+    <Compile Include="Core\Impl\AdoClassBinderImpl.cs" />
+    <Compile Include="AdoConnection.cs" />
+    <Compile Include="Core\AdoParamHelper.cs" />
+    <Compile Include="Core\Interface\IAdoSessionFactory.cs" />
+    <Compile Include="Core\Impl\AdoDataReaderManagerImplPessimistic.cs" />
+    <Compile Include="Core\Impl\AdoSessionFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoSessionImpl.cs" />
+    <Compile Include="Core\AdoBindingException.cs" />
+    <Compile Include="Core\AdoMultiResultReader.cs" />
+    <Compile Include="Core\AdoRow.cs" />
+    <Compile Include="Core\Extensions.cs" />
+    <Compile Include="Core\Interface\IAdoDataBinderFactory.cs" />
+    <Compile Include="Core\Interface\IAdoCommandFactory.cs" />
+    <Compile Include="Core\Interface\IAdoConnectionFactory.cs" />
+    <Compile Include="Core\Interface\IAdoConnectionProvider.cs" />
+    <Compile Include="Core\Interface\IAdoConnectionQueryManager.cs" />
+    <Compile Include="Core\Interface\IAdoDataReaderManager.cs" />
+    <Compile Include="Core\Interface\IAdoMultiBinderFactory.cs" />
+    <Compile Include="Core\Interface\IAdoParameter.cs" />
+    <Compile Include="Core\Interface\IAdoPropertyBinder.cs" />
+    <Compile Include="Core\Interface\IAdoSession.cs" />
+    <Compile Include="Core\Impl\AdoDataBinderFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoCommandFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoConnectionFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoConnectionQueryManagerImpl.cs" />
+    <Compile Include="Core\Impl\AdoDataReaderManagerImpl.cs" />
+    <Compile Include="Core\Impl\AdoMultiBinderFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoParameterFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoParameterImpl.cs" />
+    <Compile Include="Core\GetterSetterUtil.cs" />
+    <Compile Include="Core\Impl\AdoTypeConverterFactoryImpl.cs" />
+    <Compile Include="Core\Impl\GetterDelegate.cs" />
+    <Compile Include="Core\Impl\NullableGetters.cs" />
+    <Compile Include="Core\TVoid.cs" />
+    <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
+    <Compile Include="Core\Interface\IAdoClassBinder.cs" />
+    <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
