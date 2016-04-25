@@ -8,7 +8,7 @@ namespace XAdo.Core
     /// Helper class for creating ADO parameters with non default settings
     /// </summary>
     /// <example>
-    /// session.Query("select * from table where name = @name",new{ id = AdoParam.In(10)})
+    /// session.Query("select * from table where name = @name",new{ id = context.AdoParamHelper.In(10)})
     /// </example>
     public class AdoParamHelper
     {

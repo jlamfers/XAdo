@@ -7,10 +7,27 @@ using XAdo.Core.Interface;
 
 namespace XAdo
 {
+    /// <summary>
+    /// The AdoContext class represents a database access configuration context. It also holds context related caches,
+    /// like a cache for reader/binder setups.
+    /// Normally you would create a singleton context per database configuration, and use that context each time
+    /// you need to create a session for executing SQL.
+    /// </summary>
+    /// <example>
+    ///     // create context with default settings using connection string named "AdventureWorks"
+    ///     var context = new AdoContext("AdventureWorks");
+    /// 
+    ///     var context = new AdoContext(i => i
+    ///         .SetConnectionStringName("AdventureWorks")
+    ///         .KeepConnectionAlive(true)
+    ///         .SetCommandTimeout(90)
+    ///         .SetCustomDefaultTypeMapping(typeof(string), DbType.AnsiString)
+    ///         .SetCustomTypeConverter&lt;string, bool&gt;(s => s == null ? false : bool.Parse(s))
+    ///         .EnableEmittedDynamicTypes()
+    ///     );
+    /// </example>
     public class AdoContext
     {
-        private static AdoContext _defaultContext;
-
         private readonly IAdoClassBinder _binder = new AdoClassBinderImpl();
 
         private class Initializer : IAdoContextInitializer
@@ -28,7 +45,7 @@ namespace XAdo
 
                 _context._binder
                     .Get<IAdoTypeConverterFactory>()
-                    .SetCustomTypeConverter<TSource, TTarget>(@delegate);
+                    .SetCustomTypeConverter(@delegate);
                 return this;
             }
 
@@ -113,26 +130,20 @@ namespace XAdo
             }
         }
 
-        public static AdoContext Default
-        {
-            get { return _defaultContext ?? (_defaultContext = new AdoContext()); }
-            set { _defaultContext = value; }
-        }
-
-        public AdoContext()
-        {
-            Initialize(null);
-        }
-
         public AdoContext(string connectionStringName)
         {
+            if (connectionStringName == null) throw new ArgumentNullException("connectionStringName");
             ConnectionStringName = connectionStringName;
             Initialize(null);
         }
 
         public AdoContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null)
         {
+            if (initializer == null) throw new ArgumentNullException("initializer");
+
+            // allow to use a custom class binder (container)
             _binder = customClassBinder ?? _binder;
+
             Initialize(initializer);
         }
 
@@ -141,6 +152,7 @@ namespace XAdo
             CommandTimeout = 30;
             AllowUnbindableFetchResults = true;
 
+            // bind any type that has no binding yet. It may be bound in case of a custom class binder
             TryBind(b => b);
             TryBindSingleton<IAdoDataBinderFactory, AdoDataBinderFactoryImpl>();
             TryBindSingleton<IAdoCommandFactory, AdoCommandFactoryImpl>();
@@ -192,7 +204,7 @@ namespace XAdo
 
             if (check.Length == 0)
             {
-                throw new InvalidOperationException("Both ConnectionStringName and ConnectionString haven not been initialized by the constructor.");
+                throw new InvalidOperationException("Both ConnectionStringName and ConnectionString have not been initialized by the constructor.");
             }
 
             return ConnectionStringName != null 
@@ -202,6 +214,11 @@ namespace XAdo
 
         public AdoParamHelper AdoParamHelper { get; private set; }
 
+        /// <summary>
+        /// You may resolve instances from the inner container
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <returns></returns>
         public virtual TService GetInstance<TService>()
         {
             return _binder.Get<TService>();

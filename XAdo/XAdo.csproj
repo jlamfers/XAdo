@@ -51,11 +51,7 @@
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
     <Compile Include="Core\Impl\ConcreteTypeBuilderImpl.cs" />
-    <Compile Include="DbConnectionExtensions.cs" />
     <Compile Include="AdoContext.cs" />
-    <Compile Include="DbConnectionExtensions.Async.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Core\AdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -82,7 +78,6 @@
     <Compile Include="Core\Interface\IAdoSessionInitializer.cs" />
     <Compile Include="Core\Interface\IAdoTypeConverterFactory.cs" />
     <Compile Include="Core\Impl\AdoClassBinderImpl.cs" />
-    <Compile Include="AdoConnection.cs" />
     <Compile Include="Core\AdoParamHelper.cs" />
     <Compile Include="Core\Interface\IAdoSessionFactory.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerImplPessimistic.cs" />
