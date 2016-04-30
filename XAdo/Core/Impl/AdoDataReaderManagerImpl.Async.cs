@@ -21,7 +21,7 @@ namespace XAdo.Core.Impl
         {
             public async Task<IEnumerable> ReadAsync(IAdoDataBinderFactory binderFactory, IActivatorFactory activatorFactory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableProperties)
             {
-                var binders = binderFactory.CreatePropertyBinders<T>(reader, allowUnbindableFetchResults, allowUnbindableProperties);
+                var binders = binderFactory.CreateMemberBinders<T>(reader, allowUnbindableFetchResults, allowUnbindableProperties);
 
                 var activator = activatorFactory.GetActivator(typeof(T));
                 var dbreader = (DbDataReader)reader;
@@ -117,7 +117,7 @@ namespace XAdo.Core.Impl
                         f((T1)x1, (T2)x2, (T3)x3, (T4)x4, (T5)x5, (T6)x6, (T7)x7, (T8)x8);
             }
 
-            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, IList<IAdoPropertyBinder<T>> binders, Func<object> factory)
+            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, IList<IAdoMemberBinder<T>> binders, Func<object> factory)
             {
                 return parent.BindTarget(reader, index, binders, factory);
             }

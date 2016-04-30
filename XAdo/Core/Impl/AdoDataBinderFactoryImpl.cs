@@ -11,12 +11,12 @@ namespace XAdo.Core.Impl
 
     public class AdoDataBinderFactoryImpl : IAdoDataBinderFactory
     {
-        private readonly IAdoTypeConverterFactory _typeConverterFactory;
+        protected readonly IAdoTypeConverterFactory TypeConverterFactory;
 
         private readonly ConcurrentDictionary<BinderIdentity, object>
             _binderCache = new ConcurrentDictionary<BinderIdentity, object>();
 
-        private static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
+        protected static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
         {
             typeof (String),
             typeof (Decimal),
@@ -29,47 +29,59 @@ namespace XAdo.Core.Impl
 
         public AdoDataBinderFactoryImpl(IAdoTypeConverterFactory typeConverterFactory)
         {
-            _typeConverterFactory = typeConverterFactory;
+            TypeConverterFactory = typeConverterFactory;
         }
 
         #region Types
 
         // copies value from datarecord to entity
-        private class AdoPropertyBinder<TEntity, TSetter, TGetter> : IAdoPropertyBinder<TEntity>
+        protected class AdoMemberBinder<TEntity, TSetter, TGetter> : IAdoMemberBinder<TEntity>
         {
             private Action<TEntity, TSetter> _setter;
             private Func<IDataRecord, int, TSetter> _getter;
             private int _index;
 
-            public AdoPropertyBinder()
+            public virtual IAdoMemberBinder<TEntity> Initialize(MemberInfo member, int index, IAdoTypeConverterFactory typeConverterFactory)
             {
-                _getter = GetterDelegate<TSetter>.Getter;
+                _index = index;
+                _setter = CreateSetter(member);
+                _getter = CreateGetter(typeConverterFactory);
+                return this;
             }
 
-            public IAdoPropertyBinder<TEntity> Initialize(PropertyInfo property, int index, IAdoTypeConverterFactory typeConverterFactory)
+            protected virtual Action<TEntity, TSetter> CreateSetter(MemberInfo member)
             {
+                var property = (PropertyInfo)member;
                 var setMethod = property.GetSetMethod(true);
                 if (setMethod == null)
                 {
                     throw new AdoException("No setter available for property " + property);
                 }
-                _setter =
+                return
                     (Action<TEntity, TSetter>)
                         Delegate.CreateDelegate(typeof(Action<TEntity, TSetter>), setMethod);
+            }
+
+            protected virtual Func<IDataRecord, int, TSetter> CreateGetter(IAdoTypeConverterFactory typeConverterFactory)
+            {
+                Func<IDataRecord, int, TSetter> getter;
                 if (!typeof (TSetter).IsAssignableFrom(typeof (TGetter)))
                 {
-                    var converter = typeConverterFactory.GetConverter<TSetter>(typeof(TGetter));
+                    var converter = typeConverterFactory.GetConverter<TSetter>(typeof (TGetter));
                     if (typeof (TSetter).IsValueType && Nullable.GetUnderlyingType(typeof (TSetter)) == null)
                     {
-                        _getter = (d, i) => converter((TGetter) d.GetValue(i));
+                        getter = (d, i) => converter((TGetter) d.GetValue(i));
                     }
                     else
                     {
-                        _getter = (d, i) => d.IsDBNull(i) ? default(TSetter) : converter((TGetter) d.GetValue(i));
+                        getter = (d, i) => d.IsDBNull(i) ? default(TSetter) : converter((TGetter) d.GetValue(i));
                     }
                 }
-                _index = index;
-                return this;
+                else
+                {
+                    getter = GetterDelegate<TSetter>.Getter;
+                }
+                return getter;
             }
 
             public void CopyValue(IDataRecord reader, TEntity entity)
@@ -84,7 +96,7 @@ namespace XAdo.Core.Impl
         }
 
         // identity (key) for datarecord/type based property binders list
-        private class BinderIdentity
+        protected class BinderIdentity
         {
             private readonly Type _type;
             private readonly bool _allowUnbindableFetchResults;
@@ -143,19 +155,24 @@ namespace XAdo.Core.Impl
 
         #endregion
 
-        public virtual IAdoPropertyBinder<TEntity> CreatePropertyBinder<TEntity>(PropertyInfo property, Type getterType, int index)
+        protected virtual Type GetAdoMemberBinderType()
         {
-            if (property == null) throw new ArgumentNullException("property");
+            return typeof(AdoMemberBinder<,,>);
+        }
+
+        public virtual IAdoMemberBinder<TEntity> CreateMemberBinder<TEntity>(MemberInfo member, Type getterType, int index)
+        {
+            if (member == null) throw new ArgumentNullException("member");
             if (getterType == null) throw new ArgumentNullException("getterType");
 
-            var binderGetterType = Nullable.GetUnderlyingType(property.PropertyType) == getterType
-                ? property.PropertyType
+            var binderGetterType = Nullable.GetUnderlyingType(member.GetMemberType()) == getterType
+                ? member.GetMemberType()
                 : getterType;
             return
-                ((IAdoPropertyBinder<TEntity>)
-                    Activator.CreateInstance(typeof (AdoPropertyBinder<,,>).MakeGenericType(typeof (TEntity),
-                        property.PropertyType, binderGetterType)))
-                    .Initialize(property, index,_typeConverterFactory);
+                ((IAdoMemberBinder<TEntity>)
+                    Activator.CreateInstance(GetAdoMemberBinderType().MakeGenericType(typeof(TEntity),
+                        member.GetMemberType(), binderGetterType)))
+                    .Initialize(member, index,TypeConverterFactory);
         }
 
         public virtual Func<IDataReader, TResult> CreateScalarReader<TResult>(Type getterType)
@@ -170,7 +187,7 @@ namespace XAdo.Core.Impl
                     return r => getter(r, 0);
                 }
             }
-            var converter = _typeConverterFactory.GetConverter<TResult>(getterType);
+            var converter = TypeConverterFactory.GetConverter<TResult>(getterType);
             if (typeof (TResult).IsValueType && Nullable.GetUnderlyingType(typeof (TResult)) == null)
             {
                 return r => converter(r.GetValue(0));
@@ -179,29 +196,24 @@ namespace XAdo.Core.Impl
         }
 
         // initializes and caches a property binders list by entity type and a datareader structure
-        // there is no risk of an out of memory issue
-        public virtual IList<IAdoPropertyBinder<T>> CreatePropertyBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableProperties, int? firstColumnIndex = null, int? lastColumnIndex = null)
+        public virtual IList<IAdoMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableProperties, int? firstColumnIndex = null, int? lastColumnIndex = null)
         {
             if (record == null) throw new ArgumentNullException("record");
             return
-                (IList<IAdoPropertyBinder<T>>)_binderCache.GetOrAdd(
+                (IList<IAdoMemberBinder<T>>)_binderCache.GetOrAdd(
                     new BinderIdentity(typeof(T), record, allowUnbindableFetchResults, allowUnbindableProperties, firstColumnIndex,lastColumnIndex),
                     k =>
                     {
                         var type = typeof (T);
-                        var binders = new List<IAdoPropertyBinder<T>>();
+                        var binders = new List<IAdoMemberBinder<T>>();
                         var first = firstColumnIndex.GetValueOrDefault(0);
                         var last = lastColumnIndex.GetValueOrDefault(record.FieldCount - 1);
                         for (var i = first; i <= last; i++)
                         {
-                            var p = type.GetProperty(record.GetName(i),BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                            if (!allowUnbindableFetchResults && p == null)
+                            var m = GetMemberOrNull(type, record.GetName(i), !allowUnbindableFetchResults);
+                            if (m != null)
                             {
-                                throw new AdoBindingException("Cannot bind fetched column [" + record.GetName(i) + "] result to any property of type " + type.Name);
-                            }
-                            if (p != null)
-                            {
-                                binders.Add(CreatePropertyBinder<T>(p, record.GetFieldType(i), i));
+                                binders.Add(CreateMemberBinder<T>(m, record.GetFieldType(i), i));
                             }
                         }
 
@@ -221,12 +233,12 @@ namespace XAdo.Core.Impl
                             {
                                 set.Add(record.GetName(i));
                             }
-                            if (GetBindableProperties(type).Any(p => !set.Contains(p.Name)))
+                            if (GetBindableMembers(type).Any(p => !set.Contains(p.Name)))
                             {
                                 throw new AdoBindingException("No bindable results for following " + type.Name +
-                                                              "properties: " +
+                                                              " members: " +
                                                               string.Join(", ",
-                                                                  GetBindableProperties(type)
+                                                                  GetBindableMembers(type)
                                                                       .Where(p => !set.Contains(p.Name))
                                                                       .Select(p => p.Name)
                                                                       .ToArray()));
@@ -252,14 +264,22 @@ namespace XAdo.Core.Impl
             );
         }
 
-        private IEnumerable<PropertyInfo> GetBindableProperties(Type type)
+        protected virtual MemberInfo GetMemberOrNull(Type type, string name, bool throwException)
         {
-            return type.GetProperties().Where(p => p.CanWrite && IsBindableDataType(p.PropertyType));
+            var m = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (throwException && m == null)
+            {
+                throw new AdoBindingException("Cannot bind fetched column [" + name + "] result to any member of type " + type.Name);
+            }
+            return m;
         }
 
+        protected virtual IEnumerable<MemberInfo> GetBindableMembers(Type type)
+        {
+            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanWrite && IsBindableDataType(p.PropertyType));
+        }
 
     }
-
 }
 
 

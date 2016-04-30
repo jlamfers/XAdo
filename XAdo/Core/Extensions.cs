@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core
@@ -29,6 +30,19 @@ namespace XAdo.Core
         public static Type EnsureNotNullable(this Type self)
         {
             return self == null ? null : (Nullable.GetUnderlyingType(self) ?? self);
+        }
+
+        public static Type GetMemberType(this MemberInfo self)
+        {
+            switch (self.MemberType)
+            {
+                case MemberTypes.Field:
+                    return ((FieldInfo) self).FieldType;
+                case MemberTypes.Property:
+                    return ((PropertyInfo)self).PropertyType;
+                default:
+                    throw new ArgumentOutOfRangeException("self.MemberType", "Only Field and Properties are supported");
+            }
         }
 
         public static DataTable ToDataTable<T>(this IEnumerable<T> data)

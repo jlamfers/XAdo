@@ -8,8 +8,8 @@ using XAdo.Core.Interface;
 namespace XAdo
 {
     /// <summary>
-    /// The AdoContext class represents a database access configuration context. It also holds context related caches,
-    /// like a cache for reader/binder setups.
+    /// The AdoContext class represents a database access configuration context. It also hold the context related cache
+    /// for reader/binder setups.
     /// Normally you would create a singleton context per database configuration, and use that context each time
     /// you need to create a session for executing SQL.
     /// </summary>
@@ -17,6 +17,7 @@ namespace XAdo
     ///     // create context with default settings using connection string named "AdventureWorks"
     ///     var context = new AdoContext("AdventureWorks");
     /// 
+    ///     // create context with customized settings
     ///     var context = new AdoContext(i => i
     ///         .SetConnectionStringName("AdventureWorks")
     ///         .KeepConnectionAlive(true)

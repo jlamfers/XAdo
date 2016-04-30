@@ -9,8 +9,8 @@ namespace XAdo.Core
     {
         private class Key
         {
-            private readonly IList<string> _names;
-            private readonly IList<Type> _types;
+            private IList<string> _names;
+            private IList<Type> _types;
             private readonly int _hashcode;
 
             public Key(IList<string> names, IList<Type> types)
@@ -43,6 +43,12 @@ namespace XAdo.Core
                 var other = obj as Key;
                 return other != null &&  other._names.SequenceEqual(_names) && other._types.SequenceEqual(_types);
             }
+
+            public void LazyCloneArrays()
+            {
+                _names = _names.ToArray();
+                _types = _types.ToArray();
+            }
         }
 
         private static readonly ConcurrentDictionary<object,Type> 
@@ -53,6 +59,9 @@ namespace XAdo.Core
         {
             return _cache.GetOrAdd((object)typeName ?? new Key(names, types), k =>
             {
+                // cloning the inner arrays is needed to ensure no to get effected by outer changes, only if the particular key instance is stored into the cache
+                ((Key)k).LazyCloneArrays();
+
                 var b = new AnonymousTypeHelper { TypeName = typeName };
                 for (var i = 0; i < names.Count; i++)
                 {
