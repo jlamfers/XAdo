@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,6 +46,8 @@
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
+    <Compile Include="Core\Impl\AdoMemberBinderImpl.cs" />
+    <Compile Include="Core\Impl\AdoMemberBinderPropertiesAndFieldsImpl.cs" />
     <Compile Include="Core\Interface\IActivatorFactory.cs" />
     <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
     <Compile Include="Core\Interface\IAdoRow.cs" />

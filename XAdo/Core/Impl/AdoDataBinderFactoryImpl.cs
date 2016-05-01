@@ -9,9 +9,13 @@ using XAdo.Core.Interface;
 namespace XAdo.Core.Impl
 {
 
+    // copies value from datarecord to entity
+
+
     public class AdoDataBinderFactoryImpl : IAdoDataBinderFactory
     {
         protected readonly IAdoTypeConverterFactory TypeConverterFactory;
+        private readonly IAdoClassBinder _classBinder;
 
         private readonly ConcurrentDictionary<BinderIdentity, object>
             _binderCache = new ConcurrentDictionary<BinderIdentity, object>();
@@ -27,73 +31,13 @@ namespace XAdo.Core.Impl
             typeof (byte[])
         });
 
-        public AdoDataBinderFactoryImpl(IAdoTypeConverterFactory typeConverterFactory)
+        public AdoDataBinderFactoryImpl(IAdoTypeConverterFactory typeConverterFactory, IAdoClassBinder classBinder)
         {
             TypeConverterFactory = typeConverterFactory;
+            _classBinder = classBinder;
         }
 
         #region Types
-
-        // copies value from datarecord to entity
-        protected class AdoMemberBinder<TEntity, TSetter, TGetter> : IAdoMemberBinder<TEntity>
-        {
-            private Action<TEntity, TSetter> _setter;
-            private Func<IDataRecord, int, TSetter> _getter;
-            private int _index;
-
-            public virtual IAdoMemberBinder<TEntity> Initialize(MemberInfo member, int index, IAdoTypeConverterFactory typeConverterFactory)
-            {
-                _index = index;
-                _setter = CreateSetter(member);
-                _getter = CreateGetter(typeConverterFactory);
-                return this;
-            }
-
-            protected virtual Action<TEntity, TSetter> CreateSetter(MemberInfo member)
-            {
-                var property = (PropertyInfo)member;
-                var setMethod = property.GetSetMethod(true);
-                if (setMethod == null)
-                {
-                    throw new AdoException("No setter available for property " + property);
-                }
-                return
-                    (Action<TEntity, TSetter>)
-                        Delegate.CreateDelegate(typeof(Action<TEntity, TSetter>), setMethod);
-            }
-
-            protected virtual Func<IDataRecord, int, TSetter> CreateGetter(IAdoTypeConverterFactory typeConverterFactory)
-            {
-                Func<IDataRecord, int, TSetter> getter;
-                if (!typeof (TSetter).IsAssignableFrom(typeof (TGetter)))
-                {
-                    var converter = typeConverterFactory.GetConverter<TSetter>(typeof (TGetter));
-                    if (typeof (TSetter).IsValueType && Nullable.GetUnderlyingType(typeof (TSetter)) == null)
-                    {
-                        getter = (d, i) => converter((TGetter) d.GetValue(i));
-                    }
-                    else
-                    {
-                        getter = (d, i) => d.IsDBNull(i) ? default(TSetter) : converter((TGetter) d.GetValue(i));
-                    }
-                }
-                else
-                {
-                    getter = GetterDelegate<TSetter>.Getter;
-                }
-                return getter;
-            }
-
-            public void CopyValue(IDataRecord reader, TEntity entity)
-            {
-                _setter(entity, _getter(reader, _index));
-            }
-
-            public int Index
-            {
-                get { return _index; }
-            }
-        }
 
         // identity (key) for datarecord/type based property binders list
         protected class BinderIdentity
@@ -157,7 +101,7 @@ namespace XAdo.Core.Impl
 
         protected virtual Type GetAdoMemberBinderType()
         {
-            return typeof(AdoMemberBinder<,,>);
+            return typeof(AdoMemberBinderImpl<,,>);
         }
 
         public virtual IAdoMemberBinder<TEntity> CreateMemberBinder<TEntity>(MemberInfo member, Type getterType, int index)
@@ -168,11 +112,9 @@ namespace XAdo.Core.Impl
             var binderGetterType = Nullable.GetUnderlyingType(member.GetMemberType()) == getterType
                 ? member.GetMemberType()
                 : getterType;
-            return
-                ((IAdoMemberBinder<TEntity>)
-                    Activator.CreateInstance(GetAdoMemberBinderType().MakeGenericType(typeof(TEntity),
-                        member.GetMemberType(), binderGetterType)))
-                    .Initialize(member, index,TypeConverterFactory);
+            return ((IAdoMemberBinder<TEntity>) _classBinder.Get(typeof (AdoMemberBinderImpl<,,>)
+                .MakeGenericType(typeof (TEntity),member.GetMemberType(),binderGetterType)))
+                .Initialize(member, index);
         }
 
         public virtual Func<IDataReader, TResult> CreateScalarReader<TResult>(Type getterType)

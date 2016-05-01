@@ -139,8 +139,8 @@ namespace XAdo.Core.Impl
         public virtual IEnumerable<dynamic> ReadAll(IDataReader reader)
         {
             if (reader == null) throw new ArgumentNullException("reader");
-            var columnNames = new string[reader.FieldCount];
-            var columnTypes = new Type[reader.FieldCount];
+            var columnNames = new string[reader.FieldCount].ToList();
+            var columnTypes = new Type[reader.FieldCount].ToList();
             var index = new Dictionary<string, int>();
             for (var i = 0; i < reader.FieldCount; i++)
             {

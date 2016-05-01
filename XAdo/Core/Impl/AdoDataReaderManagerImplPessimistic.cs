@@ -29,7 +29,7 @@ namespace XAdo.Core.Impl
             var allNull = true;
             foreach (var binder in binders)
             {
-                allNull = allNull && reader.IsDBNull(binder.Index);
+                allNull = allNull && reader.IsDBNull(binder.DataRecordIndex);
                 binder.CopyValue(reader, result);
             }
             if (allNull)

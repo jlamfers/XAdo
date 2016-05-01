@@ -4,10 +4,10 @@ namespace XAdo.Core.Interface
 {
     public interface IAdoClassBinder 
     {
-        IAdoClassBinder Bind<TService>(Func<IAdoClassBinder,TService> factory);
-        IAdoClassBinder Bind<TService, TImpl>() where TImpl : TService;
-        IAdoClassBinder BindSingleton<TService, TImpl>() where TImpl : TService;
-        bool CanResolve<TService>();
-        T Get<T>();
+        IAdoClassBinder Bind(Type serviceType, Func<IAdoClassBinder,object> factory);
+        IAdoClassBinder Bind(Type serviceType, Type implementationType);
+        IAdoClassBinder BindSingleton(Type serviceType, Type implementationType);
+        bool CanResolve(Type serviceType);
+        object Get(Type serviceType);
     }
 }

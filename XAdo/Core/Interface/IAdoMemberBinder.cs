@@ -5,8 +5,8 @@ namespace XAdo.Core.Interface
 {
     public interface IAdoMemberBinder<in TEntity>
     {
-        IAdoMemberBinder<TEntity> Initialize(MemberInfo member, int index, IAdoTypeConverterFactory typeConverterFactory);
+        IAdoMemberBinder<TEntity> Initialize(MemberInfo member, int index);
         void CopyValue(IDataRecord source, TEntity target);
-        int Index { get; }
+        int DataRecordIndex { get; }
     }
 }

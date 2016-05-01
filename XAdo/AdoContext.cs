@@ -111,22 +111,22 @@ namespace XAdo
                 return this;
             }
 
-            public IAdoContextInitializer Bind<TService, TImpl>() where TImpl : TService
+            public IAdoContextInitializer Bind(Type serviceType, Type implementationType)
             {
-                _context._binder.Bind<TService, TImpl>();
+                _context._binder.Bind(serviceType, implementationType);
                 return this;
             }
 
-            public IAdoContextInitializer BindSingleton<TService, TImpl>() where TImpl : TService
+            public IAdoContextInitializer BindSingleton(Type serviceType, Type implementationType)
             {
-                _context._binder.BindSingleton<TService, TImpl>();
+                _context._binder.BindSingleton(serviceType, implementationType);
                 return this;
             }
 
-            public IAdoContextInitializer Bind<TService>(Func<IAdoClassBinder, TService> factory)
+            public IAdoContextInitializer Bind(Type serviceType,Func<IAdoClassBinder, object> factory)
             {
                 if (factory == null) throw new ArgumentNullException("factory");
-                _context._binder.Bind(factory);
+                _context._binder.Bind(serviceType, factory);
                 return this;
             }
         }
@@ -168,6 +168,7 @@ namespace XAdo
             TryBindSingleton<IActivatorFactory, ActivatorFactoryImpl>();
             TryBind<IAdoParameter>(b => new AdoParameterImpl());
             TryBind<IAdoSession, AdoSessionImpl>();
+            TryBind(typeof(AdoMemberBinderImpl<,,>), typeof(AdoMemberBinderImpl<,,>));
 
             if (initializer != null)
             {
@@ -189,6 +190,13 @@ namespace XAdo
             if (!_binder.CanResolve<TService>())
             {
                 _binder.Bind<TService, TImpl>();
+            }
+        }
+        private void TryBind(Type serviceType, Type implementationType)
+        {
+            if (!_binder.CanResolve(serviceType))
+            {
+                _binder.Bind(serviceType, implementationType);
             }
         }
         private void TryBind<TService>(Func<IAdoClassBinder, TService> factory)

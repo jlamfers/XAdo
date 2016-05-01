@@ -14,8 +14,30 @@ namespace XAdo.Core.Interface
         IAdoContextInitializer SetConnectionString(string connectionString, string providerName);
         IAdoContextInitializer SetConnectionStringName(string connectionStringName);
 
-        IAdoContextInitializer Bind<TService, TImpl>() where TImpl : TService;
-        IAdoContextInitializer Bind<TService>(Func<IAdoClassBinder, TService> factory);
-        IAdoContextInitializer BindSingleton<TService, TImpl>() where TImpl : TService;
+        IAdoContextInitializer Bind(Type serviceType, Type implementationType);
+        IAdoContextInitializer Bind(Type serviceType, Func<IAdoClassBinder, object> factory);
+        IAdoContextInitializer BindSingleton(Type serviceType, Type implementationType);
+    }
+
+    public static partial class Extensions
+    {
+        public static IAdoContextInitializer Bind<TService, TImpl>(this IAdoContextInitializer self)
+            where TImpl : TService
+        {
+            self.Bind(typeof (TService), typeof (TImpl));
+            return self;
+        }
+
+        public static IAdoContextInitializer Bind<TService>(this IAdoContextInitializer self, Func<IAdoClassBinder, TService> factory)
+        {
+            self.Bind(typeof(TService), b => factory(b));
+            return self;
+        }
+
+        public static IAdoContextInitializer BindSingleton<TService, TImpl>(this IAdoContextInitializer self) where TImpl : TService
+        {
+            self.BindSingleton(typeof(TService), typeof(TImpl));
+            return self;
+        }
     }
 }
