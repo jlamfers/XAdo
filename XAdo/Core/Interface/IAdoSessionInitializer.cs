@@ -5,7 +5,7 @@
     /// </summary>
     public interface IAdoSessionInitializer
     {
-        IAdoSession Initialize(string connectionStringName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false);
-        IAdoSession Initialize(string connectionString, string providerName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false);
+        IAdoSession Initialize(string connectionStringName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false);
+        IAdoSession Initialize(string connectionString, string providerName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false);
     }
 }

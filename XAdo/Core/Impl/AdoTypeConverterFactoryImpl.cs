@@ -43,7 +43,7 @@ namespace XAdo.Core.Impl
         private bool _readonly;
 
 
-        public IAdoTypeConverterFactory SetCustomTypeConverter<TSource, TTarget>(Func<TSource, TTarget> converter)
+        public virtual IAdoTypeConverterFactory SetCustomTypeConverter<TSource, TTarget>(Func<TSource, TTarget> converter)
         {
             if (_readonly)
             {
@@ -63,7 +63,7 @@ namespace XAdo.Core.Impl
             return this;
         }
 
-        public bool CanCustomConvert(Type sourceType, Type targetType)
+        public virtual bool CanCustomConvert(Type sourceType, Type targetType)
         {
             return _customConverters.ContainsKey(new ConverterKey(sourceType, targetType.EnsureNotNullable()));
         }

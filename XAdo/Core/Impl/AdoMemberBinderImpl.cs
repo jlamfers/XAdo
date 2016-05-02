@@ -60,6 +60,7 @@ namespace XAdo.Core.Impl
             return getter;
         }
 
+        // not virtual for performance reasons
         public void CopyValue(IDataRecord reader, TEntity entity)
         {
             _setter(entity, _getter(reader, _dataRecordIndex));

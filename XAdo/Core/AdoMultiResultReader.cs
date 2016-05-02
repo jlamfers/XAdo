@@ -12,15 +12,15 @@ namespace XAdo.Core
         private IDataReader _reader;
         private IDbCommand _command;
         private readonly bool _allowUnbindableFetchResults;
-        private readonly bool _allowUnbindableProperties;
+        private readonly bool _allowUnbindableMembers;
         private readonly IAdoDataReaderManager _dataReaderQuery;
 
-        internal AdoMultiResultReader(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableProperties, IAdoDataReaderManager dataReaderQuery)
+        internal AdoMultiResultReader(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableMembers, IAdoDataReaderManager dataReaderQuery)
         {
             _reader = reader;
             _command = command;
             _allowUnbindableFetchResults = allowUnbindableFetchResults;
-            _allowUnbindableProperties = allowUnbindableProperties;
+            _allowUnbindableMembers = allowUnbindableMembers;
             _dataReaderQuery = dataReaderQuery;
         }
 
@@ -85,7 +85,7 @@ namespace XAdo.Core
             if (index != _currentResultIndex) yield break;
             try
             {
-                foreach (var e in _dataReaderQuery.ReadAll<T>(_reader,_allowUnbindableFetchResults, _allowUnbindableProperties)) yield return e;
+                foreach (var e in _dataReaderQuery.ReadAll<T>(_reader,_allowUnbindableFetchResults, _allowUnbindableMembers)) yield return e;
             }
             finally
             {
@@ -124,7 +124,7 @@ namespace XAdo.Core
             if (index != _currentResultIndex) yield break;
             try
             {
-                foreach (var e in _dataReaderQuery.ReadAll(_reader, f, _allowUnbindableFetchResults, _allowUnbindableProperties)) yield return e;
+                foreach (var e in _dataReaderQuery.ReadAll(_reader, f, _allowUnbindableFetchResults, _allowUnbindableMembers)) yield return e;
                 if (index != _currentResultIndex) yield break;
                 index = -1;
                 NextResult();

@@ -31,14 +31,14 @@ namespace XAdo.Core.Impl
             return (List<dynamic>) result;
         }
 
-        public override async Task<List<T>> ReadAllAsync<T>(IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableProperties)
+        public override async Task<List<T>> ReadAllAsync<T>(IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
         {
             if (typeof(T) == typeof(IDictionary<string, object>) || typeof(T) == typeof(AdoRow))
             {
                 var result = await base.ReadAllAsync(reader);
                 return result.Cast<T>().ToList();
             }
-            return await base.ReadAllAsync<T>(reader, allowUnbindableFetchResults, allowUnbindableProperties);
+            return await base.ReadAllAsync<T>(reader, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
 

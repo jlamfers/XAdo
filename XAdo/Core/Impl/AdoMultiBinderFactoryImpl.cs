@@ -17,35 +17,21 @@ namespace XAdo.Core.Impl
         }
 
         // finds all column indices in datarecord and initizalizes corresponding binders for type T
-        public virtual IList<IAdoMemberBinder<T>> InitializePropertyBinders<T, TNext>(IDataRecord record,
-            bool allowUnbindableFetchResults, bool allowUnbindableProperties, ref int nextIndex)
+        public virtual IList<IAdoMemberBinder<T>> InitializeMemberBinders<T, TNext>(IDataRecord record,
+            bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex)
         {
             if (record == null) throw new ArgumentNullException("record");
 
             if (typeof (T) == typeof (TVoid)) return null;
-            var allProperties =
-                new HashSet<string>(
-                    typeof (T).GetProperties()
-                        .Where(
-                            p =>
-                                p.CanWrite && p.GetIndexParameters().Length == 0 &&
-                                _binderFactory.IsBindableDataType(p.PropertyType))
-                        .Select(p => p.Name));
-            var set = new HashSet<string>(allProperties);
-            var allNextProperties =
-                new HashSet<string>(
-                    typeof (TNext).GetProperties()
-                        .Where(
-                            p =>
-                                p.CanWrite && p.GetIndexParameters().Length == 0 &&
-                                _binderFactory.IsBindableDataType(p.PropertyType))
-                        .Select(p => p.Name));
+            var allMembers = new HashSet<string>(_binderFactory.GetBindableMembers(typeof(T)).Select(p => p.Name));
+            var set = new HashSet<string>(allMembers);
+            var allNextMembers = new HashSet<string>(_binderFactory.GetBindableMembers(typeof(TNext)).Select(p => p.Name));
             var first = nextIndex;
             for (var i = first; i < record.FieldCount; i++)
             {
                 nextIndex = i;
                 var name = record.GetName(i);
-                if (set.Remove(name) || !allNextProperties.Contains(name))
+                if (set.Remove(name) || !allNextMembers.Contains(name))
                 {
                     // while type T has property <name>, or not type TNext has property <name>, continue with next
                     continue;
@@ -53,14 +39,13 @@ namespace XAdo.Core.Impl
                 if (set.Count == 0)
                 {
                     // we finished type set T
-                    return _binderFactory.CreateMemberBinders<T>(record, allowUnbindableFetchResults,
-                        allowUnbindableProperties, first, nextIndex - 1);
+                    return _binderFactory.CreateMemberBinders<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
                 }
             }
             // we finished the datarecord, so we finished type set T as well
             nextIndex = record.FieldCount;
             return _binderFactory.CreateMemberBinders<T>(record, allowUnbindableFetchResults,
-                allowUnbindableProperties, first, nextIndex - 1);
+                allowUnbindableMembers, first, nextIndex - 1);
         }
 
     }

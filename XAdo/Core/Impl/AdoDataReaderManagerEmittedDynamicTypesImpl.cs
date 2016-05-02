@@ -32,7 +32,7 @@ namespace XAdo.Core.Impl
             return (IEnumerable<dynamic>)m.Invoke(this, new object[] { reader, false, false });
         }
 
-        public override IEnumerable<T> ReadAll<T>(IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableProperties)
+        public override IEnumerable<T> ReadAll<T>(IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
         {
             if (typeof(T) == typeof(IDictionary<string, object>) || typeof(T) == typeof(AdoRow))
             {
@@ -40,7 +40,7 @@ namespace XAdo.Core.Impl
                 yield break;
             }
 
-            foreach (var e in base.ReadAll<T>(reader, allowUnbindableFetchResults, allowUnbindableProperties))
+            foreach (var e in base.ReadAll<T>(reader, allowUnbindableFetchResults, allowUnbindableMembers))
             {
                 yield return e;
             }

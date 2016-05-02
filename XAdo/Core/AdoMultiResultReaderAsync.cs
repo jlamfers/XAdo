@@ -13,15 +13,15 @@ namespace XAdo.Core
         private DbDataReader _reader;
         private IDbCommand _command;
         private readonly bool _allowUnbindableFetchResults;
-        private readonly bool _allowUnbindableProperties;
+        private readonly bool _allowUnbindableMembers;
         private readonly IAdoDataReaderManager _dataReaderQuery;
 
-        internal AdoMultiResultReaderAsync(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableProperties, IAdoDataReaderManager dataReaderQuery)
+        internal AdoMultiResultReaderAsync(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableMembers, IAdoDataReaderManager dataReaderQuery)
         {
             _reader = (DbDataReader)reader;
             _command = command;
             _allowUnbindableFetchResults = allowUnbindableFetchResults;
-            _allowUnbindableProperties = allowUnbindableProperties;
+            _allowUnbindableMembers = allowUnbindableMembers;
             _dataReaderQuery = dataReaderQuery;
         }
 
@@ -78,7 +78,7 @@ namespace XAdo.Core
             {
                 return new List<T>();
             }
-            var result =  await _dataReaderQuery.ReadAllAsync<T>(_reader, _allowUnbindableFetchResults, _allowUnbindableProperties);
+            var result =  await _dataReaderQuery.ReadAllAsync<T>(_reader, _allowUnbindableFetchResults, _allowUnbindableMembers);
             if (index == _currentResultIndex)
             {
                 await NextResultAsync();
@@ -91,7 +91,7 @@ namespace XAdo.Core
             {
                 return new List<TResult>();
             }
-            var result = await _dataReaderQuery.ReadAllAsync(_reader, f, _allowUnbindableFetchResults, _allowUnbindableProperties);
+            var result = await _dataReaderQuery.ReadAllAsync(_reader, f, _allowUnbindableFetchResults, _allowUnbindableMembers);
             if (index == _currentResultIndex)
             {
                 await NextResultAsync();

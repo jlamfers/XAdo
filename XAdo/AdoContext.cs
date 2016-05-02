@@ -221,7 +221,7 @@ namespace XAdo
                 : GetInstance<IAdoSessionFactory>().Create(ConnectionString, ProviderName, CommandTimeout, KeepConnectionAlive, AllowUnbindableFetchResults, AllowUnbindableProperties);
         }
 
-        public AdoParamHelper AdoParamHelper { get; private set; }
+        public virtual AdoParamHelper AdoParamHelper { get; private set; }
 
         /// <summary>
         /// You may resolve instances from the inner container

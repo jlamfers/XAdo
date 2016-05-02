@@ -7,7 +7,7 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core
 {
-    public static class Extensions
+    public static partial class Extensions
     {
         internal static T CastTo<T>(this object self)
         {

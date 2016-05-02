@@ -13,15 +13,15 @@ namespace XAdo.Core.Impl
             _classBinder = classBinder;
         }
 
-        public virtual IAdoSession Create(string connectionStringName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false)
+        public virtual IAdoSession Create(string connectionStringName, int? commandTimeout = null, bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {
-            return _classBinder.Get<IAdoSession>().CastTo<IAdoSessionInitializer>().Initialize(connectionStringName,commandTimeout,keepConnectionOpen,allowUnbindableFetchResults,allowUnbindableProperties);
+            return _classBinder.Get<IAdoSession>().CastTo<IAdoSessionInitializer>().Initialize(connectionStringName,commandTimeout,keepConnectionOpen,allowUnbindableFetchResults,allowUnbindableMembers);
         }
 
-        public IAdoSession Create(string connectionString, string providerName, int? commandTimeout = null,
-            bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false)
+        public virtual IAdoSession Create(string connectionString, string providerName, int? commandTimeout = null,
+            bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {
-            return _classBinder.Get<IAdoSession>().CastTo<IAdoSessionInitializer>().Initialize(connectionString, providerName, commandTimeout, keepConnectionOpen, allowUnbindableFetchResults, allowUnbindableProperties);
+            return _classBinder.Get<IAdoSession>().CastTo<IAdoSessionInitializer>().Initialize(connectionString, providerName, commandTimeout, keepConnectionOpen, allowUnbindableFetchResults, allowUnbindableMembers);
         }
     }
 }

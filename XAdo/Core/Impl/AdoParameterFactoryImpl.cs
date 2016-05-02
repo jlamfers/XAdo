@@ -33,7 +33,7 @@ namespace XAdo.Core.Impl
             return p;
         }
 
-        public IAdoParameterFactory SetCustomDefaultTypeMapping(Type parameterType, DbType dbType)
+        public virtual IAdoParameterFactory SetCustomDefaultTypeMapping(Type parameterType, DbType dbType)
         {
             _customDefaultTypeMappings = _customDefaultTypeMappings ?? new Dictionary<Type, DbType>();
             _customDefaultTypeMappings[parameterType] = dbType;

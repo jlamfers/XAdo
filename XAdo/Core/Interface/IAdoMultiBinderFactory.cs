@@ -5,6 +5,6 @@ namespace XAdo.Core.Interface
 {
     public interface IAdoMultiBinderFactory
     {
-        IList<IAdoMemberBinder<T>> InitializePropertyBinders<T,TNext>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableProperties, ref int nextIndex);
+        IList<IAdoMemberBinder<T>> InitializeMemberBinders<T,TNext>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex);
     }
 }

@@ -26,7 +26,7 @@ namespace XAdo.Core.Impl
             _allowUnbindableFetchResults;
 
         private bool
-            _allowUnbindableProperties;
+            _allowUnbindableMembers;
 
         private readonly IAdoConnectionQueryManager
             _connectionQueryManager;
@@ -71,7 +71,7 @@ namespace XAdo.Core.Impl
 
         public virtual IAdoSession Initialize(string connectionStringName, int? commandTimeout = null,
             bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (connectionStringName == null) throw new ArgumentNullException("connectionStringName");
             var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
@@ -80,12 +80,12 @@ namespace XAdo.Core.Impl
                 throw new ConfigurationErrorsException("Connection string name " + connectionStringName + " not found.");
             }
             return Initialize(cs.ConnectionString, cs.ProviderName, commandTimeout, keepConnectionOpen,
-                allowUnbindableFetchResults, allowUnbindableProperties);
+                allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual IAdoSession Initialize(string connectionString, string providerName, int? commandTimeout = null,
             bool keepConnectionOpen = false, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (connectionString == null) throw new ArgumentNullException("connectionString");
             if (providerName == null) throw new ArgumentNullException("providerName");
@@ -96,7 +96,7 @@ namespace XAdo.Core.Impl
             }
             _commandTimeout = commandTimeout;
             _allowUnbindableFetchResults = allowUnbindableFetchResults;
-            _allowUnbindableProperties = allowUnbindableProperties;
+            _allowUnbindableMembers = allowUnbindableMembers;
             _keepConectionOpen = keepConnectionOpen;
             _connectionString = connectionString;
             _providerName = providerName;
@@ -122,7 +122,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -140,7 +140,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             return _connectionQueryManager.QueryMultiple(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
 
         }
 
@@ -149,7 +149,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -158,7 +158,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -168,7 +168,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -178,7 +178,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -188,7 +188,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -198,7 +198,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 
@@ -208,7 +208,7 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
-                commandType, _allowUnbindableFetchResults, _allowUnbindableProperties);
+                commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
 

@@ -147,7 +147,7 @@ namespace XAdo.Core.Impl
 
         public virtual async Task<List<T>> QueryAsync<T>(IDbConnection cn, string sql, object param = null,
             IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
-            bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false)
+            bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {
             if (cn == null) throw new ArgumentNullException("cn");
             if (sql == null) throw new ArgumentNullException("sql");
@@ -167,7 +167,7 @@ namespace XAdo.Core.Impl
                         result =
                             await
                                 _dataReaderManager.ReadAllAsync<T>(reader, allowUnbindableFetchResults,
-                                    allowUnbindableProperties);
+                                    allowUnbindableMembers);
                     }
                 }
                 if (!wasopen)
@@ -188,7 +188,7 @@ namespace XAdo.Core.Impl
 
         public virtual async Task<AdoMultiResultReaderAsync> QueryMultipleAsync(IDbConnection cn, string sql,
             object param = null, IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
-            bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false)
+            bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {
             if (cn == null) throw new ArgumentNullException("cn");
             if (sql == null) throw new ArgumentNullException("sql");
@@ -207,7 +207,7 @@ namespace XAdo.Core.Impl
                 reader =
                     await cmd.ExecuteReaderAsync(wasopen ? CommandBehavior.Default : CommandBehavior.CloseConnection);
                 var multiReader = new AdoMultiResultReaderAsync(reader, cmd, allowUnbindableFetchResults,
-                    allowUnbindableProperties, _dataReaderManager);
+                    allowUnbindableMembers, _dataReaderManager);
                 skipClose = true;
                 return multiReader;
             }
@@ -236,73 +236,73 @@ namespace XAdo.Core.Impl
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, TResult>(IDbConnection cn, string sql,
             Func<T1, T2, TResult> factory, object param = null, IDbTransaction tr = null, int? commandTimeout = null,
             CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, TVoid, TVoid, TVoid, TVoid, TVoid, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, TResult>(IDbConnection cn, string sql,
             Func<T1, T2, T3, TResult> factory, object param = null, IDbTransaction tr = null, int? commandTimeout = null,
             CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, T3, TVoid, TVoid, TVoid, TVoid, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2, t3), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, T4, TResult>(IDbConnection cn, string sql,
             Func<T1, T2, T3, T4, TResult> factory, object param = null, IDbTransaction tr = null,
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, T3, T4, TVoid, TVoid, TVoid, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2, t3, t4), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, T4, T5, TResult>(IDbConnection cn, string sql,
             Func<T1, T2, T3, T4, T5, TResult> factory, object param = null, IDbTransaction tr = null,
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, T3, T4, T5, TVoid, TVoid, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2, t3, t4, t5), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, T4, T5, T6, TResult>(IDbConnection cn,
             string sql, Func<T1, T2, T3, T4, T5, T6, TResult> factory, object param = null, IDbTransaction tr = null,
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, T3, T4, T5, T6, TVoid, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2, t3, t4, t5, t6), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(IDbConnection cn,
             string sql, Func<T1, T2, T3, T4, T5, T6, T7, TResult> factory, object param = null, IDbTransaction tr = null,
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
-            bool allowUnbindableProperties = false)
+            bool allowUnbindableMembers = false)
         {
             if (factory == null) throw new ArgumentNullException("factory");
             return await QueryAsync<T1, T2, T3, T4, T5, T6, T7, TVoid, TResult>(cn, sql,
                 (t1, t2, t3, t4, t5, t6, t7, t8) => factory(t1, t2, t3, t4, t5, t6, t7), param, tr, commandTimeout,
-                commandType, allowUnbindableFetchResults, allowUnbindableProperties);
+                commandType, allowUnbindableFetchResults, allowUnbindableMembers);
         }
 
         public virtual async Task<List<TResult>> QueryAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(IDbConnection cn,
             string sql, Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> factory, object param = null,
             IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
-            bool allowUnbindableFetchResults = true, bool allowUnbindableProperties = false)
+            bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {
             if (cn == null) throw new ArgumentNullException("cn");
             if (sql == null) throw new ArgumentNullException("sql");
@@ -324,7 +324,7 @@ namespace XAdo.Core.Impl
                         result =
                             await
                                 _dataReaderManager.ReadAllAsync(reader, factory, allowUnbindableFetchResults,
-                                    allowUnbindableProperties);
+                                    allowUnbindableMembers);
                     }
                 }
                 if (!wasopen)

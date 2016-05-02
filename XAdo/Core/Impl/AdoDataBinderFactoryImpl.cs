@@ -44,19 +44,19 @@ namespace XAdo.Core.Impl
         {
             private readonly Type _type;
             private readonly bool _allowUnbindableFetchResults;
-            private readonly bool _allowUnbindableProperties;
+            private readonly bool _allowUnbindableMembers;
             private readonly int? _firstColumnIndex;
             private readonly int? _lastColumnIndex;
             private readonly string[] _columnNames;
             private readonly Type[] _columnTypes;
             private readonly int _hash;
 
-            public BinderIdentity(Type type, IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableProperties,
+            public BinderIdentity(Type type, IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers,
                 int? firstColumnIndex, int? lastColumnIndex)
             {
                 _type = type;
                 _allowUnbindableFetchResults = allowUnbindableFetchResults;
-                _allowUnbindableProperties = allowUnbindableProperties;
+                _allowUnbindableMembers = allowUnbindableMembers;
                 _firstColumnIndex = firstColumnIndex;
                 _lastColumnIndex = lastColumnIndex;
                 _columnNames = new string[record.FieldCount];
@@ -72,7 +72,7 @@ namespace XAdo.Core.Impl
                         _hash = _hash * factor + _columnNames[i].GetHashCode();
                         _hash = _hash * factor + _columnTypes[i].GetHashCode();
                         if (allowUnbindableFetchResults) _hash = _hash * factor + 1;
-                        if (allowUnbindableProperties) _hash = _hash * factor + 1;
+                        if (allowUnbindableMembers) _hash = _hash * factor + 1;
                         if (firstColumnIndex != null) _hash = _hash * factor + firstColumnIndex.Value;
                         if (lastColumnIndex != null) _hash = _hash * factor + lastColumnIndex.Value;
                     }
@@ -89,7 +89,7 @@ namespace XAdo.Core.Impl
                 var other = (BinderIdentity)obj;
                 return _type == other._type
                        && _allowUnbindableFetchResults == other._allowUnbindableFetchResults
-                       && _allowUnbindableProperties == other._allowUnbindableProperties
+                       && _allowUnbindableMembers == other._allowUnbindableMembers
                        && _firstColumnIndex == other._firstColumnIndex
                        && _lastColumnIndex == other._lastColumnIndex
                        && _columnNames.SequenceEqual(other._columnNames)
@@ -138,12 +138,12 @@ namespace XAdo.Core.Impl
         }
 
         // initializes and caches a property binders list by entity type and a datareader structure
-        public virtual IList<IAdoMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableProperties, int? firstColumnIndex = null, int? lastColumnIndex = null)
+        public virtual IList<IAdoMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
         {
             if (record == null) throw new ArgumentNullException("record");
             return
                 (IList<IAdoMemberBinder<T>>)_binderCache.GetOrAdd(
-                    new BinderIdentity(typeof(T), record, allowUnbindableFetchResults, allowUnbindableProperties, firstColumnIndex,lastColumnIndex),
+                    new BinderIdentity(typeof(T), record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,lastColumnIndex),
                     k =>
                     {
                         var type = typeof (T);
@@ -168,7 +168,7 @@ namespace XAdo.Core.Impl
                             throw new AdoBindingException("Type " + typeof (T) + " has no bindable properties");
                         }
 
-                        if (!allowUnbindableProperties)
+                        if (!allowUnbindableMembers)
                         {
                             var set = new HashSet<string>();
                             for (var i = first; i <= last; i++)
@@ -216,9 +216,9 @@ namespace XAdo.Core.Impl
             return m;
         }
 
-        protected virtual IEnumerable<MemberInfo> GetBindableMembers(Type type)
+        public virtual IEnumerable<MemberInfo> GetBindableMembers(Type type)
         {
-            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanWrite && IsBindableDataType(p.PropertyType));
+            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanWrite && IsBindableDataType(p.PropertyType) && p.GetIndexParameters().Length == 0);
         }
 
     }

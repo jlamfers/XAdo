@@ -14,7 +14,7 @@ namespace XAdo.Core.Impl
         {
         }
 
-        protected override IEnumerable<MemberInfo> GetBindableMembers(Type type)
+        public override IEnumerable<MemberInfo> GetBindableMembers(Type type)
         {
             return base.GetBindableMembers(type).Union(type.GetFields(BindingFlags.Public | BindingFlags.Instance).Where(f => IsBindableDataType(f.FieldType)));
         }
