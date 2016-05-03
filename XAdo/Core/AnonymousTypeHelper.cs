@@ -59,7 +59,7 @@ namespace XAdo.Core
         {
             return _cache.GetOrAdd((object)typeName ?? new Key(names, types), k =>
             {
-                // cloning the inner arrays is needed to ensure no to get effected by outer changes, only if the particular key instance is stored into the cache
+                // cloning the inner arrays is needed to ensure not to get effected by outer changes, only if the particular key instance is stored into the cache
                 ((Key)k).LazyCloneArrays();
 
                 var b = new AnonymousTypeHelper { TypeName = typeName };

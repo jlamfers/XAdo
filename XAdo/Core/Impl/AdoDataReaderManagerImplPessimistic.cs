@@ -20,7 +20,7 @@ namespace XAdo.Core.Impl
         {
         }
 
-        protected override T BindTarget<T>(IDataReader reader, int index, IList<IAdoMemberBinder<T>> binders, Func<object> activator )
+        protected override T BindTarget<T>(IDataReader reader, int index, IList<IAdoReaderToMemberBinder<T>> binders, Func<object> activator )
         {
             if (reader == null) throw new ArgumentNullException("reader");
             if (binders == null) throw new ArgumentNullException("binders");

@@ -101,10 +101,10 @@ namespace XAdo.Core.Impl
 
         protected virtual Type GetAdoMemberBinderType()
         {
-            return typeof(AdoMemberBinderImpl<,,>);
+            return typeof(AdoReaderToMemberBinderImpl<,,>);
         }
 
-        public virtual IAdoMemberBinder<TEntity> CreateMemberBinder<TEntity>(MemberInfo member, Type getterType, int index)
+        public virtual IAdoReaderToMemberBinder<TEntity> CreateMemberBinder<TEntity>(MemberInfo member, Type getterType, int index)
         {
             if (member == null) throw new ArgumentNullException("member");
             if (getterType == null) throw new ArgumentNullException("getterType");
@@ -112,7 +112,7 @@ namespace XAdo.Core.Impl
             var binderGetterType = Nullable.GetUnderlyingType(member.GetMemberType()) == getterType
                 ? member.GetMemberType()
                 : getterType;
-            return ((IAdoMemberBinder<TEntity>) _classBinder.Get(typeof (AdoMemberBinderImpl<,,>)
+            return ((IAdoReaderToMemberBinder<TEntity>) _classBinder.Get(typeof (AdoReaderToMemberBinderImpl<,,>)
                 .MakeGenericType(typeof (TEntity),member.GetMemberType(),binderGetterType)))
                 .Initialize(member, index);
         }
@@ -138,16 +138,16 @@ namespace XAdo.Core.Impl
         }
 
         // initializes and caches a property binders list by entity type and a datareader structure
-        public virtual IList<IAdoMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
+        public virtual IList<IAdoReaderToMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
         {
             if (record == null) throw new ArgumentNullException("record");
             return
-                (IList<IAdoMemberBinder<T>>)_binderCache.GetOrAdd(
+                (IList<IAdoReaderToMemberBinder<T>>)_binderCache.GetOrAdd(
                     new BinderIdentity(typeof(T), record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,lastColumnIndex),
                     k =>
                     {
                         var type = typeof (T);
-                        var binders = new List<IAdoMemberBinder<T>>();
+                        var binders = new List<IAdoReaderToMemberBinder<T>>();
                         var first = firstColumnIndex.GetValueOrDefault(0);
                         var last = lastColumnIndex.GetValueOrDefault(record.FieldCount - 1);
                         for (var i = first; i <= last; i++)

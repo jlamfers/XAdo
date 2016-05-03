@@ -5,9 +5,9 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    public class AdoMemberBinderPropertiesAndFieldsImpl<TEntity, TSetter, TGetter> : AdoMemberBinderImpl<TEntity, TSetter, TGetter>
+    public class AdoReaderToMemberBinderImplEx<TEntity, TSetter, TGetter> : AdoReaderToMemberBinderImpl<TEntity, TSetter, TGetter>
     {
-        public AdoMemberBinderPropertiesAndFieldsImpl(IAdoTypeConverterFactory typeConverterFactory) : base(typeConverterFactory)
+        public AdoReaderToMemberBinderImplEx(IAdoTypeConverterFactory typeConverterFactory) : base(typeConverterFactory)
         {
         }
 

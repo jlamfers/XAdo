@@ -30,7 +30,7 @@ namespace XAdo.Core.Impl
         public static IAdoContextInitializer EnableFieldBinding(this IAdoContextInitializer self)
         {
             self.BindSingleton<IAdoDataBinderFactory, AdoDataBinderFactoryPropertiesAndFieldsImpl>();
-            self.Bind(typeof(AdoMemberBinderImpl<,,>), typeof(AdoMemberBinderPropertiesAndFieldsImpl<,,>));
+            self.Bind(typeof(AdoReaderToMemberBinderImpl<,,>), typeof(AdoReaderToMemberBinderImplEx<,,>));
             return self;
         }
     }

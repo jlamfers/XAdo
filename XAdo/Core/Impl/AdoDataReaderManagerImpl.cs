@@ -110,7 +110,7 @@ namespace XAdo.Core.Impl
                         f((T1) x1, (T2) x2, (T3) x3, (T4) x4, (T5) x5, (T6) x6, (T7) x7, (T8) x8);
             } 
 
-            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, IList<IAdoMemberBinder<T>> binders, Func<object> factory)
+            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, IList<IAdoReaderToMemberBinder<T>> binders, Func<object> factory)
             {
                 return parent.BindTarget(reader, index, binders, factory);
             }
@@ -211,7 +211,7 @@ namespace XAdo.Core.Impl
             return readerHelper.ReadAll(this, _multiBinderFactory, _activatorFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers).Cast<TResult>();
         }
 
-        protected virtual T BindTarget<T>(IDataReader reader, int index, IList<IAdoMemberBinder<T>> binders, Func<object> factory )
+        protected virtual T BindTarget<T>(IDataReader reader, int index, IList<IAdoReaderToMemberBinder<T>> binders, Func<object> factory )
         {
             if (reader == null) throw new ArgumentNullException("reader");
             if (binders == null) throw new ArgumentNullException("binders");

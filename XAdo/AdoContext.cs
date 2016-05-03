@@ -168,7 +168,7 @@ namespace XAdo
             TryBindSingleton<IActivatorFactory, ActivatorFactoryImpl>();
             TryBind<IAdoParameter>(b => new AdoParameterImpl());
             TryBind<IAdoSession, AdoSessionImpl>();
-            TryBind(typeof(AdoMemberBinderImpl<,,>), typeof(AdoMemberBinderImpl<,,>));
+            TryBind(typeof(AdoReaderToMemberBinderImpl<,,>), typeof(AdoReaderToMemberBinderImpl<,,>));
 
             if (initializer != null)
             {

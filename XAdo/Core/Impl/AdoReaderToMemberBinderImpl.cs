@@ -5,19 +5,19 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    public class AdoMemberBinderImpl<TEntity, TSetter, TGetter> : IAdoMemberBinder<TEntity>
+    public class AdoReaderToMemberBinderImpl<TEntity, TSetter, TGetter> : IAdoReaderToMemberBinder<TEntity>
     {
         private readonly IAdoTypeConverterFactory _typeConverterFactory;
         private Action<TEntity, TSetter> _setter;
         private Func<IDataRecord, int, TSetter> _getter;
         private int _dataRecordIndex;
 
-        public AdoMemberBinderImpl(IAdoTypeConverterFactory typeConverterFactory)
+        public AdoReaderToMemberBinderImpl(IAdoTypeConverterFactory typeConverterFactory)
         {
             _typeConverterFactory = typeConverterFactory;
         }
 
-        public virtual IAdoMemberBinder<TEntity> Initialize(MemberInfo member, int dataRecordIndex)
+        public virtual IAdoReaderToMemberBinder<TEntity> Initialize(MemberInfo member, int dataRecordIndex)
         {
             _dataRecordIndex = dataRecordIndex;
             _setter = CreateSetter(member);

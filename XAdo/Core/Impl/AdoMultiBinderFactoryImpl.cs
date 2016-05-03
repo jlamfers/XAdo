@@ -17,7 +17,7 @@ namespace XAdo.Core.Impl
         }
 
         // finds all column indices in datarecord and initizalizes corresponding binders for type T
-        public virtual IList<IAdoMemberBinder<T>> InitializeMemberBinders<T, TNext>(IDataRecord record,
+        public virtual IList<IAdoReaderToMemberBinder<T>> InitializeMemberBinders<T, TNext>(IDataRecord record,
             bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex)
         {
             if (record == null) throw new ArgumentNullException("record");
