@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
+using System.Security.AccessControl;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -139,8 +141,8 @@ namespace XAdo.Core.Impl
         public virtual IEnumerable<dynamic> ReadAll(IDataReader reader)
         {
             if (reader == null) throw new ArgumentNullException("reader");
-            var columnNames = new string[reader.FieldCount].ToList();
-            var columnTypes = new Type[reader.FieldCount].ToList();
+            var columnNames = new string[reader.FieldCount];
+            var columnTypes = new Type[reader.FieldCount];
             var index = new Dictionary<string, int>();
             for (var i = 0; i < reader.FieldCount; i++)
             {
@@ -149,11 +151,13 @@ namespace XAdo.Core.Impl
                 index[reader.GetName(i)] = i;
             }
 
+            var count = reader.FieldCount;
+            var meta = new AdoRow.Meta { ColumnNames = columnNames, Index = index, Types = columnTypes };
             while (reader.Read())
             {
-                var values = new object[reader.FieldCount];
+                var values = new object[count];
                 reader.GetValues(values);
-                yield return new AdoRow(columnNames, values, columnTypes, index);
+                yield return new AdoRow(meta, values);
             }
         }
 

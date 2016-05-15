@@ -16,6 +16,12 @@ namespace XAdo.Core
     /// </summary>
     public class AdoRow : DynamicObject, IAdoRow
     {
+        internal class Meta
+        {
+            public IList<string> ColumnNames;
+            public IList<Type> Types;
+            public IDictionary<string, int> Index;
+        }
         private IList<string> _columnNames;
         private IList<object> _values;
         private IList<Type> _types;
@@ -28,13 +34,22 @@ namespace XAdo.Core
             _values = new List<object>();
             _index = new Dictionary<string, int>();
         }
-        public AdoRow(IList<string> columnNames, IList<object> values, IList<Type> types = null, IDictionary<string, int> index = null)
+        public AdoRow(string[] columnNames, object[] values, Type[] types = null, IDictionary<string, int> index = null)
         {
             _columnNames = columnNames;
             _values = values;
             _types = types;
             _index = index;
         }
+
+        internal AdoRow(Meta meta, object[] values)
+        {
+            _columnNames = meta.ColumnNames;
+            _values = values;
+            _types = meta.Types;
+            _index = meta.Index;
+        }
+
         public AdoRow(IEnumerable<KeyValuePair<string,object>> other )
         {
             _columnNames = new List<string>();
