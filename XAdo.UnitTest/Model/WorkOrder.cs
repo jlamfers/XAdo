@@ -1,7 +1,10 @@
 ﻿using System;
+using XAdo.Entities.Attributes;
+using XAdo.Entities.Sql;
 
 namespace XAdo.UnitTest.Model
 {
+   [DbName("[Production].[WorkOrder]")]
     public partial class WorkOrder
     {
         public int WorkOrderID { get; set; }
@@ -14,6 +17,8 @@ namespace XAdo.UnitTest.Model
         public DateTime DueDate { get; set; }
         public short? ScrapReasonID { get; set; }
         public DateTime ModifiedDate { get; set; }
+
+        public string TempName { get; set; }
         //public string X{ get; set; }
     }
 }

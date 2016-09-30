@@ -59,6 +59,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\XAdo.Entities\XAdo.Entities.csproj">
+      <Project>{ad69c1e2-ad5b-429f-b4f8-5c87e40cbf2c}</Project>
+      <Name>XAdo.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XAdo\XAdo.csproj">
       <Project>{de35b1af-d6a1-4324-840a-11854787ded4}</Project>
       <Name>XAdo</Name>

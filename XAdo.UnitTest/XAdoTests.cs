@@ -1,6 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using XAdo.Entities;
+using XAdo.Entities.Sql;
 using XAdo.UnitTest.Model;
 
 namespace XAdo.UnitTest
@@ -41,7 +46,7 @@ namespace XAdo.UnitTest
         [TestMethod]
         public void WorkOrdersCanBeQueriedWithProperties()
         {
-            using (var session = Db.Northwind.CreateSession())
+            using (var session = Db.Northwind.CreateSession().BeginTransaction())
             {
                 var list = session.Query<WorkOrder>("SELECT * FROM [Production].[WorkOrder]");
                 var sw = new Stopwatch();
@@ -51,5 +56,30 @@ namespace XAdo.UnitTest
                 Debug.WriteLine("#rows fetched: " + list.Count() + ", elapsed: " + sw.ElapsedMilliseconds + " ms.");
             }
         }
+
+       [TestMethod]
+       public void SqlSelectWorks()
+       {
+          using (var session = Db.Northwind.CreateSession())
+          {
+             var list = session.Select<WorkOrder>();
+          }
+       }
+       [TestMethod]
+       public void ExpressionWorks()
+       {
+          var yep = new {Id = 11, Name="oops"};
+          var list = new List<WorkOrder>(new []{new WorkOrder {TempName = "Foo"}});
+          list.Where(s => s.TempName.CompareTo("Foo") < -1).ToList();
+
+          var exp = GetExpression<WorkOrder>(w => w.DueDate != w.EndDate && (w.ProductID == 10 || w.ProductID == yep.Id) && w.DueDate > DateTime.UtcNow &&  w.TempName.StartsWith(w.TempName) &&  string.Compare(w.TempName,"oops") < -1);
+          var c = new SqlWhereClauseBuilder();
+          var result = c.Compile(exp);
+       }
+
+       public Expression GetExpression<T>(Expression<Func<T,bool>> expression)
+       {
+          return expression;
+       }
     }
 }
