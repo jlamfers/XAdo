@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using XAdo.Entities.Attributes;
+using XAdo.Quobs.Attributes;
 
-namespace XAdo.Entities.Sql
+namespace XAdo.Quobs.Sql
 {
    public class SqlBuilder
    {

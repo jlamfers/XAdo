@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using XAdo.Entities.Sql.Formatter;
+﻿using System;
+using System.Collections.Generic;
+using XAdo.Quobs.Sql.Formatter;
 
-namespace XAdo.Entities.Sql
+namespace XAdo.Quobs.Sql
 {
    public class SqlSelectMeta : ISqlSelectMeta
    {
@@ -11,16 +12,17 @@ namespace XAdo.Entities.Sql
          OrderColumns = new List<string>();
          HavingClausePredicates = new List<string>();
          WhereClausePredicates = new List<string>();
-         SelectColumns = new List<string>();
+         SelectColumns = new List<Tuple<string, string>>();
          Arguments = new Dictionary<string, object>();
       }
 
-      public IList<string> SelectColumns { get; private set; }
-      public IList<string> WhereClausePredicates { get; private set; }
-      public IList<string> HavingClausePredicates { get; private set; }
-      public IList<string> OrderColumns { get; private set; }
-      public IList<string> GroupByColumns { get; private set; }
+      public List<Tuple<string,string>> SelectColumns { get; private set; }
+      public List<string> WhereClausePredicates { get; private set; }
+      public List<string> HavingClausePredicates { get; private set; }
+      public List<string> OrderColumns { get; private set; }
+      public List<string> GroupByColumns { get; private set; }
       public string TableName { get; set; }
+      public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }
    }
 }

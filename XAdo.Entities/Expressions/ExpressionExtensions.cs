@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace XAdo.Entities.Expressions
+namespace XAdo.Quobs.Expressions
 {
    internal static class ExpressionExtensions
    {

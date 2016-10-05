@@ -10,6 +10,7 @@ namespace XAdo.UnitTest
                 .EnableFieldBinding()
                 //.AllowUnbindableProperties(true)
                 .EnableEmittedDynamicTypes()
+                //.SetCustomTypeConverter<int,long>(x => 0L + x)
                 //.EnablePessimisticDataReader()
             );
     }

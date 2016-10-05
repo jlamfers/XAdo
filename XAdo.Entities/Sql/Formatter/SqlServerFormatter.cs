@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace XAdo.Entities.Sql.Formatter
+namespace XAdo.Quobs.Sql.Formatter
 {
    public class SqlServerFormatter : SqlFormatter
    {

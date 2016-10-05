@@ -1,76 +1,135 @@
-﻿using System.Collections.Generic;
-using XAdo.Entities.Sql;
-using XAdo.Entities.Sql.Formatter;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using XAdo.Quobs.Sql;
+using XAdo.Quobs.Sql.Formatter;
 
-namespace XAdo.Entities
+namespace XAdo.Quobs
 {
-   public class Quob
+   public class Quob : IQuob, ISqlBuilder
    {
-      public const string
-         ParNameSkip = "__skip",
-         ParNameTake = "__take";
-
-      public Quob(string tableName, ISqlFormatter formatter)
+      public Quob(string rawTableName, ISqlFormatter formatter, ISqlExecuter executer)
       {
-         Formatter = formatter ?? new SqlFormatter();
-         Meta = new SqlSelectMeta { TableName = Formatter.DelimitIdentifier(tableName) };
+         if (rawTableName == null) throw new ArgumentNullException("rawTableName");
+         if (formatter == null) throw new ArgumentNullException("formatter");
+         if (executer == null) throw new ArgumentNullException("executer");
+         Formatter = formatter;
+         Executer = executer;
+         Meta = new SqlSelectMeta { TableName = rawTableName };
       }
 
-      public Quob Select(params string[] columns)
+      public virtual IQuob Select(params Tuple<string, string>[] raw)
       {
-         Meta.SelectColumns.CastTo<List<string>>().AddRange(columns);
+         Meta.SelectColumns.AddRange(raw);
+         return this;
+      }
+      public virtual IQuob Select(params string[] raw)
+      {
+         Meta.SelectColumns.AddRange(raw.Select(s => Tuple.Create<string, string>(s,(string)null)));
          return this;
       }
 
-      public Quob Where(params string[] predicates)
+      public virtual IQuob Where(params string[] raw)
       {
-         Meta.WhereClausePredicates.CastTo<List<string>>().AddRange(predicates);
+         Meta.WhereClausePredicates.CastTo<List<string>>().AddRange(raw);
          return this;
       }
 
-      public Quob Having(params string[] predicates)
+      public virtual IQuob Having(params string[] raw)
       {
-         Meta.HavingClausePredicates.CastTo<List<string>>().AddRange(predicates);
+         Meta.HavingClausePredicates.CastTo<List<string>>().AddRange(raw);
          return this;
       }
 
-      public Quob OrderBy(params string[] columns)
+      public virtual IQuob OrderBy(params string[] raw)
       {
-         Meta.OrderColumns.CastTo<List<string>>().AddRange(columns);
+         Meta.OrderColumns.CastTo<List<string>>().AddRange(raw);
          return this;
       }
 
-      public Quob GroupBy(params string[] columns)
+      public virtual IQuob GroupBy(params string[] raw)
       {
-         Meta.GroupByColumns.CastTo<List<string>>().AddRange(columns);
+         Meta.GroupByColumns.CastTo<List<string>>().AddRange(raw);
          return this;
       }
 
-      public Quob Skip(int? value)
+      public IQuob Skip(int? value)
       {
-         return RegisterArgument(ParNameSkip, value);
+         Meta.Arguments[SqlFormatter.ParNameSkip] = value;
+         return this;
       }
 
-      public Quob Take(int? value)
+      public IQuob Take(int? value)
       {
-         return RegisterArgument(ParNameTake, value);
+         Meta.Arguments[SqlFormatter.ParNameTake] = value;
+         return this;
       }
 
-      protected Quob RegisterArgument(string name, object value)
+      public virtual IQuob Distinct()
       {
-         if (value == null)
+         Meta.CastTo<SqlSelectMeta>().Distict = true;
+         return this;
+      }
+
+      public virtual long Count()
+      {
+         using (var w = new StringWriter())
          {
-            Meta.Arguments.Remove(name);
+            Formatter.FormatSqlSelectCount(w, Meta);
+            var sql = w.GetStringBuilder().ToString();
+            return Executer.ExecuteScalar<long>(sql, Meta.Arguments);
          }
-         else
+      }
+      public virtual IEnumerable<dynamic> ToEnumerable()
+      {
+         return Executer.ExecuteQuery<dynamic>(GetSql(), Meta.Arguments);
+      }
+      public virtual IList<dynamic> ToList()
+      {
+         var list = ToEnumerable();
+         return (list as IList<dynamic>) ?? list.ToList();
+      }
+      public virtual IEnumerable<dynamic> ToEnumerable(out long count)
+      {
+         using (var w = new StringWriter())
          {
-            Meta.Arguments[name] = value;
+            Formatter.FormatSqlSelectCount(w, Meta);
+            var sqlCount = w.GetStringBuilder().ToString();
+            return Executer.ExecuteQuery<dynamic>(GetSql(), Meta.Arguments, sqlCount, out count);
          }
-         return this;
+
+      }
+      public virtual IList<dynamic> ToList(out long count)
+      {
+         var list = ToEnumerable(out count);
+         return (list as IList<dynamic>) ?? list.ToList();
       }
 
-      protected ISqlFormatter Formatter { get; private set; }
-      protected ISqlSelectMeta Meta { get; private set; }
+      protected virtual ISqlFormatter Formatter { get; private set; }
+      protected virtual ISqlSelectMeta Meta { get; private set; }
+      protected virtual ISqlExecuter Executer { get; private set; }
 
+      public virtual string GetSql()
+      {
+         using (var w = new StringWriter())
+         {
+            var parNameSkip = Meta.Arguments.ContainsKey(SqlFormatter.ParNameSkip) ? SqlFormatter.ParNameSkip : null;
+            var parNameTake = Meta.Arguments.ContainsKey(SqlFormatter.ParNameTake) ? SqlFormatter.ParNameTake : null;
+            if (parNameSkip != null || parNameTake != null)
+            {
+               Formatter.FormatSqlSelectPaged(w, Meta,parNameSkip, parNameTake);
+            }
+            else
+            {
+               Formatter.FormatSqlSelect(w, Meta);
+            }
+            return w.GetStringBuilder().ToString();
+         }
+      }
+      public virtual IDictionary<string, object> GetArguments()
+      {
+         return Meta.Arguments.ToDictionary(x => x.Key, x => x.Value);
+      }
    }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
-using XAdo.Entities.Attributes;
-using XAdo.Entities.Sql;
+using XAdo.Quobs.Attributes;
 
 namespace XAdo.UnitTest.Model
 {
-   [DbName("[Production].[WorkOrder]")]
+   [Quobs("Production.WorkOrder")]
     public partial class WorkOrder
     {
         public int WorkOrderID { get; set; }
@@ -18,7 +17,7 @@ namespace XAdo.UnitTest.Model
         public short? ScrapReasonID { get; set; }
         public DateTime ModifiedDate { get; set; }
 
-        public string TempName { get; set; }
+        //public string TempName { get; set; }
         //public string X{ get; set; }
     }
 }

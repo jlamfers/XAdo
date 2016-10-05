@@ -1,17 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using XAdo.Entities.Expressions;
-using XAdo.Entities.Sql.Formatter;
+using XAdo.Quobs.Expressions;
+using XAdo.Quobs.Sql.Formatter;
 
-namespace XAdo.Entities.Sql
+namespace XAdo.Quobs.Sql
 {
-   public class SqlWhereClauseBuilder : ExpressionVisitor
+   public class SqlExpressionCompiler : ExpressionVisitor
    {
-      private readonly ISqlFormatter _formatter;
+      private class CompileResult : ISqlBuilder
+      {
+         private readonly string _sql;
+         private readonly IDictionary<string, object> _arguments;
+
+         internal CompileResult(string sql, IDictionary<string, object> arguments)
+         {
+            _sql = sql;
+            _arguments = arguments;
+         }
+
+         public string GetSql()
+         {
+            return _sql;
+         }
+
+         public IDictionary<string, object> GetArguments()
+         {
+            return _arguments;
+         }
+      }
+
+      private readonly ISqlFormatter 
+         _formatter;
 
       public static class KnownMembers
       {
@@ -21,8 +44,8 @@ namespace XAdo.Entities.Sql
                StartsWith = MemberInfoFinder.GetMethodInfo<string>(s => s.StartsWith("")),
                EndsWith = MemberInfoFinder.GetMethodInfo<string>(s => s.EndsWith("")),
                Contains = MemberInfoFinder.GetMethodInfo<string>(s => s.Contains("")),
-               Compare = MemberInfoFinder.GetMethodInfo<string>(s => s.CompareTo("")),
-               Compare2 = MemberInfoFinder.GetMethodInfo<bool>(s => string.Compare("", ""));
+               CompareTo = MemberInfoFinder.GetMethodInfo<string>(s => s.CompareTo("")),
+               Compare = MemberInfoFinder.GetMethodInfo<bool>(s => string.Compare("", ""));
          }
 
          public static HashSet<MethodInfo> LikeMethods = new HashSet<MethodInfo>(new[]
@@ -31,28 +54,26 @@ namespace XAdo.Entities.Sql
          });
          public static HashSet<MethodInfo> CompareMethods = new HashSet<MethodInfo>(new[]
          {
-            String.Compare,String.Compare2
+            String.CompareTo, String.Compare
          });
 
       }
 
-      public SqlWhereClauseBuilder(ISqlFormatter formatter = null)
+      public SqlExpressionCompiler(ISqlFormatter formatter)
       {
-         _formatter = formatter ?? new SqlFormatter();
+         if (formatter == null) throw new ArgumentNullException("formatter");
+         _formatter = formatter;
       }
-
-      private StringBuilder
-         _sb;
 
       private Dictionary<string, object>
          _arguments;
 
-      public Tuple<string,IDictionary<string,object>> Compile(Expression expression)
+      public ISqlBuilder Compile(Expression expression)
       {
-         _sb = new StringBuilder();
+         Writer = new StringWriter();
          _arguments = new Dictionary<string, object>();
          Visit(expression);
-         return new Tuple<string, IDictionary<string, object>>(_sb.ToString(),_arguments);
+         return new CompileResult(Writer.CastTo<StringWriter>().GetStringBuilder().ToString(),_arguments);
       }
 
       protected override Expression VisitUnary(UnaryExpression node)
@@ -60,7 +81,7 @@ namespace XAdo.Entities.Sql
          switch (node.NodeType)
          {
             case ExpressionType.Not:
-               _sb.Append(" NOT ");
+               Writer.Write(" NOT ");
                Visit(node.Operand);
                break;
             case ExpressionType.Convert:
@@ -81,42 +102,42 @@ namespace XAdo.Entities.Sql
 
          if (node.NodeType == ExpressionType.OrElse)
          {
-            _sb.Append("(");
+            Writer.Write("(");
          }
          Visit(node.Left);
 
          switch (node.NodeType)
          {
             case ExpressionType.AndAlso:
-               _sb.Append(" AND ");
+               Writer.Write(" AND ");
                break;
 
             case ExpressionType.OrElse:
-               _sb.Append(" OR ");
+               Writer.Write(" OR ");
                break;
 
             case ExpressionType.Equal:
-               _sb.Append(IsNullConstant(node.Right) ? " IS " : " = ");
+               Writer.Write(IsNullConstant(node.Right) ? " IS " : " = ");
                break;
 
             case ExpressionType.NotEqual:
-               _sb.Append(IsNullConstant(node.Right) ? " IS NOT " : " <> ");
+               Writer.Write(IsNullConstant(node.Right) ? " IS NOT " : " <> ");
                break;
 
             case ExpressionType.LessThan:
-               _sb.Append(" < ");
+               Writer.Write(" < ");
                break;
 
             case ExpressionType.LessThanOrEqual:
-               _sb.Append(" <= ");
+               Writer.Write(" <= ");
                break;
 
             case ExpressionType.GreaterThan:
-               _sb.Append(" > ");
+               Writer.Write(" > ");
                break;
 
             case ExpressionType.GreaterThanOrEqual:
-               _sb.Append(" >= ");
+               Writer.Write(" >= ");
                break;
 
             default:
@@ -127,7 +148,7 @@ namespace XAdo.Entities.Sql
          Visit(node.Right);
          if (node.NodeType == ExpressionType.OrElse)
          {
-            _sb.Append(")");
+            Writer.Write(")");
          }
          return node;
       }
@@ -135,7 +156,7 @@ namespace XAdo.Entities.Sql
       {
          if (node.Expression != null && node.Expression.NodeType == ExpressionType.Parameter)
          {
-            _sb.Append(_formatter.FormatColumnName(node.Member));
+            Writer.Write(_formatter.FormatColumn(node.Member));
             return node;
          }
          RegisterArgument(node.GetExpressionValue());
@@ -145,7 +166,7 @@ namespace XAdo.Entities.Sql
       {
          if (node.Value == null)
          {
-            _sb.Append("NULL");
+            Writer.Write("NULL");
          }
          else
          {
@@ -160,23 +181,22 @@ namespace XAdo.Entities.Sql
          if (KnownMembers.LikeMethods.Contains(m))
          {
             Visit(node.Object);
-            _sb.Append(" LIKE ");
+            Writer.Write(" LIKE ");
             if (node.Arguments[0].IsParameterMember())
             {
                const string methodName = "CONCAT";
-               var w = new StringWriter(_sb);
                // we cannot evaluate values if the operand is a parameter member, so we need a column reference
                if (m == KnownMembers.String.StartsWith)
                {
-                  _formatter.FormatSqlMethod(methodName,w, x => Visit(node.Arguments[0]), x => x.Write("'%'"));
+                  FormatSqlMethod(methodName, () => Visit(node.Arguments[0]), () => Writer.Write("'%'"));
                }
                else if (m == KnownMembers.String.EndsWith)
                {
-                  _formatter.FormatSqlMethod(methodName, w, x => x.Write("'%'"), x => Visit(node.Arguments[0]));
+                  FormatSqlMethod(methodName,  () => Writer.Write("'%'"), () => Visit(node.Arguments[0]));
                }
                else if (m == KnownMembers.String.Contains)
                {
-                  _formatter.FormatSqlMethod(methodName, w, x => x.Write("'%'"), x => Visit(node.Arguments[0]), x => x.Write("'%'"));
+                  FormatSqlMethod(methodName, () => Writer.Write("'%'"), () => Visit(node.Arguments[0]), () => Writer.Write("'%'"));
                }               
             }
             else
@@ -197,20 +217,38 @@ namespace XAdo.Entities.Sql
          }
          else
          {
-            RegisterArgument(node);
+            RegisterArgument(node.GetExpressionValue());
          }
 
          return node;
       }
 
+      protected TextWriter Writer { get; private set; }
+
+      protected void FormatSqlMethod(string methodName, params Action[] args)
+      {
+         _formatter.FormatSqlMethod(methodName, Writer, args.Select(ParameterizeWriter).ToArray());
+      }
+
+      private Action<TextWriter> ParameterizeWriter(Action action)
+      {
+         return w =>
+         {
+            var pw = Writer;
+            Writer = w;
+            action();
+            Writer = pw;
+         };
+      }
+
       private void RegisterArgument(object value)
       {
          var argumentName = "arg_" + _arguments.Count;
-         _sb.AppendFormat(_formatter.FormatParameterName(argumentName));
+         Writer.Write(_formatter.FormatParameterName(argumentName));
          _arguments[argumentName] = value;
       }
 
-      protected bool IsNullConstant(Expression exp)
+      private bool IsNullConstant(Expression exp)
       {
          return (exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null);
       }
@@ -262,7 +300,7 @@ namespace XAdo.Entities.Sql
             compareValue = int.Parse(node.Right.GetExpressionValue().ToString());
          }
 
-         if (compareMethod.Method == KnownMembers.String.Compare)
+         if (compareMethod.Method == KnownMembers.String.CompareTo)
          {
             arg1 = compareMethod.Object;
             arg2 = compareMethod.Arguments[0];
@@ -283,10 +321,10 @@ namespace XAdo.Entities.Sql
                case ExpressionType.LessThan:
                case ExpressionType.LessThanOrEqual:
                case ExpressionType.NotEqual:
-                  _sb.Append(TRUE);
+                  Writer.Write(TRUE);
                   return true;
                default:
-                  _sb.Append(FALSE);
+                  Writer.Write(FALSE);
                   return true;
             }
          }
@@ -298,10 +336,10 @@ namespace XAdo.Entities.Sql
                case ExpressionType.GreaterThan:
                case ExpressionType.GreaterThanOrEqual:
                case ExpressionType.NotEqual:
-                  _sb.Append(TRUE); // always true
+                  Writer.Write(TRUE); // always true
                   return true;
                default:
-                  _sb.Append(FALSE); // always false
+                  Writer.Write(FALSE); // always false
                   return true;
             }
          }
@@ -313,21 +351,21 @@ namespace XAdo.Entities.Sql
             switch (@operator)
             {
                case ExpressionType.GreaterThan:
-                  _sb.Append(FALSE); // always false 
+                  Writer.Write(FALSE); // always false 
                   return true;
                case ExpressionType.LessThanOrEqual:
-                  _sb.Append(TRUE); // always true
+                  Writer.Write(TRUE); // always true
                   return true;
                case ExpressionType.GreaterThanOrEqual:
                case ExpressionType.Equal:
                   Visit(arg1);
-                  _sb.Append(" < ");
+                  Writer.Write(" < ");
                   Visit(arg2);
                   return true;
                case ExpressionType.LessThan:
                case ExpressionType.NotEqual:
                   Visit(arg1);
-                  _sb.Append(" >= ");
+                  Writer.Write(" >= ");
                   Visit(arg2);
                   return true;
                default:
@@ -341,32 +379,32 @@ namespace XAdo.Entities.Sql
             {
                case ExpressionType.GreaterThan:
                   Visit(arg1);
-                  _sb.Append(" < ");
+                  Writer.Write(" < ");
                   Visit(arg2);
                   return true;
                case ExpressionType.GreaterThanOrEqual:
                   Visit(arg1);
-                  _sb.Append(" <= ");
+                  Writer.Write(" <= ");
                   Visit(arg2);
                   return true;
                case ExpressionType.Equal:
                   Visit(arg1);
-                  _sb.Append(" = ");
+                  Writer.Write(" = ");
                   Visit(arg2);
                   return true;
                case ExpressionType.LessThan:
                   Visit(arg1);
-                  _sb.Append(" > ");
+                  Writer.Write(" > ");
                   Visit(arg2);
                   return true;
                case ExpressionType.LessThanOrEqual:
                   Visit(arg1);
-                  _sb.Append(" >= ");
+                  Writer.Write(" >= ");
                   Visit(arg2);
                   return true;
                case ExpressionType.NotEqual:
                   Visit(arg1);
-                  _sb.Append(" <> ");
+                  Writer.Write(" <> ");
                   Visit(arg2);
                   return true;
                default:
@@ -379,21 +417,21 @@ namespace XAdo.Entities.Sql
             switch (@operator)
             {
                case ExpressionType.LessThan:
-                  _sb.Append(FALSE); // always false
+                  Writer.Write(FALSE); // always false
                   return true;
                case ExpressionType.GreaterThanOrEqual:
-                  _sb.Append(TRUE); // always true
+                  Writer.Write(TRUE); // always true
                   return true;
                case ExpressionType.LessThanOrEqual:
                case ExpressionType.Equal:
                   Visit(arg1);
-                  _sb.Append(" > ");
+                  Writer.Write(" > ");
                   Visit(arg2);
                   return true;
                case ExpressionType.GreaterThan:
                case ExpressionType.NotEqual:
                   Visit(arg1);
-                  _sb.Append(" <= ");
+                  Writer.Write(" <= ");
                   Visit(arg2);
                   return true;
                default:

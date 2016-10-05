@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace XAdo.Entities.Expressions
+namespace XAdo.Quobs.Expressions
 {
    public static class MemberInfoFinder
    {

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using XAdo.Entities;
-using XAdo.Entities.Sql;
+using XAdo.Quobs;
+using XAdo.Quobs.Generator;
 using XAdo.UnitTest.Model;
 
 namespace XAdo.UnitTest
@@ -62,24 +63,41 @@ namespace XAdo.UnitTest
        {
           using (var session = Db.Northwind.CreateSession())
           {
-             var list = session.Select<WorkOrder>();
+             //var list = session.Select<WorkOrder>();
           }
        }
        [TestMethod]
        public void ExpressionWorks()
        {
-          var yep = new {Id = 11, Name="oops"};
-          var list = new List<WorkOrder>(new []{new WorkOrder {TempName = "Foo"}});
-          list.Where(s => s.TempName.CompareTo("Foo") < -1).ToList();
+          //var yep = new {Id = 11, Name="oops"};
+          //var list = new List<WorkOrder>(new []{new WorkOrder {TempName = "Foo"}});
+          //list.Where(s => s.TempName.CompareTo("Foo") < -1).ToList();
 
-          var exp = GetExpression<WorkOrder>(w => w.DueDate != w.EndDate && (w.ProductID == 10 || w.ProductID == yep.Id) && w.DueDate > DateTime.UtcNow &&  w.TempName.StartsWith(w.TempName) &&  string.Compare(w.TempName,"oops") < -1);
-          var c = new SqlWhereClauseBuilder();
-          var result = c.Compile(exp);
+          //var exp = GetExpression<WorkOrder>(w => w.DueDate != w.EndDate && (w.ProductID == 10 || w.ProductID == yep.Id) && w.DueDate > DateTime.UtcNow &&  w.TempName.StartsWith(w.TempName) &&  string.Compare(w.TempName,"oops") < -1);
+          //var c = new SqlExpressionCompiler();
+          //var result = c.Compile(exp);
        }
 
        public Expression GetExpression<T>(Expression<Func<T,bool>> expression)
        {
           return expression;
+       }
+
+       [TestMethod]
+       public void T4Works()
+       {
+          new QuobsEntityCSharpGenerator().Generate(
+             factory: DbProviderFactories.GetFactory("System.Data.SqlClient"),
+             connectionString: @"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true",
+             @namespace: "MyApp.Database.Tables",
+             classNamePrefix: "Db",
+             normalizePrimaryKey: false);
+
+
+
+
+
+
        }
     }
 }

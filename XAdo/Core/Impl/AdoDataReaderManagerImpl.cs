@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using System.Security.AccessControl;
 using XAdo.Core.Interface;
 
@@ -172,6 +173,7 @@ namespace XAdo.Core.Impl
                 yield break;
             }
 
+           ConstructorInfo[] ctors;
             if (reader.FieldCount == 1 && (typeof (T).IsValueType || CanConvert(reader.GetFieldType(0), typeof (T))))
             {
                 var scalarReader = _binderFactory.CreateScalarReader<T>(reader.GetFieldType(0));
@@ -180,7 +182,14 @@ namespace XAdo.Core.Impl
                     yield return scalarReader(reader);
                 }
             }
-
+            else if ((ctors = typeof (T).GetConstructors()).Length == 1 && ctors[0].GetParameters().Length > 0)
+            {
+               var ctorBinder = _binderFactory.CreateCtorBinder<T>(reader);
+               while (reader.Read())
+               {
+                  yield return ctorBinder(reader);
+               }
+            }
             else
             {
                 var concreteType = _concreteTypeBuilder.GetConcreteType(typeof (T));
