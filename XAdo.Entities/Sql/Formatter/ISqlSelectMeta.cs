@@ -6,10 +6,10 @@ namespace XAdo.Quobs.Sql.Formatter
    public interface ISqlSelectMeta
    {
       // <column statement>,<alias> => alias is optional
-      List<Tuple<string,string>> SelectColumns { get; }
+      List<SelectColumn> SelectColumns { get; }
       List<string> WhereClausePredicates { get; }
       List<string> HavingClausePredicates { get; }
-      List<string> OrderColumns { get; }
+      List<OrderColumn> OrderColumns { get; }
       List<string> GroupByColumns { get; }
       string TableName { get; }
       bool Distict { get; }

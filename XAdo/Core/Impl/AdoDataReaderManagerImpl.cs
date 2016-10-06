@@ -173,7 +173,7 @@ namespace XAdo.Core.Impl
                 yield break;
             }
 
-           ConstructorInfo[] ctors;
+           ConstructorInfo ctor;
             if (reader.FieldCount == 1 && (typeof (T).IsValueType || CanConvert(reader.GetFieldType(0), typeof (T))))
             {
                 var scalarReader = _binderFactory.CreateScalarReader<T>(reader.GetFieldType(0));
@@ -182,9 +182,9 @@ namespace XAdo.Core.Impl
                     yield return scalarReader(reader);
                 }
             }
-            else if ((ctors = typeof (T).GetConstructors()).Length == 1 && ctors[0].GetParameters().Length > 0)
+            else if ((ctor = TryFindConstructor(typeof(T),reader)) != null)
             {
-               var ctorBinder = _binderFactory.CreateCtorBinder<T>(reader);
+               var ctorBinder = _binderFactory.CreateCtorBinder<T>(reader,ctor);
                while (reader.Read())
                {
                   yield return ctorBinder(reader);
@@ -201,7 +201,18 @@ namespace XAdo.Core.Impl
             }
         }
 
-        public virtual IEnumerable<TResult> ReadAll<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(IDataReader reader,
+       private ConstructorInfo TryFindConstructor(Type type, IDataReader reader)
+       {
+          return type.GetConstructors()
+             .Where(c => c.GetParameters().Length == _binderFactory.GetBindableMembers(type, false).Count())
+             .SingleOrDefault(c => c.GetParameters().All(p =>
+             {
+                var i = reader.GetOrdinal(p.Name);
+                return i >= 0 && reader.GetFieldType(i) == (Nullable.GetUnderlyingType(p.ParameterType) ?? p.ParameterType);
+             }));
+       }
+
+       public virtual IEnumerable<TResult> ReadAll<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(IDataReader reader,
             Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> factory, bool allowUnbindableFetchResults,
             bool allowUnbindableMembers)
         {

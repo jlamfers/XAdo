@@ -33,21 +33,21 @@ namespace XAdo.Quobs.Sql.Formatter
       }
 
       //tuple holds column spec and alias
-      public static Tuple<string, string> FormatSelectTuple(this ISqlFormatter self, MemberInfo column)
+      public static SelectColumn FormatSelectTuple(this ISqlFormatter self, MemberInfo column)
       {
          var m = column;
-         return Tuple.Create(self.FormatColumn(m), m.GetCustomAttribute<QuobsAttribute>() != null ? self.DelimitIdentifier(m.Name) : null);
+         return new SelectColumn(self.FormatColumn(m), m.GetCustomAttribute<QuobsAttribute>() != null ? self.DelimitIdentifier(m.Name) : null);
       }
 
-      public static Tuple<string,string> FormatSelectTuple<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
+      public static SelectColumn FormatSelectTuple<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
       {
          return self.FormatSelectTuple(column.GetMemberInfo());
       }
 
 
-      public static string FormatOrderByColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column, string order)
+      public static OrderColumn FormatOrderByColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column, bool descending)
       {
-         return self.FormatAlias(column) + (!string.IsNullOrWhiteSpace(order) ? " "+ order : string.Empty) ;
+         return new OrderColumn(self.FormatAlias(column), descending);
       }
 
    }

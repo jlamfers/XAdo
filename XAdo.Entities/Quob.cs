@@ -19,14 +19,14 @@ namespace XAdo.Quobs
          Meta = new SqlSelectMeta { TableName = rawTableName };
       }
 
-      public virtual IQuob Select(params Tuple<string, string>[] raw)
+      public virtual IQuob Select(params SelectColumn[] raw)
       {
          Meta.SelectColumns.AddRange(raw);
          return this;
       }
       public virtual IQuob Select(params string[] raw)
       {
-         Meta.SelectColumns.AddRange(raw.Select(s => Tuple.Create<string, string>(s,(string)null)));
+         Meta.SelectColumns.AddRange(raw.Select(s => new SelectColumn(s)));
          return this;
       }
 
@@ -42,9 +42,9 @@ namespace XAdo.Quobs
          return this;
       }
 
-      public virtual IQuob OrderBy(params string[] raw)
+      public virtual IQuob OrderBy(params OrderColumn[] columns)
       {
-         Meta.OrderColumns.CastTo<List<string>>().AddRange(raw);
+         Meta.OrderColumns.AddRange(columns);
          return this;
       }
 

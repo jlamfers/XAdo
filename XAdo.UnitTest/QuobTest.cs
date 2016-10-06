@@ -54,8 +54,15 @@ namespace XAdo.UnitTest
    {
       public class Temp
       {
-         public string _Item1;// { get; set; }
-         public decimal? _Item2;//{ get; set; }
+         public Temp() { }
+         public Temp(string _item1, decimal? _item2)
+         {
+            this._Item1 = _item1;
+            this._Item2 = _item2;
+         }
+
+         public string _Item1 { get; set; }
+         public decimal? _Item2{ get; set; }
       }
 
       [TestMethod]
@@ -68,7 +75,7 @@ namespace XAdo.UnitTest
                //.OrderBy(x => x.CarrierTrackingNumber)
                //.Where(x => x.ModifiedDate != DateTime.Now)
                //.Take(10)
-               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
+               .Select(x => new Temp{ _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
                .ToList();
             var sw = new Stopwatch();
             sw.Start();
@@ -76,7 +83,7 @@ namespace XAdo.UnitTest
                //.OrderBy(x => x.CarrierTrackingNumber)
                //.Where(x => x.ModifiedDate != DateTime.Now)
                //.Take(10)
-               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
+               .Select(x => new Temp{ _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
                .ToList();
             sw.Stop();
             Debug.WriteLine("#" + count);

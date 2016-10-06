@@ -103,7 +103,7 @@ namespace XAdo.Quobs.Sql.Formatter
          else
          {
             w.WriteLine("SELECT {0}", distinct);
-            w.WriteLine("   " + String.Join(",\r\n   ", meta.SelectColumns.Select(t => String.IsNullOrEmpty(t.Item2) ? t.Item1 : t.Item1 + " AS " + t.Item2)));
+            w.WriteLine("   " + String.Join(",\r\n   ", meta.SelectColumns.Select(t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
          }
          w.WriteLine("FROM {0}", meta.TableName);
          if (meta.WhereClausePredicates.Any())
@@ -124,7 +124,7 @@ namespace XAdo.Quobs.Sql.Formatter
          if (meta.OrderColumns.Any())
          {
             w.WriteLine("ORDER BY");
-            w.WriteLine("   " + String.Join(",\r\n   ", meta.OrderColumns.ToArray()));
+            w.WriteLine("   " + String.Join(",\r\n   ", meta.OrderColumns.ToString().ToArray()));
          }
          return this;
       }
@@ -142,7 +142,7 @@ namespace XAdo.Quobs.Sql.Formatter
          meta.OrderColumns.AddRange(orderColumns);
 
          var sql = sw.GetStringBuilder().ToString();
-         var orderClause = String.Join(", ", orderColumns.ToArray());
+         var orderClause = String.Join(", ", orderColumns.ToString().ToArray());
          parNameSkip = parNameSkip != null ? FormatParameterName(parNameSkip) : null;
          parNameTake = parNameTake != null ? FormatParameterName(parNameTake) : null;
 
@@ -164,7 +164,7 @@ SELECT {4}
 FROM __t1
 WHERE __rowNum BETWEEN ({2} + 1) AND ({2} + {3})
 ";
-            writer.WriteLine(format, orderClause, sql, parNameSkip, parNameTake, String.Join(", ", meta.SelectColumns.Select(t => t.Item2 ?? t.Item1).ToArray()));
+            writer.WriteLine(format, orderClause, sql, parNameSkip, parNameTake, String.Join(", ", meta.SelectColumns.Select(t => t.Alias ?? t.Expression).ToArray()));
          }
          return this;
       }

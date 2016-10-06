@@ -275,6 +275,7 @@ namespace XAdo.Quobs.Generator
               connection.ConnectionString = connectionString;
               connection.Open();
               var schemaTable = connection.GetSchema("TABLES");
+
               var tables = new DataRow[schemaTable.Rows.Count];
               schemaTable.Rows.CopyTo(tables, 0);
               tables = tables.OrderBy(t => t.ItemArray[2]).ToArray();

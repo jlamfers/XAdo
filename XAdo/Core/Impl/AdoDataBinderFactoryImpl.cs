@@ -139,16 +139,12 @@ namespace XAdo.Core.Impl
          return r => r.IsDBNull(0) ? default(TResult) : converter(r.GetValue(0));
       }
 
-      public virtual Func<IDataReader, TResult> CreateCtorBinder<TResult>(IDataRecord record)
+      public virtual Func<IDataReader, TResult> CreateCtorBinder<TResult>(IDataRecord record, ConstructorInfo ctor)
       {
-         return CompileAnonymousCtor<TResult>(record, typeof(TResult).GetConstructors()[0]);
+         return CompileCtor<TResult>(record, ctor);
       }
 
-      private static object FilterDbNull(object value)
-      {
-         return value == DBNull.Value ? null : value;
-      }
-
+      
       // initializes and caches a property binders list by entity type and a datareader structure
       public virtual IList<IAdoReaderToMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
@@ -228,9 +224,9 @@ namespace XAdo.Core.Impl
          return m;
       }
 
-      public virtual IEnumerable<MemberInfo> GetBindableMembers(Type type)
+      public virtual IEnumerable<MemberInfo> GetBindableMembers(Type type, bool canWrite = true)
       {
-         return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.CanWrite && IsBindableDataType(p.PropertyType) && p.GetIndexParameters().Length == 0);
+         return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => (!canWrite || p.CanWrite) && IsBindableDataType(p.PropertyType) && p.GetIndexParameters().Length == 0);
       }
 
 
@@ -238,7 +234,7 @@ namespace XAdo.Core.Impl
       private static readonly ConcurrentDictionary<string, object>
         CtorCache = new ConcurrentDictionary<string, object>();
 
-      private static Func<IDataRecord, T> CompileAnonymousCtor<T>(IDataRecord reader, ConstructorInfo ctorInfo)
+      private static Func<IDataRecord, T> CompileCtor<T>(IDataRecord reader, ConstructorInfo ctorInfo)
       {
          var sb = new StringBuilder(ctorInfo.ToString());
          sb.Append(":");

@@ -8,9 +8,11 @@ namespace XAdo.UnitTest
             Northwind = new AdoContext(i => i
                 .SetConnectionString(@"data source=.\SqlExpress;initial catalog=AdventureWorks2012;integrated security=SSPI", "System.Data.SqlClient")
                 .EnableFieldBinding()
+                //.KeepConnectionAlive(false)
                 //.AllowUnbindableProperties(true)
                 .EnableEmittedDynamicTypes()
-                //.SetCustomTypeConverter<int,long>(x => 0L + x)
+                //.EnablePessimisticDataReader()
+                .SetCustomTypeConverter<int,long>(x => 0L + x)
                 //.EnablePessimisticDataReader()
             );
     }

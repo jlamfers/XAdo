@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Quobs;
 using XAdo.Quobs.Generator;
+using XAdo.Schema;
 using XAdo.UnitTest.Model;
 
 namespace XAdo.UnitTest
@@ -93,11 +94,13 @@ namespace XAdo.UnitTest
              classNamePrefix: "Db",
              normalizePrimaryKey: false);
 
+       }
 
-
-
-
-
+       [TestMethod]
+       public void DbReaderWorks()
+       {
+          var db = new DbSchemaReader().Read(@"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true",
+             "System.Data.SqlClient");
        }
     }
 }

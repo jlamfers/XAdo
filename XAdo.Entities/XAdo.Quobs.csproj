@@ -56,7 +56,9 @@
     <Compile Include="Generator\QuobsEntityCSharpGenerator.cs" />
     <Compile Include="IQuob.cs" />
     <Compile Include="IQuob~1.cs" />
+    <Compile Include="Sql\OrderColumn.cs" />
     <Compile Include="Quob.cs" />
+    <Compile Include="Sql\SelectColumn.cs" />
     <Compile Include="SqlServerTypes\Loader.cs" />
     <Compile Include="Sql\ISqlBuilder.cs" />
     <Compile Include="Sql\Formatter\ISqlSelectMeta.cs" />
