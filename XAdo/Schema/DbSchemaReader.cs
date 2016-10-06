@@ -7,14 +7,14 @@ namespace XAdo.Schema
 {
    public class DbSchemaReader
    {
-      public class SchemaTable
+      public class InformationSchemaTable
       {
          public string TABLE_TYPE { get; set; }
          public string TABLE_SCHEMA { get; set; }
          public string TABLE_NAME { get; set; }
       }
 
-      public class SchemaFKey
+      public class InformationSchemaFKey
       {
          public string FK_TABLE_SCHEMA { get; set; }
          public string FK_TABLE_NAME { get; set; }
@@ -24,56 +24,15 @@ namespace XAdo.Schema
          public string REF_COLUMN_NAME { get; set; }
       }
 
-      public virtual DbDatabase Read(string connectionString, string providerInvariantName)
+      public virtual DbSchema Read(string connectionString, string providerInvariantName)
       {
-         IEnumerable<SchemaTable> tables;
-         IEnumerable<SchemaFKey> fkeys;
-
-         var context = new AdoContext(i => i.SetConnectionString(connectionString, providerInvariantName));
-         using (var session = context.CreateSession())
-         {
-            tables = session.Query<SchemaTable>(AllTablesSql);
-            fkeys = session.Query<SchemaFKey>(AllFKeysSql);
-         }
-
-         
-
          var f = DbProviderFactories.GetFactory(providerInvariantName);
 
          using (var cn = f.CreateConnection())
          {
             cn.ConnectionString = connectionString;
             cn.Open();
-            var db = new DbDatabase(cn.Database);
-            foreach (var table in tables)
-            {
-               var tablename = FormatTableName(table.TABLE_SCHEMA, table.TABLE_NAME);
-               var sql = "SELECT * FROM " + tablename + " WHERE 1 = 2";
-               using (var command = f.CreateCommand())
-               {
-                  command.Connection = cn;
-                  command.CommandText = sql;
-                  var adapter = f.CreateDataAdapter();
-                  adapter.SelectCommand = command;
-                  var ds = new DataSet();
-                  adapter.FillSchema(ds, SchemaType.Mapped, tablename);
-
-                  var dbTable = new DbTable(db,table.TABLE_SCHEMA,table.TABLE_NAME,table.TABLE_TYPE=="VIEW");
-
-                  foreach (DataColumn dataColumn in ds.Tables[0].Columns)
-                  {
-                     var ispkey = dataColumn.AutoIncrement || dataColumn.Table.PrimaryKey.Contains(dataColumn);
-                     db.Columns.Add(new DbColumn(db, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName, dataColumn.DataType, ispkey, dataColumn.AutoIncrement,dataColumn.AllowDBNull,dataColumn.Unique,dataColumn.DefaultValue,dataColumn.MaxLength));
-                  }
-
-                  db.Tables.Add(dbTable);
-               }
-            }
-            foreach (var fkey in fkeys)
-            {
-               db.FKeys.Add(new DbFKey(db,fkey.FK_TABLE_SCHEMA,fkey.FK_TABLE_NAME,fkey.REF_TABLE_SCHEMA,fkey.REF_TABLE_NAME,fkey.FK_COLUMN_NAME,fkey.REF_COLUMN_NAME));
-            }
-            return db.AsReadOnly();
+            return BuildDbSchema(cn, f);
          }
       }
 
@@ -82,6 +41,97 @@ namespace XAdo.Schema
          return string.Format("\"{0}\".\"{1}\"", schema, name);
       }
 
+      protected virtual DbSchema BuildDbSchema(DbConnection cn, DbProviderFactory f)
+      {
+         var db = new DbSchema(cn.Database);
+
+         var tables = ReadInformationSchemaTables(cn);
+         var fkeys = ReadInformationSchemaFKeys(cn);
+
+         foreach (var table in tables)
+         {
+            BuildDbTableSchema(cn, f, db, table);
+         }
+
+         foreach (var fkey in fkeys)
+         {
+            db.FKeys.Add(new FKeySchemaItem(db, fkey.FK_TABLE_SCHEMA, fkey.FK_TABLE_NAME, fkey.REF_TABLE_SCHEMA, fkey.REF_TABLE_NAME, fkey.FK_COLUMN_NAME, fkey.REF_COLUMN_NAME));
+         }
+
+         return db.AsReadOnly();
+
+      }
+
+      protected virtual IList<InformationSchemaTable> ReadInformationSchemaTables(DbConnection cn)
+      {
+         using (var c = cn.CreateCommand())
+         {
+            var tables = new List<InformationSchemaTable>();
+            c.CommandText = AllTablesSql;
+            using (var r = c.ExecuteReader())
+            {
+               while (r.Read())
+               {
+                  tables.Add(new InformationSchemaTable
+                  {
+                     TABLE_TYPE = r.GetString(0),
+                     TABLE_SCHEMA = r.GetString(1),
+                     TABLE_NAME = r.GetString(2)
+                  });
+               }
+            }
+            return tables;
+         }
+
+      }
+      protected virtual IList<InformationSchemaFKey> ReadInformationSchemaFKeys(DbConnection cn)
+      {
+         using (var c = cn.CreateCommand())
+         {
+            var fkeys = new List<InformationSchemaFKey>();
+            c.CommandText = AllFKeysSql;
+            using (var r = c.ExecuteReader())
+            {
+               while (r.Read())
+               {
+                  fkeys.Add(new InformationSchemaFKey
+                  {
+                     FK_TABLE_SCHEMA = r.GetString(0),
+                     FK_TABLE_NAME = r.GetString(1),
+                     FK_COLUMN_NAME = r.GetString(2),
+                     REF_TABLE_SCHEMA = r.GetString(3),
+                     REF_TABLE_NAME = r.GetString(4),
+                     REF_COLUMN_NAME = r.GetString(5)
+                  });
+               }
+            }
+            return fkeys;
+         }
+      }
+
+      protected virtual void BuildDbTableSchema(DbConnection cn, DbProviderFactory f, DbSchema schema, InformationSchemaTable table)
+      {
+         var tablename = FormatTableName(table.TABLE_SCHEMA, table.TABLE_NAME);
+         var sql = "SELECT * FROM " + tablename + " WHERE 1 = 2";
+         using (var command = cn.CreateCommand())
+         {
+            command.CommandText = sql;
+            var adapter = f.CreateDataAdapter();
+            adapter.SelectCommand = command;
+            var ds = new DataSet();
+            adapter.FillSchema(ds, SchemaType.Mapped, tablename);
+
+            var dbTable = new TableSchemaItem(schema, table.TABLE_SCHEMA, table.TABLE_NAME, table.TABLE_TYPE == "VIEW");
+            schema.Tables.Add(dbTable);
+
+            foreach (DataColumn dataColumn in ds.Tables[0].Columns)
+            {
+               var ispkey = dataColumn.AutoIncrement || dataColumn.Table.PrimaryKey.Contains(dataColumn);
+               schema.Columns.Add(new ColumnSchemaItem(schema, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName,dataColumn.DataType, ispkey, dataColumn.AutoIncrement, dataColumn.AllowDBNull, dataColumn.Unique,dataColumn.DefaultValue, dataColumn.MaxLength));
+            }
+
+         }
+      }
       protected virtual string AllFKeysSql
       {
          get
@@ -115,18 +165,19 @@ INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS KCU2
          {
             return @"
 SELECT 
-    TABLE_SCHEMA,TABLE_TYPE,TABLE_NAME 
+    TABLE_TYPE, TABLE_SCHEMA, TABLE_NAME 
     FROM INFORMATION_SCHEMA.TABLES
 
 UNION 
 
 SELECT 
-    TABLE_SCHEMA,'VIEW' ,TABLE_NAME
+    'VIEW', TABLE_SCHEMA, TABLE_NAME
     FROM INFORMATION_SCHEMA.VIEWS
 
 ORDER BY 
     TABLE_TYPE, TABLE_SCHEMA, TABLE_NAME";
          }
       }
+
    }
 }

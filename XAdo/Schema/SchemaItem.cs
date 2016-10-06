@@ -4,17 +4,17 @@ using System.Collections.Generic;
 namespace XAdo.Schema
 {
    [Serializable]
-   public class DbItem
+   public class SchemaItem
    {
       [NonSerialized]
-      private DbDatabase _database;
+      private DbSchema _schema;
 
       private readonly IDictionary<string, object> _items = new Dictionary<string, object>();
 
-      public DbDatabase Database
+      public DbSchema Schema
       {
-         get { return _database; }
-         internal set { _database = value; }
+         get { return _schema; }
+         internal set { _schema = value; }
       }
 
       public IDictionary<string, object> Items

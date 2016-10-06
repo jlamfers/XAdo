@@ -4,21 +4,21 @@ using System.Linq;
 namespace XAdo.Schema
 {
    [Serializable]
-   public class DbColumn : DbItem
+   public class ColumnSchemaItem : SchemaItem
    {
-      private static readonly DbColumn Empty = new DbColumn();
+      private static readonly ColumnSchemaItem Empty = new ColumnSchemaItem();
       [NonSerialized]
-      private DbTable _table;
+      private TableSchemaItem _table;
 
       [NonSerialized]
-      private DbColumn _references;
+      private ColumnSchemaItem _references;
 
-      private DbColumn() { }
+      private ColumnSchemaItem() { }
 
-      public DbColumn(DbDatabase database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isDbGenerated, bool isNullable, bool isUnique, object defaultValue, int maxLength)
+      public ColumnSchemaItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isDbGenerated, bool isNullable, bool isUnique, object defaultValue, int maxLength)
       {
-         Database = database;
-         TableSchema = tableSchema;
+         Schema = database;
+         TableOwner = tableSchema;
          TableName = tableName;
          IsDbGenerated = isDbGenerated;
          IsNullable = isNullable;
@@ -30,12 +30,12 @@ namespace XAdo.Schema
          Name = name;
       }
 
-      public DbTable Table
+      public TableSchemaItem Table
       {
-         get { return _table ?? (_table = Database.Tables.Single(t => t.Schema == TableSchema && t.Name == TableName)); }
+         get { return _table ?? (_table = Schema.Tables.Single(t => t.Owner == TableOwner && t.Name == TableName)); }
       }
 
-      public DbColumn References
+      public ColumnSchemaItem References
       {
          get
          {
@@ -43,19 +43,19 @@ namespace XAdo.Schema
             {
                return _references == Empty ? null : _references;
             }
-            var fkey = Database.FKeys.SingleOrDefault(fk => fk.FKeyTableName == TableName && fk.FKeyTableSchema == TableSchema && fk.FKeyColumnName == Name);
+            var fkey = Schema.FKeys.SingleOrDefault(fk => fk.FKeyTableName == TableName && fk.FKeyTableSchema == TableOwner && fk.FKeyColumnName == Name);
             if (fkey == null)
             {
                _references = Empty;
                return null;
             }
             return _references =
-               Database.Columns.Single(c => c.TableName == fkey.RefTableName && c.TableSchema == fkey.RefTableSchema && c.Name == fkey.RefColumnName);
+               Schema.Columns.Single(c => c.TableName == fkey.RefTableName && c.TableOwner == fkey.RefTableSchema && c.Name == fkey.RefColumnName);
          }
       }
 
       public string TableName { get; private set; }
-      public string TableSchema { get; private set; }
+      public string TableOwner { get; private set; }
       public string Name { get; private set; }
       public Type Type { get; private set; }
       public bool IsPkey { get; private set; }
