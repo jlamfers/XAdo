@@ -118,13 +118,7 @@
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
-    <Compile Include="Schema\ColumnSchemaItem.cs" />
-    <Compile Include="Schema\DbSchema.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Schema\FKeySchemaItem.cs" />
-    <Compile Include="Schema\SchemaItem.cs" />
-    <Compile Include="Schema\DbSchemaReader.cs" />
-    <Compile Include="Schema\TableSchemaItem.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

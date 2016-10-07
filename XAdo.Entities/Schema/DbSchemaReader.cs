@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-namespace XAdo.Schema
+namespace XAdo.Quobs.Schema
 {
    public class DbSchemaReader
    {
@@ -16,9 +16,12 @@ namespace XAdo.Schema
 
       public class InformationSchemaFKey
       {
+
+         public string FK_CONSTRAINT_NAME { get; set; }
          public string FK_TABLE_SCHEMA { get; set; }
          public string FK_TABLE_NAME { get; set; }
          public string FK_COLUMN_NAME { get; set; }
+         public string REF_CONSTRAINT_NAME { get; set; }
          public string REF_TABLE_SCHEMA { get; set; }
          public string REF_TABLE_NAME { get; set; }
          public string REF_COLUMN_NAME { get; set; }
@@ -55,7 +58,7 @@ namespace XAdo.Schema
 
          foreach (var fkey in fkeys)
          {
-            db.FKeys.Add(new FKeySchemaItem(db, fkey.FK_TABLE_SCHEMA, fkey.FK_TABLE_NAME, fkey.REF_TABLE_SCHEMA, fkey.REF_TABLE_NAME, fkey.FK_COLUMN_NAME, fkey.REF_COLUMN_NAME));
+            db.FKeys.Add(new FKeySchemaItem(db, fkey.FK_CONSTRAINT_NAME, fkey.FK_TABLE_SCHEMA, fkey.FK_TABLE_NAME, fkey.FK_COLUMN_NAME, fkey.REF_CONSTRAINT_NAME, fkey.REF_TABLE_SCHEMA, fkey.REF_TABLE_NAME, fkey.REF_COLUMN_NAME));
          }
 
          return db.AsReadOnly();
@@ -96,12 +99,14 @@ namespace XAdo.Schema
                {
                   fkeys.Add(new InformationSchemaFKey
                   {
-                     FK_TABLE_SCHEMA = r.GetString(0),
-                     FK_TABLE_NAME = r.GetString(1),
-                     FK_COLUMN_NAME = r.GetString(2),
-                     REF_TABLE_SCHEMA = r.GetString(3),
-                     REF_TABLE_NAME = r.GetString(4),
-                     REF_COLUMN_NAME = r.GetString(5)
+                     FK_CONSTRAINT_NAME = r.GetString(0),
+                     FK_TABLE_SCHEMA = r.GetString(1),
+                     FK_TABLE_NAME = r.GetString(2),
+                     FK_COLUMN_NAME = r.GetString(3),
+                     REF_CONSTRAINT_NAME = r.GetString(4),
+                     REF_TABLE_SCHEMA = r.GetString(5),
+                     REF_TABLE_NAME = r.GetString(6),
+                     REF_COLUMN_NAME = r.GetString(7)
                   });
                }
             }
@@ -138,9 +143,11 @@ namespace XAdo.Schema
          {
             return @"
 SELECT  
-     KCU1.TABLE_SCHEMA AS FK_TABLE_SCHEMA 
+     KCU1.CONSTRAINT_NAME AS FK_CONSTRAINT_NAME 
+    ,KCU1.TABLE_SCHEMA AS FK_TABLE_SCHEMA 
     ,KCU1.TABLE_NAME AS FK_TABLE_NAME 
     ,KCU1.COLUMN_NAME AS FK_COLUMN_NAME 
+    ,KCU2.CONSTRAINT_NAME AS REF_CONSTRAINT_NAME 
     ,KCU2.TABLE_SCHEMA AS REF_TABLE_SCHEMA 
     ,KCU2.TABLE_NAME AS REF_TABLE_NAME 
     ,KCU2.COLUMN_NAME AS REF_COLUMN_NAME 

@@ -42,4 +42,6 @@ namespace XAdo.Quobs.Attributes
       }
 
    }
+
+   public class PKeyAttribute : Attribute { }
 }

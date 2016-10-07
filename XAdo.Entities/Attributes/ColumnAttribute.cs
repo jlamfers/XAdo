@@ -1,4 +1,5 @@
 ﻿using System;
+using XAdo.Quobs.Attributes.Core;
 
 namespace XAdo.Quobs.Attributes
 {
@@ -31,8 +32,5 @@ namespace XAdo.Quobs.Attributes
 
       public string[] ColumnNameParts { get; private set; }
 
-      public bool IsPKey { get; set; }
-      public bool IsOutputOnInsert { get; set; }
-      public bool IsOutputOnUpdate { get; set; }
    }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace XAdo.Schema
+namespace XAdo.Quobs.Schema
 {
    [Serializable]
    public class SchemaItem

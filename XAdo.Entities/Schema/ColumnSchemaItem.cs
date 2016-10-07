@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace XAdo.Schema
+namespace XAdo.Quobs.Schema
 {
    [Serializable]
    public class ColumnSchemaItem : SchemaItem
@@ -15,16 +16,16 @@ namespace XAdo.Schema
 
       private ColumnSchemaItem() { }
 
-      public ColumnSchemaItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isDbGenerated, bool isNullable, bool isUnique, object defaultValue, int maxLength)
+      public ColumnSchemaItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isAutoIncrement, bool isNullable, bool isUnique, object defaultValue, int maxLength)
       {
          Schema = database;
          TableOwner = tableSchema;
          TableName = tableName;
-         IsDbGenerated = isDbGenerated;
+         IsAutoIncrement = isAutoIncrement;
          IsNullable = isNullable;
          IsUnique = isUnique;
          DefaultValue = defaultValue;
-         MaxLength = maxLength;
+         MaxLength = maxLength == int.MaxValue ? 0 : maxLength;
          IsPkey = isPkey;
          Type = type;
          Name = name;
@@ -54,12 +55,22 @@ namespace XAdo.Schema
          }
       }
 
+      [NonSerialized]
+      private FKeySchemaItem _fkey;
+      public FKeySchemaItem FKey
+      {
+         get
+         {
+            return References == null ? null : (_fkey ?? (_fkey = Schema.FKeys.SingleOrDefault(k => k.FKeyTableSchema == TableOwner && k.FKeyTableName == TableName && k.FKeyColumnName == Name && k.RefTableSchema==References.TableOwner && k.RefTableName == References.TableName && k.RefColumnName == References.Name)));
+         }
+      }
+
       public string TableName { get; private set; }
       public string TableOwner { get; private set; }
       public string Name { get; private set; }
       public Type Type { get; private set; }
       public bool IsPkey { get; private set; }
-      public bool IsDbGenerated { get; private set; }
+      public bool IsAutoIncrement { get; private set; }
       public bool IsNullable { get; private set; }
       public bool IsUnique { get; private set; }
       public object DefaultValue { get; private set; }

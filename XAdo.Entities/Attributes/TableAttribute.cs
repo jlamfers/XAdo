@@ -1,4 +1,5 @@
 ﻿using System;
+using XAdo.Quobs.Attributes.Core;
 
 namespace XAdo.Quobs.Attributes
 {
@@ -30,4 +31,5 @@ namespace XAdo.Quobs.Attributes
 
       public string[] TableNameParts { get; private set; }
    }
+
 }

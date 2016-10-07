@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace XAdo.Schema
+namespace XAdo.Quobs.Schema
 {
    [Serializable]
    public class DbSchema : IEnumerable<TableSchemaItem>, ISerializable

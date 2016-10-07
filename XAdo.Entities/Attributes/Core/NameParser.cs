@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace XAdo.Quobs.Attributes
+namespace XAdo.Quobs.Attributes.Core
 {
    internal static class NameParser
    {

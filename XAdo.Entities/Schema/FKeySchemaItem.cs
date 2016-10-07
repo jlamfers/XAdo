@@ -1,24 +1,30 @@
 using System;
 
-namespace XAdo.Schema
+namespace XAdo.Quobs.Schema
 {
    [Serializable]
    public class FKeySchemaItem : SchemaItem
    {
-      public FKeySchemaItem(DbSchema schema, string fKeyTableSchema, string fKeyTableName, string refTableSchema, string refTableName, string fKeyColumnName, string refColumnName)
+      public FKeySchemaItem(DbSchema schema, string fKeyConstrantName, string fKeyTableSchema, string fKeyTableName, string fKeyColumnName, string refConstraintName, string refTableSchema, string refTableName, string refColumnName)
       {
          Schema = schema;
+
+         FKeyConstrantName = fKeyConstrantName;
          FKeyTableSchema = fKeyTableSchema;
          FKeyTableName = fKeyTableName;
+         FKeyColumnName = fKeyColumnName;
+
+         RefConstraintName = refConstraintName;
          RefTableSchema = refTableSchema;
          RefTableName = refTableName;
-         FKeyColumnName = fKeyColumnName;
          RefColumnName = refColumnName;
       }
 
+      public string FKeyConstrantName { get; private set; }
       public string FKeyTableSchema { get; private set; }
       public string FKeyTableName { get; private set; }
       public string FKeyColumnName { get; private set; }
+      public string RefConstraintName { get; private set; }
       public string RefTableSchema { get; private set; }
       public string RefTableName { get; private set; }
       public string RefColumnName { get; private set; }
