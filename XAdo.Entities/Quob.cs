@@ -30,6 +30,19 @@ namespace XAdo.Quobs
          return this;
       }
 
+      public virtual IQuob Join(params string[] joins)
+      {
+         foreach (var join in joins)
+         {
+            if (!Meta.Joins.Contains(join))
+            {
+               Meta.Joins.Add(join);
+            }
+            
+         }
+         return this;
+      }
+
       public virtual IQuob Where(params string[] raw)
       {
          Meta.WhereClausePredicates.CastTo<List<string>>().AddRange(raw);

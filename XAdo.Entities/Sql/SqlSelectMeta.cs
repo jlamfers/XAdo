@@ -14,6 +14,7 @@ namespace XAdo.Quobs.Sql
          WhereClausePredicates = new List<string>();
          SelectColumns = new List<SelectColumn>();
          Arguments = new Dictionary<string, object>();
+         Joins = new List<string>();
       }
 
       public List<SelectColumn> SelectColumns { get; private set; }
@@ -21,6 +22,7 @@ namespace XAdo.Quobs.Sql
       public List<string> HavingClausePredicates { get; private set; }
       public List<OrderColumn> OrderColumns { get; private set; }
       public List<string> GroupByColumns { get; private set; }
+      public List<string> Joins { get; private set; }
       public string TableName { get; set; }
       public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }

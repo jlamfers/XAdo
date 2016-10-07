@@ -48,6 +48,7 @@
     <Compile Include="Attributes\AutoIncrementAttribute.cs" />
     <Compile Include="Attributes\ColumnAttribute.cs" />
     <Compile Include="Attributes\Core\NameParser.cs" />
+    <Compile Include="Attributes\JoinMethod.cs" />
     <Compile Include="Attributes\JoinType.cs" />
     <Compile Include="Attributes\ReferencedByAttribute.cs" />
     <Compile Include="Attributes\ReferencesAttribute.cs" />

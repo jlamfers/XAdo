@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Expressions;
 using XAdo.Quobs.Sql.Formatter;
 
@@ -11,15 +12,17 @@ namespace XAdo.Quobs.Sql
 {
    public class SqlExpressionCompiler : ExpressionVisitor
    {
-      private class CompileResult : ISqlBuilder
+      public class CompileResult : ISqlBuilder
       {
          private readonly string _sql;
          private readonly IDictionary<string, object> _arguments;
+         private readonly Dictionary<string, JoinType?> _joins;
 
-         internal CompileResult(string sql, IDictionary<string, object> arguments)
+         internal CompileResult(string sql, IDictionary<string, object> arguments,Dictionary<string, JoinType?> joins)
          {
             _sql = sql;
             _arguments = arguments;
+            _joins = joins;
          }
 
          public string GetSql()
@@ -31,7 +34,15 @@ namespace XAdo.Quobs.Sql
          {
             return _arguments;
          }
+
+         public IDictionary<string, JoinType?> Joins
+         {
+            get { return _joins; }
+         }
       }
+
+      private Dictionary<string, JoinType?>
+         _joins;
 
       private readonly ISqlFormatter 
          _formatter;
@@ -68,12 +79,13 @@ namespace XAdo.Quobs.Sql
       private Dictionary<string, object>
          _arguments;
 
-      public ISqlBuilder Compile(Expression expression)
+      public CompileResult Compile(Expression expression)
       {
          Writer = new StringWriter();
          _arguments = new Dictionary<string, object>();
+         _joins = new Dictionary<string, JoinType?>();
          Visit(expression);
-         return new CompileResult(Writer.CastTo<StringWriter>().GetStringBuilder().ToString(),_arguments);
+         return new CompileResult(Writer.CastTo<StringWriter>().GetStringBuilder().ToString(),_arguments,_joins);
       }
 
       protected override Expression VisitUnary(UnaryExpression node)
@@ -154,13 +166,23 @@ namespace XAdo.Quobs.Sql
       }
       protected override Expression VisitMember(MemberExpression node)
       {
-         if (node.Expression != null && node.Expression.NodeType == ExpressionType.Parameter)
+         bool joined = false;
+         if (node.Expression != null && (node.Expression.NodeType == ExpressionType.Parameter || (joined = node.Expression.NodeType == ExpressionType.Call && node.Expression.CastTo<MethodCallExpression>().Method.GetCustomAttribute<JoinMethodAttribute>() != null)))
          {
             Writer.Write(_formatter.FormatColumn(node.Member));
+            if (joined)
+            {
+               return base.VisitMember(node);
+            }
             return node;
          }
-         RegisterArgument(node.GetExpressionValue());
-         return node;
+         if (node.Expression == null)
+         {
+            // static member, e.g., DateTime.Now
+            RegisterArgument(node.GetExpressionValue());
+            return node;
+         }
+         return base.VisitMember(node);
       }
       protected override Expression VisitConstant(ConstantExpression node)
       {
@@ -177,6 +199,8 @@ namespace XAdo.Quobs.Sql
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
          var m = node.Method;
+
+         JoinMethodAttribute att;
 
          if (KnownMembers.LikeMethods.Contains(m))
          {
@@ -214,6 +238,15 @@ namespace XAdo.Quobs.Sql
                   RegisterArgument("%" + node.Arguments[0].GetExpressionValue() + "%");
                }               
             }
+         }
+         else if ((att = node.Method.GetCustomAttribute<JoinMethodAttribute>()) != null)
+         {
+            var joinType = node.Arguments.Count > 1 ? (JoinType?) node.Arguments[1].GetExpressionValue() : null;
+            if (!_joins.ContainsKey(att.Expression))
+            {
+               _joins[att.Expression] = joinType;
+            }
+            Visit(node.Arguments[0]);
          }
          else
          {

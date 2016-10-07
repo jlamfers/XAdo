@@ -38,18 +38,19 @@ namespace XAdo.Quobs.Sql.Formatter
       {
          if (member == null) throw new ArgumentNullException("member");
          var a = member.GetCustomAttribute<ColumnAttribute>();
+         var owner = FormatTableName(member.DeclaringType);
          if (a != null)
          {
             if (a.ColumnNameParts != null)
             {
-               return DelimitIdentifier(a.ColumnNameParts);
+               return owner+"."+DelimitIdentifier(a.ColumnNameParts);
             }
             if (a.SqlExpression != null)
             {
                return a.SqlExpression;
             }
          }
-         return DelimitIdentifier(member.Name);
+         return owner+"."+ DelimitIdentifier(member.Name);
       }
       public virtual string FormatTableName(Type entityType)
       {
@@ -106,6 +107,10 @@ namespace XAdo.Quobs.Sql.Formatter
             w.WriteLine("   " + String.Join(",\r\n   ", meta.SelectColumns.Select(t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
          }
          w.WriteLine("FROM {0}", meta.TableName);
+         if (meta.Joins.Any())
+         {
+            w.WriteLine("   " + String.Join("\r\n   ", meta.Joins.ToArray()));
+         }
          if (meta.WhereClausePredicates.Any())
          {
             w.WriteLine("WHERE");
@@ -124,7 +129,7 @@ namespace XAdo.Quobs.Sql.Formatter
          if (meta.OrderColumns.Any())
          {
             w.WriteLine("ORDER BY");
-            w.WriteLine("   " + String.Join(",\r\n   ", meta.OrderColumns.ToString().ToArray()));
+            w.WriteLine("   " + String.Join(",\r\n   ", meta.OrderColumns.Select(c => c.ToString()).ToArray()));
          }
          return this;
       }
@@ -142,7 +147,7 @@ namespace XAdo.Quobs.Sql.Formatter
          meta.OrderColumns.AddRange(orderColumns);
 
          var sql = sw.GetStringBuilder().ToString();
-         var orderClause = String.Join(", ", orderColumns.ToString().ToArray());
+         var orderClause = String.Join(", ", orderColumns.Select(c => c.ToString()).ToArray());
          parNameSkip = parNameSkip != null ? FormatParameterName(parNameSkip) : null;
          parNameTake = parNameTake != null ? FormatParameterName(parNameTake) : null;
 

@@ -50,7 +50,7 @@ namespace XAdo.Quobs.Expressions
                var pi = memberExpr.Member as PropertyInfo;
                return pi != null ? pi.GetValue(obj) : ((FieldInfo) (memberExpr.Member)).GetValue(obj);
             default:
-               throw new ArgumentException("Expected constant/call/memberaccess expression");
+               throw new ArgumentException(expression+": expected constant/call/memberaccess expression");
          }
       }
 

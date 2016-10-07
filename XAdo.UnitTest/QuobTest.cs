@@ -64,6 +64,7 @@ namespace XAdo.UnitTest
 
          public string _Item1 { get; set; }
          public decimal? _Item2 { get; set; }
+         public string Description { get; set; }
       }
 
       [TestMethod]
@@ -76,7 +77,7 @@ namespace XAdo.UnitTest
                .OrderBy(x => x.CarrierTrackingNumber)
                .Where(x => x.ModifiedDate != DateTime.Now && x.ProductSpecialOffer().ModifiedDate != null)
                .Take(10)
-               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description=x.ProductSpecialOffer().SpecialOffer().Description }, out count)
+               .Select(x => new Temp { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description = x.ProductSpecialOffer().SpecialOffer().Description }, out count)
                .ToList();
             var sw = new Stopwatch();
             sw.Start();

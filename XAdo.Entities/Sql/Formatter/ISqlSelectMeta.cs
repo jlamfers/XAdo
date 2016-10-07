@@ -11,6 +11,7 @@ namespace XAdo.Quobs.Sql.Formatter
       List<string> HavingClausePredicates { get; }
       List<OrderColumn> OrderColumns { get; }
       List<string> GroupByColumns { get; }
+      List<string> Joins { get; }
       string TableName { get; }
       bool Distict { get; }
       IDictionary<string, object> Arguments { get; }

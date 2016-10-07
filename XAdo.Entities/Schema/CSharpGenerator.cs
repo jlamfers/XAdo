@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CSharp;
 
@@ -207,7 +208,20 @@ namespace XAdo.Quobs.Schema
                }
                name = NormalizeName(name);
                //w.WriteLine("// " + cols[0].FKey);
+
+               var expression = new StringBuilder("JOIN ");
+               expression.Append(FormatFullTableName(cols[0].References.Table));
+               expression.Append(" ON ");
+               var and = "";
+               foreach (var col in cols)
+               {
+                  expression.Append(and);
+                  expression.Append(FormatColumnJoin(col));
+                  and = " AND ";
+               }
+               w.WriteLine("[JoinMethod( Expression = @\"{0}\")]", expression);
                w.WriteLine("public static {0}{1} {2}(this {3}{4} self, JoinType join){{return null;}}",_prefix,NormalizeName(cols[0].References.TableName),name,_prefix,NormalizeName(cols[0].TableName));
+               w.WriteLine("[JoinMethod( Expression = @\"{0}\")]", expression);
                w.WriteLine("public static {0}{1} {2}(this {3}{4} self){{return null;}}", _prefix, NormalizeName(cols[0].References.TableName), name, _prefix, NormalizeName(cols[0].TableName));
 
             }
@@ -217,6 +231,22 @@ namespace XAdo.Quobs.Schema
          w.Indent--;
          w.WriteLine("}");
 
+      }
+
+      protected virtual string FormatFullTableName(TableSchemaItem t)
+      {
+         return string.Format("[{0}].[{1}]", t.Owner, t.Name);
+      }
+      protected virtual string FormatColumnJoin(ColumnSchemaItem c)
+      {
+         return string.Format("[{0}].[{1}].[{2}] = [{3}].[{4}].[{5}]", 
+            c.Table.Owner,
+            c.TableName,
+            c.Name,
+            c.References.Table.Owner,
+            c.References.TableName,
+            c.References.Name
+            );
       }
 
       protected virtual string ColumnToReferenceName(string name)
