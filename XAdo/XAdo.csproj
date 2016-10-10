@@ -43,12 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\CtorCompiler.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
     <Compile Include="Core\Impl\AdoReaderToMemberBinderImpl.cs" />
     <Compile Include="Core\Impl\AdoReaderToMemberBinderImplEx.cs" />
+    <Compile Include="Core\Impl\GetterFactory.cs" />
+    <Compile Include="Core\Interface\IGetterFactory.cs" />
     <Compile Include="Core\Interface\IActivatorFactory.cs" />
     <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
     <Compile Include="Core\Interface\IAdoRow.cs" />

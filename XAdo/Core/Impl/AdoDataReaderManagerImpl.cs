@@ -3,10 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
-using System.Reflection;
-using System.Security.AccessControl;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -166,6 +163,8 @@ namespace XAdo.Core.Impl
         {
             if (reader == null) throw new ArgumentNullException("reader");
 
+           Func<IDataReader, T> ctorBinder;
+
             if (typeof (T) == typeof (object) || typeof (T) == typeof (IDictionary<string, object>) ||
                 typeof (T) == typeof (AdoRow))
             {
@@ -173,7 +172,6 @@ namespace XAdo.Core.Impl
                 yield break;
             }
 
-           ConstructorInfo ctor;
             if (reader.FieldCount == 1 && (typeof (T).IsValueType || CanConvert(reader.GetFieldType(0), typeof (T))))
             {
                 var scalarReader = _binderFactory.CreateScalarReader<T>(reader.GetFieldType(0));
@@ -182,9 +180,8 @@ namespace XAdo.Core.Impl
                     yield return scalarReader(reader);
                 }
             }
-            else if ((ctor = TryFindConstructor(typeof(T),reader)) != null)
+            else if ((ctorBinder = _binderFactory.TryCreateCtorBinder<T>(reader)) != null)
             {
-               var ctorBinder = _binderFactory.CreateCtorBinder<T>(reader,ctor);
                while (reader.Read())
                {
                   yield return ctorBinder(reader);
@@ -201,18 +198,7 @@ namespace XAdo.Core.Impl
             }
         }
 
-       private ConstructorInfo TryFindConstructor(Type type, IDataReader reader)
-       {
-          return type.GetConstructors()
-             .Where(c => c.GetParameters().Length == _binderFactory.GetBindableMembers(type, false).Count())
-             .SingleOrDefault(c => c.GetParameters().All(p =>
-             {
-                var i = reader.GetOrdinal(p.Name);
-                return i >= 0 && reader.GetFieldType(i) == (Nullable.GetUnderlyingType(p.ParameterType) ?? p.ParameterType);
-             }));
-       }
-
-       public virtual IEnumerable<TResult> ReadAll<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(IDataReader reader,
+        public virtual IEnumerable<TResult> ReadAll<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(IDataReader reader,
             Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> factory, bool allowUnbindableFetchResults,
             bool allowUnbindableMembers)
         {

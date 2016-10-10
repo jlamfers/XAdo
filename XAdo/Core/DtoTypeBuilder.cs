@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using System.Threading;
 
 namespace XAdo.Core
@@ -55,7 +56,7 @@ namespace XAdo.Core
                 if (_typeBuilder == null)
                 {
                     _typeBuilder = _moduleBuilder.DefineType(TypeName ?? GetUniqueName(), TypeAttributes.Public);
-                    _typeBuilder.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);
+                    
                 }
                 return _typeBuilder;
             }
@@ -85,7 +86,7 @@ namespace XAdo.Core
                         typeof(DebuggerBrowsableAttribute).GetConstructor(new[] { typeof(DebuggerBrowsableState) }),
                         new object[] { DebuggerBrowsableState.Never });
 
-                var fb = TypeBuilder.DefineField("_" + name.ToLower(), type, FieldAttributes.Private);
+                var fb = TypeBuilder.DefineField("_" + name, type, FieldAttributes.Private);
                 fb.SetCustomAttribute(attBuilder);
                 return fb;
             });
@@ -193,8 +194,55 @@ namespace XAdo.Core
 
         public virtual Type CreateType()
         {
+           // define default ctor
+           var defaultCtor = _typeBuilder.DefineDefaultConstructor(MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName);
+
+           // default ctor overload to set all members in one call
+           var ctor = _typeBuilder.DefineConstructor(
+              MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName, CallingConventions.Standard, _fields.Values.Select(f => f.FieldType).ToArray());
+           var il = ctor.GetILGenerator();
+           il.Emit(OpCodes.Ldarg_0);
+           il.Emit(OpCodes.Call, defaultCtor);
+           var i = 1;
+           foreach (var f in _fields.Values)
+           {
+              ctor.DefineParameter(i, ParameterAttributes.None, f.Name.Substring(1));
+              il.Emit(OpCodes.Ldarg_0);
+              il.Emit(OpCodes.Ldarg, i++);
+              il.Emit(OpCodes.Stfld,f);
+           }
+           il.Emit(OpCodes.Ret);
+
+           // override ToString method
+           var m = _typeBuilder.DefineMethod("ToString",
+              MethodAttributes.Public
+              | MethodAttributes.HideBySig
+              | MethodAttributes.NewSlot
+              | MethodAttributes.Virtual
+              | MethodAttributes.Final,
+              CallingConventions.HasThis,
+              typeof (string),
+              Type.EmptyTypes);
+           il = m.GetILGenerator();
+           il.Emit(OpCodes.Ldarg_0);
+           il.Emit(OpCodes.Call, typeof(DtoTypeBuilder).GetMethod("BuildToString",BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
+           il.Emit(OpCodes.Ret);
+           _typeBuilder.DefineMethodOverride(m, typeof(object).GetMethod("ToString"));
+
             return TypeBuilder.CreateType();
         }
+
+       public static string BuildToString(object entity)
+       {
+          var sb = new StringBuilder();
+          foreach (var p in entity.GetType().GetProperties())
+          {
+             var v = p.GetValue(entity);
+             sb.AppendFormat(v == null ? "{0}=NULL, " : "{0}='{1}', ", p.Name, v);
+          }
+          if (sb.Length > 1) sb.Length -= 2;
+          return sb.Append('}').ToString();
+       }
 
 #if DEBUG
         public virtual void Save()

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using XAdo.Core.Interface;
 
@@ -21,6 +24,10 @@ namespace XAdo.Core.Impl
 
       private readonly ConcurrentDictionary<BinderIdentity, object>
           _binderCache = new ConcurrentDictionary<BinderIdentity, object>();
+
+      private readonly ConcurrentDictionary<string, object>
+        _ctorBinderCache = new ConcurrentDictionary<string, object>();
+
 
       protected static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
         {
@@ -139,10 +146,28 @@ namespace XAdo.Core.Impl
          return r => r.IsDBNull(0) ? default(TResult) : converter(r.GetValue(0));
       }
 
-      public virtual Func<IDataReader, TResult> CreateCtorBinder<TResult>(IDataRecord record, ConstructorInfo ctor)
+      public virtual Func<IDataReader, TResult> TryCreateCtorBinder<TResult>(IDataRecord record)
       {
-         return CompileCtor<TResult>(record, ctor);
+         var ctors = typeof (TResult).GetConstructors();
+         if (ctors.Length == 1 && ctors[0].GetParameters().Length == 0) 
+            return null;
+         var sb = new StringBuilder(typeof(TResult).FullName);
+            sb.Append(":");
+            for (var i = 0; i < record.FieldCount; i++)
+            {
+               sb.Append(record.GetName(i));
+            }
+         var key = sb.ToString();
+         return (Func<IDataReader, TResult>)_ctorBinderCache.GetOrAdd(key, s =>
+         {
+            var ctor = TryFindBinderConstructor(typeof (TResult), record);
+            return ctor == null ? null : CompileCtorBinder<TResult>(record,ctor);
+         });
       }
+
+
+
+
 
       
       // initializes and caches a property binders list by entity type and a datareader structure
@@ -229,36 +254,102 @@ namespace XAdo.Core.Impl
          return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => (!canWrite || p.CanWrite) && IsBindableDataType(p.PropertyType) && p.GetIndexParameters().Length == 0);
       }
 
-
-      #region Anonymous ctor
-      private static readonly ConcurrentDictionary<string, object>
-        CtorCache = new ConcurrentDictionary<string, object>();
-
-      private static Func<IDataRecord, T> CompileCtor<T>(IDataRecord reader, ConstructorInfo ctorInfo)
+      private ConstructorInfo TryFindBinderConstructor(Type type, IDataRecord record)
       {
-         var sb = new StringBuilder(ctorInfo.ToString());
-         sb.Append(":");
-         for (var i = 0; i < reader.FieldCount; i++)
-         {
-            sb.Append(reader.GetName(i));
-         }
-         return (Func<IDataRecord, T>)CtorCache.GetOrAdd(sb.ToString(), k => Compile2<T>(reader, ctorInfo));
+         return type.GetConstructors()
+            .Where(c => c.GetParameters().Length == GetBindableMembers(type, false).Count())
+            .SingleOrDefault(c => c.GetParameters().All(p =>
+            {
+               var m = type.GetMember(p.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+               if (m.Length != 1 || m[0].GetMemberType() != p.ParameterType)
+               {
+                  // parameter types must be identical to member types
+                  return false;
+               }
+               try
+               {
+                  // parameter name must be bindable
+                  return record.GetOrdinal(p.Name) >= 0;
+               }
+               catch (IndexOutOfRangeException)
+               {
+                  return false;
+               }
+            }));
       }
-      private static Func<IDataRecord, T> Compile2<T>(IDataRecord reader, ConstructorInfo ctorInfo)
+
+      public static class Converter<T>
+      {
+        public static TypeConverter Instance = TypeDescriptor.GetConverter(typeof(T));
+      }
+
+      private Func<IDataRecord, T> CompileCtorBinder<T>(IDataRecord record, ConstructorInfo ctorInfo)
       {
          var pars = ctorInfo.GetParameters();
+         if (!pars.All(p =>
+         {
+            try
+            {
+               return CanConvertFrom(record.GetFieldType(record.GetOrdinal(p.Name)),
+                  Nullable.GetUnderlyingType(p.ParameterType) ?? p.ParameterType);
+            }
+            catch (IndexOutOfRangeException)
+            {
+               return false;
+            }
+         }))
+         {
+            var getters = new List<Func<IDataRecord, object>>();
+            foreach (var p in pars)
+            {
+               var ordinal = record.GetOrdinal(p.Name);
+               var getterType = record.GetFieldType(ordinal);
+               var setterType = p.ParameterType;
+               var getter = ((IGetterFactory)_classBinder.Get(typeof (IGetterFactory<,>).MakeGenericType(setterType, getterType))).CreateGetter();
+               var f = new Func<IDataRecord, object>(r => getter(r, ordinal));
+               getters.Add(f);
+            }
+            var getterArray = getters.ToArray();
+            //TODO: optimize with individual args
+            return r =>
+            {
+               var args = getterArray.Select(a => a(r)).ToArray();
+               return (T) ctorInfo.Invoke(args);
+            };
+         } 
+
+
          var dm = new DynamicMethod("__dm_" + ctorInfo.Name, typeof(T), new[] { typeof(IDataRecord) }, Assembly.GetExecutingAssembly().ManifestModule, true);
          var il = dm.GetILGenerator();
 
-         for (var i = 0; i < pars.Length; i++)
+         foreach (ParameterInfo p in pars)
          {
-            var type = pars[i].ParameterType;
-            var name = pars[i].Name;
+            var parameterType = p.ParameterType;
+            var parameterName = p.Name;
+            var ordinal = record.GetOrdinal(parameterName);
+            var fieldType = record.GetFieldType(ordinal);
+            var normalizedParameterType = Nullable.GetUnderlyingType(parameterType) ?? parameterType;
+            var ft = !fieldType.IsValueType || Nullable.GetUnderlyingType(parameterType) == null
+               ? fieldType
+               : typeof (Nullable<>).MakeGenericType(fieldType);
 
-            il.Emit(OpCodes.Ldsfld, typeof(GetterDelegate<>).MakeGenericType(type).GetField("Getter"));
+            if (!IsAssignable(fieldType, normalizedParameterType))
+            {
+               il.Emit(OpCodes.Ldsfld, typeof(Converter<>).MakeGenericType(parameterType).GetField("Instance"));
+            }
+            il.Emit(OpCodes.Ldsfld, typeof(GetterDelegate<>).MakeGenericType(ft).GetField("Getter"));
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, reader.GetOrdinal(name));
-            il.Emit(OpCodes.Callvirt, typeof(Func<,,>).MakeGenericType(typeof(IDataRecord), typeof(int), type).GetMethod("Invoke", new[] { typeof(IDataReader), typeof(int) }));
+            il.Emit(OpCodes.Ldc_I4, ordinal);
+            il.Emit(OpCodes.Callvirt, typeof(Func<,,>).MakeGenericType(typeof(IDataRecord), typeof(int), ft).GetMethod("Invoke", new[] { typeof(IDataReader), typeof(int) }));
+            if (!IsAssignable(fieldType, normalizedParameterType))
+            {
+               if (ft.IsValueType)
+               {
+                  il.Emit(OpCodes.Box);
+               }
+               il.Emit(OpCodes.Call, typeof(TypeConverter).GetMethod("ConvertFrom", new[] { typeof(object) }));
+               il.Emit(parameterType.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, parameterType);
+            }
          }
          il.Emit(OpCodes.Newobj, ctorInfo);
          il.Emit(OpCodes.Ret);
@@ -266,7 +357,19 @@ namespace XAdo.Core.Impl
 
          return factory;
       }
-      #endregion
+
+      protected virtual bool IsAssignable(Type fromType, Type intoType)
+      {
+         if (fromType == null) throw new ArgumentNullException("fromType");
+         if (intoType == null) throw new ArgumentNullException("intoType");
+
+         if (intoType.IsEnum && IsAssignable(fromType, Enum.GetUnderlyingType(intoType))) return true;
+         return intoType.IsAssignableFrom(fromType);
+      }
+      protected virtual bool CanConvertFrom(Type fromType, Type intoType)
+      {
+         return IsAssignable(fromType,intoType) || TypeDescriptor.GetConverter(intoType).CanConvertFrom(fromType);
+      }
 
 
    }

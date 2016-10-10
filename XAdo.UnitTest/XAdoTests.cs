@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Quobs;
 using XAdo.Quobs.Generator;
@@ -105,5 +107,34 @@ namespace XAdo.UnitTest
           var g = new CSharpGenerator();
           var r = g.Generate(@"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true", "System.Data.SqlClient","Quobs.Entities");
        }
+
+      public static class Converter<T>
+      {
+        public static TypeConverter Instance = TypeDescriptor.GetConverter(typeof (T));
+      }
+
+      [TestMethod]
+      public void TestConvert()
+      {
+        TypeDescriptor.GetConverter(typeof (Guid));
+        var sw = new Stopwatch();
+          sw.Start();
+        for (var i = 0; i < 100000; i++)
+        {
+          TypeDescriptor.GetConverter(typeof(Guid));
+        }
+        sw.Stop();
+        Debug.WriteLine(sw.ElapsedMilliseconds);
+        Converter<Guid>.Instance.GetType();
+        sw = new Stopwatch();
+        sw.Start();
+        for (var i = 0; i < 100000; i++)
+        {
+          //var c = (Guid)Converter<Guid>.Instance.ConvertFrom("{8ACAC291-510A-42FB-A167-634E8B5D3A6A}");
+          var c = new Guid("{8ACAC291-510A-42FB-A167-634E8B5D3A6A}");
+        }
+        sw.Stop();
+        Debug.WriteLine(sw.ElapsedMilliseconds);
+      }
     }
 }

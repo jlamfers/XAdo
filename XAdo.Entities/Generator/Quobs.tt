@@ -18,6 +18,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 <#=
-	new CSharpGenerator().Generate(@"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true", "System.Data.SqlClient","XAdo.Quobs.Generator")
+	new CSharpGenerator()
+	   .Generate(@"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true", "System.Data.SqlClient","XAdo.Quobs.Generator")
 #>
 

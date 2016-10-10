@@ -163,7 +163,7 @@ namespace XAdo
          CommandTimeout = 30;
          AllowUnbindableFetchResults = true;
 
-         // bind any type that has no binding yet. It may be bound in case of a custom class binder
+         // bind any type that has no binding yet. It may have been bound by any custom class binder
          TryBind(b => b);
          TryBindSingleton<IAdoDataBinderFactory, AdoDataBinderFactoryImpl>();
          TryBindSingleton<IAdoCommandFactory, AdoCommandFactoryImpl>();
@@ -179,6 +179,7 @@ namespace XAdo
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
          TryBind(typeof(AdoReaderToMemberBinderImpl<,,>), typeof(AdoReaderToMemberBinderImpl<,,>));
+         TryBind(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
 
          var contextInitializer = new ContextInitializer(this);
          if (initializer != null)

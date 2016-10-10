@@ -283,7 +283,7 @@ namespace XAdo.Quobs.Sql
 
       private bool IsNullConstant(Expression exp)
       {
-         return (exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null);
+         return exp.NodeType==ExpressionType.Convert ? IsNullConstant(exp.CastTo<UnaryExpression>().Operand) : (exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null);
       }
 
       private bool TryHandleStringCompare(BinaryExpression node)

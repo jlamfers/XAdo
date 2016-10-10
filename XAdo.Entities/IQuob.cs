@@ -20,5 +20,6 @@ namespace XAdo.Quobs
       IList<dynamic> ToList();
       IEnumerable<dynamic> ToEnumerable(out long count);
       IList<dynamic> ToList(out long count);
+      IQuob Join(params string[] joins);
    }
 }

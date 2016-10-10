@@ -11,7 +11,7 @@ namespace XAdo.Core.Impl
     {
 
         public AdoDataBinderFactoryPropertiesAndFieldsImpl(IAdoTypeConverterFactory typeConverterFactory, IAdoClassBinder classBinder)
-            : base(typeConverterFactory, classBinder)
+          : base(typeConverterFactory, classBinder)
         {
         }
 

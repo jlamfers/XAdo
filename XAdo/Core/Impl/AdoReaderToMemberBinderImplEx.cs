@@ -7,7 +7,8 @@ namespace XAdo.Core.Impl
 {
     public class AdoReaderToMemberBinderImplEx<TEntity, TSetter, TGetter> : AdoReaderToMemberBinderImpl<TEntity, TSetter, TGetter>
     {
-        public AdoReaderToMemberBinderImplEx(IAdoTypeConverterFactory typeConverterFactory) : base(typeConverterFactory)
+       public AdoReaderToMemberBinderImplEx(IGetterFactory<TSetter,TGetter> getterFactory)
+          : base(getterFactory)
         {
         }
 
