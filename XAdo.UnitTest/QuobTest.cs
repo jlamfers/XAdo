@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Core.Interface;
 using XAdo.Quobs;
+using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Sql;
 using XAdo.Quobs.Sql.Formatter;
 using XAdo.Quobs.Generator;
@@ -139,6 +140,38 @@ namespace XAdo.UnitTest
          public DateTime Dt { get; set; }
       }
 
+      [Table(TableName = "Sales.SalesOrderDetail")]
+      public partial class _DbSalesOrderDetail
+      {
+         public _DbSalesOrderDetail() { }
+         public _DbSalesOrderDetail(int salesOrderId, int salesOrderDetailId, short orderQty, int productId, int specialOfferId, decimal unitPrice, decimal unitPriceDiscount, decimal lineTotal, Guid rowguid, DateTime modifiedDate)
+         {
+            ModifiedDate = modifiedDate;
+            this.rowguid = rowguid;
+            LineTotal = lineTotal;
+            UnitPriceDiscount = unitPriceDiscount;
+            UnitPrice = unitPrice;
+            SpecialOfferID = specialOfferId;
+            ProductID = productId;
+            OrderQty = orderQty;
+            SalesOrderDetailID = salesOrderDetailId;
+            SalesOrderID = salesOrderId;
+         }
+
+         public virtual Int32 SalesOrderID { get; set; }
+         public virtual Int32 SalesOrderDetailID { get; set; }
+         //public virtual String CarrierTrackingNumber { get; private set; }
+         public virtual Int16 OrderQty { get; set; }
+         public virtual Int32 ProductID { get; set; }
+         public virtual Int32 SpecialOfferID { get; set; }
+         public virtual Decimal UnitPrice { get; set; }
+         public virtual Decimal UnitPriceDiscount { get; set; }
+         public virtual Decimal LineTotal { get; set; }
+         public virtual Guid rowguid { get; set; }
+         public virtual DateTime ModifiedDate { get; set; }
+      }
+
+
       [TestMethod]
       public void SelectTest()
       {
@@ -157,10 +190,24 @@ namespace XAdo.UnitTest
          //}
          using (var session = Db.Northwind.CreateSession())
          {
-            var list = session.Query("select * from Sales.SalesOrderDetail");
+            var list = session.Query<_DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
             var sw = new Stopwatch();
             sw.Start();
-            session.Query("select * from Sales.SalesOrderDetail");
+            session.Query<_DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
+      [TestMethod]
+      public void SelectTest2()
+      {
+         using (var session = Db.Northwind.CreateSession())
+         {
+            var list = session.Query<DbDocument>("select * from Production.Document");
+            var sw = new Stopwatch();
+            sw.Start();
+            list = session.Query<DbDocument>("select * from Production.Document");
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }

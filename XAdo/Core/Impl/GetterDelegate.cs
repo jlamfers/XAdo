@@ -17,7 +17,15 @@ namespace XAdo.Core.Impl
                 : typeof(IDataRecord).GetMethod(GetGetterName(getterType));
 
             Getter = getterMethod == null
-                ? (d, i) => (TGetter)d.GetValue(i)
+               ? (d, i) =>
+               {
+                  var v = d.GetValue(i);
+                  if (v == DBNull.Value)
+                  {
+                     v = null;
+                  }
+                  return (TGetter) v;
+               } 
                 : (Func<IDataRecord, int, TGetter>)
                     Delegate.CreateDelegate(typeof(Func<IDataRecord, int, TGetter>), getterMethod);
         }

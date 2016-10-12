@@ -275,8 +275,7 @@ namespace XAdo.Core.Impl
 
       private Func<IDataRecord, T> CompileCtorBinder<T>(IDataRecord record, ConstructorInfo ctorInfo, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-         //return CompileMemberBinder<T>(record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,
-         //   lastColumnIndex);
+        // return CompileMemberBinder<T>(record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,lastColumnIndex);
 
          var binders = new List<ParameterBinder>();
 
@@ -328,14 +327,23 @@ namespace XAdo.Core.Impl
             var getter = b.Getter;
             if (getter != null)
             {
-               il.Emit(OpCodes.Ldarg_1);
-               il.Emit(OpCodes.Ldc_I4, i);
-               il.Emit(OpCodes.Ldelem_Ref);
-               il.Emit(OpCodes.Castclass, getter.GetType());
-               il.Emit(OpCodes.Ldarg_0);
-               il.Emit(OpCodes.Ldc_I4, b.Ordinal);
-               il.Emit(OpCodes.Callvirt,
-                  getter.GetType().GetMethod("Invoke", new[] {typeof (IDataRecord), typeof (int)}));
+               if (b.GetterType != b.SetterType || b.SetterType == typeof(byte[]) || b.SetterType == typeof(string) || Nullable.GetUnderlyingType(b.SetterType) != null)
+               {
+                  il.Emit(OpCodes.Ldarg_1);
+                  il.Emit(OpCodes.Ldc_I4, i);
+                  il.Emit(OpCodes.Ldelem_Ref);
+                  il.Emit(OpCodes.Castclass, getter.GetType());
+                  il.Emit(OpCodes.Ldarg_0);
+                  il.Emit(OpCodes.Ldc_I4, b.Ordinal);
+                  il.Emit(OpCodes.Callvirt,
+                     getter.GetType().GetMethod("Invoke", new[] {typeof (IDataRecord), typeof (int)}));
+               }
+               else
+               {
+                  il.Emit(OpCodes.Ldarg_0);
+                  il.Emit(OpCodes.Ldc_I4, b.Ordinal);
+                  il.Emit(OpCodes.Callvirt,GetGetterMethod(b.SetterType));
+               }
             }
             else
             {
@@ -349,6 +357,14 @@ namespace XAdo.Core.Impl
          var factory = (Func<IDataRecord, Delegate[], T>) dm.CreateDelegate(typeof (Func<IDataRecord, Delegate[], T>));
          var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
+      }
+
+      private static MethodInfo GetGetterMethod(Type type)
+      {
+         type = Nullable.GetUnderlyingType(type) ?? type;
+         var name = "Get" + (type == typeof(Single) ? "Float" : type.Name);
+         IDataRecord r = null;
+         return typeof (IDataRecord).GetMethod(name);
       }
 
       private Func<IDataRecord, T> CompileMemberBinder<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
@@ -380,23 +396,17 @@ namespace XAdo.Core.Impl
             binder.Getter = ((IGetterFactory)_classBinder.Get(typeof(IGetterFactory<,>).MakeGenericType(binder.SetterType, binder.GetterType))).CreateTypedGetter();
             binders.Add(binder);
          }
-         var bindersByParameterOrder = new List<MemberBinder>();
-         foreach (var p in bindableMembers)
+         foreach (var m in bindableMembers)
          {
-            var binder = binders.SingleOrDefault(b => b.Member == p);
+            var binder = binders.SingleOrDefault(b => b.Member == m);
             if (binder == null)
             {
                if (allowUnbindableMembers)
                {
-                  bindersByParameterOrder.Add(new MemberBinder
-                  {
-                     Member = p
-                  });
                   continue;
                }
-               throw new AdoBindingException("No bindable results for parameter " + p.Name);
+               throw new AdoBindingException("No bindable results for parameter " + m.Name);
             }
-            bindersByParameterOrder.Add(binder);
          }
          var dm = new DynamicMethod("__dm_" + typeof(T).Name, typeof(T), new[] { typeof(IDataRecord),typeof(Delegate[]) }, Assembly.GetExecutingAssembly().ManifestModule, true);
          var il = dm.GetILGenerator();
@@ -404,11 +414,11 @@ namespace XAdo.Core.Impl
          il.Emit(OpCodes.Newobj, typeof(T).GetConstructor(Type.EmptyTypes));
          il.Emit(OpCodes.Stloc,obj);
          var i = 0;
-         foreach (var b in bindersByParameterOrder)
+         foreach (var b in binders)
          {
             var getter = b.Getter;
             il.Emit(OpCodes.Ldloc, obj);
-            if (getter != null)
+            if (b.GetterType != b.SetterType || b.SetterType == typeof(byte[]) || b.SetterType == typeof(string) || Nullable.GetUnderlyingType(b.SetterType) != null)
             {
                il.Emit(OpCodes.Ldarg_1);
                il.Emit(OpCodes.Ldc_I4, i);
@@ -416,12 +426,13 @@ namespace XAdo.Core.Impl
                il.Emit(OpCodes.Castclass, getter.GetType());
                il.Emit(OpCodes.Ldarg_0);
                il.Emit(OpCodes.Ldc_I4, b.Ordinal);
-               il.Emit(OpCodes.Callvirt, getter.GetType().GetMethod("Invoke", new[] { typeof(IDataRecord), typeof(int) }));
+               il.Emit(OpCodes.Callvirt, getter.GetType().GetMethod("Invoke", new[] {typeof (IDataRecord), typeof (int)}));
             }
             else
             {
-               var loc = il.DeclareLocal(b.SetterType);
-               il.Emit(OpCodes.Ldloc, loc);
+               il.Emit(OpCodes.Ldarg_0);
+               il.Emit(OpCodes.Ldc_I4, b.Ordinal);
+               il.Emit(OpCodes.Callvirt, GetGetterMethod(b.SetterType));
             }
             if (b.Member.MemberType == MemberTypes.Property)
             {
@@ -436,7 +447,7 @@ namespace XAdo.Core.Impl
          il.Emit(OpCodes.Ldloc, obj);
          il.Emit(OpCodes.Ret);
          var factory = (Func<IDataRecord, Delegate[], T>)dm.CreateDelegate(typeof(Func<IDataRecord, Delegate[], T>));
-         var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
+         var delegates = binders.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
       }
 

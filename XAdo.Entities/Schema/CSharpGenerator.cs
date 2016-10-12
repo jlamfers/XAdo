@@ -158,7 +158,7 @@ namespace XAdo.Quobs.Schema
       protected virtual string NormalizePropertyName(ColumnSchemaItem c)
       {
          var normalized = NormalizeName(c.Name);
-         if (normalized == NormalizeName(c.TableName))
+         if (normalized == (_prefix ??"")+ NormalizeName(c.TableName))
          {
             normalized = "_" + normalized;
          }
