@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -61,6 +62,17 @@ namespace XAdo.UnitTest
             Description = (string)TypeDescriptor.GetConverter(typeof (string)).ConvertFrom(test);
          }
 
+         public static Temp CreateTemp(IDataRecord r, Delegate[] d )
+         {
+            return new Temp(((Func<IDataRecord, int, string>)d[0])(r, 11), ((Func<IDataRecord, int, decimal?>)d[1])(r, 12), ((Func<IDataRecord, int, int>)d[2])(r, 13));
+         }
+
+         public static void DefaultTest()
+         {
+            var s = default(string);
+            var i = default(int);
+         }
+
          public string _Item1;// { get; set; }
          public decimal? _Item2;// { get; set; }
          public string Description;//{ get; set; }
@@ -116,25 +128,39 @@ namespace XAdo.UnitTest
       }
       public class Foo
       {
-         public Foo(long arg)
+         public Foo() { }
+         public Foo(int arg, DateTime dt)
          {
             Arg = arg;
+            Dt = dt;
          }
-         public long Arg { get; set; }
+
+         public int Arg;//{ get; set; }
+         public DateTime Dt { get; set; }
       }
 
       [TestMethod]
       public void SelectTest()
       {
+         //370 ms
          //NOTE: this does not work without ctor binder, so not with member binders!!!
          //TODO: why??
 
+         //using (var session = Db.Northwind.CreateSession())
+         //{
+         //  var list = session.Query<Foo>("select 1 as Arg from Sales.SalesOrderDetail");
+         //   var sw = new Stopwatch();
+         //   sw.Start();
+         //   session.Query<Foo>("select 1 as Arg from Sales.SalesOrderDetail");
+         //   sw.Stop();
+         //   Debug.WriteLine(sw.ElapsedMilliseconds);
+         //}
          using (var session = Db.Northwind.CreateSession())
          {
-           session.Query<Foo>("select 1 as Arg from Sales.SalesOrderDetail");
+            var list = session.Query("select * from Sales.SalesOrderDetail");
             var sw = new Stopwatch();
             sw.Start();
-            session.Query<Foo>("select 1 as Arg from Sales.SalesOrderDetail");
+            session.Query("select * from Sales.SalesOrderDetail");
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }

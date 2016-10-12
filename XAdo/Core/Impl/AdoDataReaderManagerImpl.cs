@@ -180,7 +180,7 @@ namespace XAdo.Core.Impl
                     yield return scalarReader(reader);
                 }
             }
-            else if ((ctorBinder = _binderFactory.TryCreateCtorBinder<T>(reader)) != null)
+            else if ((ctorBinder = _binderFactory.TryCreateCtorBinder<T>(reader, allowUnbindableFetchResults, allowUnbindableMembers)) != null)
             {
                while (reader.Read())
                {

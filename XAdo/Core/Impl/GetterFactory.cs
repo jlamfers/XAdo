@@ -35,6 +35,11 @@ namespace XAdo.Core.Impl
          return getter;
       }
 
+      public object CreateTypedGetter()
+      {
+         return CreateGetter();
+      }
+
       Func<IDataRecord, int, object> IGetterFactory.CreateGetter()
       {
          return (r, i) => CreateGetter()(r,i);

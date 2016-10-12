@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-using System.Text;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -25,8 +21,8 @@ namespace XAdo.Core.Impl
       private readonly ConcurrentDictionary<BinderIdentity, object>
           _binderCache = new ConcurrentDictionary<BinderIdentity, object>();
 
-      private readonly ConcurrentDictionary<string, object>
-        _ctorBinderCache = new ConcurrentDictionary<string, object>();
+      private readonly ConcurrentDictionary<BinderIdentity, object>
+        _ctorBinderCache = new ConcurrentDictionary<BinderIdentity, object>();
 
 
       protected static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
@@ -146,22 +142,13 @@ namespace XAdo.Core.Impl
          return r => r.IsDBNull(0) ? default(TResult) : converter(r.GetValue(0));
       }
 
-      public virtual Func<IDataReader, TResult> TryCreateCtorBinder<TResult>(IDataRecord record)
+      public virtual Func<IDataReader, TResult> TryCreateCtorBinder<TResult>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-         var ctors = typeof (TResult).GetConstructors();
-         if (ctors.Length == 1 && ctors[0].GetParameters().Length == 0) 
-            return null;
-         var sb = new StringBuilder(typeof(TResult).FullName);
-            sb.Append(":");
-            for (var i = 0; i < record.FieldCount; i++)
-            {
-               sb.Append(record.GetName(i));
-            }
-         var key = sb.ToString();
+         var key = new BinderIdentity(typeof (TResult), record, allowUnbindableFetchResults, allowUnbindableMembers,firstColumnIndex, lastColumnIndex);
          return (Func<IDataReader, TResult>)_ctorBinderCache.GetOrAdd(key, s =>
          {
             var ctor = TryFindBinderConstructor(typeof (TResult), record);
-            return ctor == null ? null : CompileCtorBinder<TResult>(record,ctor);
+            return ctor == null ? null : CompileCtorBinder<TResult>(record, ctor, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex, lastColumnIndex);
          });
       }
 
@@ -261,116 +248,197 @@ namespace XAdo.Core.Impl
             .SingleOrDefault(c => c.GetParameters().All(p =>
             {
                var m = type.GetMember(p.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-               if (m.Length != 1 || m[0].GetMemberType() != p.ParameterType)
-               {
-                  // parameter types must be identical to member types
-                  return false;
-               }
-               try
-               {
-                  // parameter name must be bindable
-                  return record.GetOrdinal(p.Name) >= 0;
-               }
-               catch (IndexOutOfRangeException)
-               {
-                  return false;
-               }
+               return m.Length == 1 && m[0].GetMemberType() == p.ParameterType;
             }));
       }
 
-      public static class Converter<T>
+      class ParameterBinder
       {
-        public static TypeConverter Instance = TypeDescriptor.GetConverter(typeof(T));
+         public object Getter;
+         public int Ordinal;
+         public ParameterInfo Parameter;
+         public Type GetterType;
+         public Type SetterType { get { return Parameter != null ? Parameter.ParameterType : null; }}
+         public string Name;
       }
 
-      private Func<IDataRecord, T> CompileCtorBinder<T>(IDataRecord record, ConstructorInfo ctorInfo)
+      class MemberBinder
       {
-         var pars = ctorInfo.GetParameters();
-         if (!pars.All(p =>
+         public object Getter;
+         public int Ordinal;
+         public MemberInfo Member;
+         public Type GetterType;
+         public Type SetterType { get { return Member != null ? (Member.MemberType == MemberTypes.Property ? Member.CastTo<PropertyInfo>().PropertyType : Member.CastTo<FieldInfo>().FieldType) : null; } }
+         public string Name;
+      }
+
+
+      private Func<IDataRecord, T> CompileCtorBinder<T>(IDataRecord record, ConstructorInfo ctorInfo, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
+      {
+         //return CompileMemberBinder<T>(record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,
+         //   lastColumnIndex);
+
+         var binders = new List<ParameterBinder>();
+
+         var first = firstColumnIndex.GetValueOrDefault(0);
+         var last = lastColumnIndex.GetValueOrDefault(record.FieldCount - 1);
+         for (var index = first; index <= last; index++)
          {
-            try
+            var binder = new ParameterBinder
             {
-               return CanConvertFrom(record.GetFieldType(record.GetOrdinal(p.Name)),
-                  Nullable.GetUnderlyingType(p.ParameterType) ?? p.ParameterType);
-            }
-            catch (IndexOutOfRangeException)
-            {
-               return false;
-            }
-         }))
-         {
-            var getters = new List<Func<IDataRecord, object>>();
-            foreach (var p in pars)
-            {
-               var ordinal = record.GetOrdinal(p.Name);
-               var getterType = record.GetFieldType(ordinal);
-               var setterType = p.ParameterType;
-               var getter = ((IGetterFactory)_classBinder.Get(typeof (IGetterFactory<,>).MakeGenericType(setterType, getterType))).CreateGetter();
-               var f = new Func<IDataRecord, object>(r => getter(r, ordinal));
-               getters.Add(f);
-            }
-            var getterArray = getters.ToArray();
-            //TODO: optimize with individual args
-            return r =>
-            {
-               var args = getterArray.Select(a => a(r)).ToArray();
-               return (T) ctorInfo.Invoke(args);
+               GetterType = record.GetFieldType(index), 
+               Name = record.GetName(index),
             };
-         } 
-
-
-         var dm = new DynamicMethod("__dm_" + ctorInfo.Name, typeof(T), new[] { typeof(IDataRecord) }, Assembly.GetExecutingAssembly().ManifestModule, true);
-         var il = dm.GetILGenerator();
-
-         foreach (ParameterInfo p in pars)
-         {
-            var parameterType = p.ParameterType;
-            var parameterName = p.Name;
-            var ordinal = record.GetOrdinal(parameterName);
-            var fieldType = record.GetFieldType(ordinal);
-            var normalizedParameterType = Nullable.GetUnderlyingType(parameterType) ?? parameterType;
-            var ft = !fieldType.IsValueType || Nullable.GetUnderlyingType(parameterType) == null
-               ? fieldType
-               : typeof (Nullable<>).MakeGenericType(fieldType);
-
-            if (!IsAssignable(fieldType, normalizedParameterType))
+            binder.Parameter = ctorInfo.GetParameters().FirstOrDefault(x => string.Equals(x.Name, binder.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (binder.Parameter == null)
             {
-               il.Emit(OpCodes.Ldsfld, typeof(Converter<>).MakeGenericType(parameterType).GetField("Instance"));
-            }
-            il.Emit(OpCodes.Ldsfld, typeof(GetterDelegate<>).MakeGenericType(ft).GetField("Getter"));
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldc_I4, ordinal);
-            il.Emit(OpCodes.Callvirt, typeof(Func<,,>).MakeGenericType(typeof(IDataRecord), typeof(int), ft).GetMethod("Invoke", new[] { typeof(IDataReader), typeof(int) }));
-            if (!IsAssignable(fieldType, normalizedParameterType))
-            {
-               if (ft.IsValueType)
+               if (allowUnbindableFetchResults)
                {
-                  il.Emit(OpCodes.Box);
+                  continue;
                }
-               il.Emit(OpCodes.Call, typeof(TypeConverter).GetMethod("ConvertFrom", new[] { typeof(object) }));
-               il.Emit(parameterType.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, parameterType);
+               throw new AdoBindingException("Cannot bind fetched column [" + binder.Name + "] result to any member of type " + binder.GetterType.Name);
             }
+            binder.Ordinal = index;
+            binder.Getter = ((IGetterFactory)_classBinder.Get(typeof(IGetterFactory<,>).MakeGenericType(binder.SetterType, binder.GetterType))).CreateTypedGetter();
+            binders.Add(binder);
+         }
+         var bindersByParameterOrder = new List<ParameterBinder>();
+         foreach (var p in ctorInfo.GetParameters())
+         {
+            var binder = binders.SingleOrDefault(b => b.Parameter == p);
+            if (binder == null)
+            {
+               if (allowUnbindableMembers)
+               {
+                  bindersByParameterOrder.Add(new ParameterBinder
+                  {
+                     Parameter = p
+                  });
+                  continue;
+               }
+               throw new AdoBindingException("No bindable results for parameter " + p.Name);
+            }
+            bindersByParameterOrder.Add(binder);
+         }
+         var dm = new DynamicMethod("__dm_" + ctorInfo.Name, typeof (T),new[] {typeof (IDataRecord), typeof (Delegate[])}, Assembly.GetExecutingAssembly().ManifestModule, true);
+         var il = dm.GetILGenerator();
+         var i = 0;
+         foreach (var b in bindersByParameterOrder)
+         {
+            var getter = b.Getter;
+            if (getter != null)
+            {
+               il.Emit(OpCodes.Ldarg_1);
+               il.Emit(OpCodes.Ldc_I4, i);
+               il.Emit(OpCodes.Ldelem_Ref);
+               il.Emit(OpCodes.Castclass, getter.GetType());
+               il.Emit(OpCodes.Ldarg_0);
+               il.Emit(OpCodes.Ldc_I4, b.Ordinal);
+               il.Emit(OpCodes.Callvirt,
+                  getter.GetType().GetMethod("Invoke", new[] {typeof (IDataRecord), typeof (int)}));
+            }
+            else
+            {
+               var loc = il.DeclareLocal(b.Parameter.ParameterType);
+               il.Emit(OpCodes.Ldloc,loc);
+            }
+            i++;
          }
          il.Emit(OpCodes.Newobj, ctorInfo);
          il.Emit(OpCodes.Ret);
-         var factory = (Func<IDataRecord, T>)dm.CreateDelegate(typeof(Func<IDataRecord, T>));
-
-         return factory;
+         var factory = (Func<IDataRecord, Delegate[], T>) dm.CreateDelegate(typeof (Func<IDataRecord, Delegate[], T>));
+         var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
+         return r => factory(r, delegates);
       }
 
-      protected virtual bool IsAssignable(Type fromType, Type intoType)
+      private Func<IDataRecord, T> CompileMemberBinder<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-         if (fromType == null) throw new ArgumentNullException("fromType");
-         if (intoType == null) throw new ArgumentNullException("intoType");
 
-         if (intoType.IsEnum && IsAssignable(fromType, Enum.GetUnderlyingType(intoType))) return true;
-         return intoType.IsAssignableFrom(fromType);
-      }
-      protected virtual bool CanConvertFrom(Type fromType, Type intoType)
-      {
-         return IsAssignable(fromType,intoType) || TypeDescriptor.GetConverter(intoType).CanConvertFrom(fromType);
-      }
+         var binders = new List<MemberBinder>();
 
+         var bindableMembers = GetBindableMembers(typeof (T));
+
+         var first = firstColumnIndex.GetValueOrDefault(0);
+         var last = lastColumnIndex.GetValueOrDefault(record.FieldCount - 1);
+         for (var index = first; index <= last; index++)
+         {
+            var binder = new MemberBinder
+            {
+               GetterType = record.GetFieldType(index),
+               Name = record.GetName(index),
+            };
+            binder.Member = bindableMembers.FirstOrDefault(x => string.Equals(x.Name, binder.Name, StringComparison.InvariantCulture));
+            if (binder.Member == null)
+            {
+               if (allowUnbindableFetchResults)
+               {
+                  continue;
+               }
+               throw new AdoBindingException("Cannot bind fetched column [" + binder.Name + "] result to any member of type " + binder.GetterType.Name);
+            }
+            binder.Ordinal = index;
+            binder.Getter = ((IGetterFactory)_classBinder.Get(typeof(IGetterFactory<,>).MakeGenericType(binder.SetterType, binder.GetterType))).CreateTypedGetter();
+            binders.Add(binder);
+         }
+         var bindersByParameterOrder = new List<MemberBinder>();
+         foreach (var p in bindableMembers)
+         {
+            var binder = binders.SingleOrDefault(b => b.Member == p);
+            if (binder == null)
+            {
+               if (allowUnbindableMembers)
+               {
+                  bindersByParameterOrder.Add(new MemberBinder
+                  {
+                     Member = p
+                  });
+                  continue;
+               }
+               throw new AdoBindingException("No bindable results for parameter " + p.Name);
+            }
+            bindersByParameterOrder.Add(binder);
+         }
+         var dm = new DynamicMethod("__dm_" + typeof(T).Name, typeof(T), new[] { typeof(IDataRecord),typeof(Delegate[]) }, Assembly.GetExecutingAssembly().ManifestModule, true);
+         var il = dm.GetILGenerator();
+         var obj = il.DeclareLocal(typeof (T));
+         il.Emit(OpCodes.Newobj, typeof(T).GetConstructor(Type.EmptyTypes));
+         il.Emit(OpCodes.Stloc,obj);
+         var i = 0;
+         foreach (var b in bindersByParameterOrder)
+         {
+            var getter = b.Getter;
+            il.Emit(OpCodes.Ldloc, obj);
+            if (getter != null)
+            {
+               il.Emit(OpCodes.Ldarg_1);
+               il.Emit(OpCodes.Ldc_I4, i);
+               il.Emit(OpCodes.Ldelem_Ref);
+               il.Emit(OpCodes.Castclass, getter.GetType());
+               il.Emit(OpCodes.Ldarg_0);
+               il.Emit(OpCodes.Ldc_I4, b.Ordinal);
+               il.Emit(OpCodes.Callvirt, getter.GetType().GetMethod("Invoke", new[] { typeof(IDataRecord), typeof(int) }));
+            }
+            else
+            {
+               var loc = il.DeclareLocal(b.SetterType);
+               il.Emit(OpCodes.Ldloc, loc);
+            }
+            if (b.Member.MemberType == MemberTypes.Property)
+            {
+               il.Emit(OpCodes.Callvirt, b.Member.CastTo<PropertyInfo>().GetSetMethod());
+            }
+            else
+            {
+               il.Emit(OpCodes.Stfld, b.Member.CastTo<FieldInfo>());
+            }
+            i++;
+         }
+         il.Emit(OpCodes.Ldloc, obj);
+         il.Emit(OpCodes.Ret);
+         var factory = (Func<IDataRecord, Delegate[], T>)dm.CreateDelegate(typeof(Func<IDataRecord, Delegate[], T>));
+         var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
+         return r => factory(r, delegates);
+      }
 
    }
 }
