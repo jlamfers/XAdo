@@ -19,11 +19,7 @@ namespace XAdo.Core.Impl
       private readonly IAdoClassBinder _classBinder;
 
       private readonly ConcurrentDictionary<BinderIdentity, object>
-          _binderCache = new ConcurrentDictionary<BinderIdentity, object>();
-
-      private readonly ConcurrentDictionary<BinderIdentity, object>
-        _ctorBinderCache = new ConcurrentDictionary<BinderIdentity, object>();
-
+          _recordBinderCache = new ConcurrentDictionary<BinderIdentity, object>();
 
       protected static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
         {
@@ -104,22 +100,23 @@ namespace XAdo.Core.Impl
 
       #endregion
 
-      protected virtual Type GetAdoMemberBinderType()
-      {
-         return typeof(AdoReaderToMemberBinderImpl<,,>);
-      }
 
-      public virtual IAdoReaderToMemberBinder<TEntity> CreateMemberBinder<TEntity>(MemberInfo member, Type getterType, int index)
+      public Func<IDataReader, TResult> CreateRecordBinder<TResult>(IDataRecord record, bool allowUnbindableFetchResults,
+         bool allowUnbindableMembers,
+         int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-         if (member == null) throw new ArgumentNullException("member");
-         if (getterType == null) throw new ArgumentNullException("getterType");
+         var key = new BinderIdentity(typeof (TResult), record, allowUnbindableFetchResults, allowUnbindableMembers,
+            firstColumnIndex, lastColumnIndex);
 
-         var binderGetterType = Nullable.GetUnderlyingType(member.GetMemberType()) == getterType
-             ? member.GetMemberType()
-             : getterType;
-         return ((IAdoReaderToMemberBinder<TEntity>)_classBinder.Get(typeof(AdoReaderToMemberBinderImpl<,,>)
-             .MakeGenericType(typeof(TEntity), member.GetMemberType(), binderGetterType)))
-             .Initialize(member, index);
+         return
+            (Func<IDataReader, TResult>)
+               _recordBinderCache.GetOrAdd(key,
+                  k =>
+                     TryCompileCtorBinder<TResult>(record, allowUnbindableFetchResults, allowUnbindableMembers,
+                        firstColumnIndex, lastColumnIndex)
+                     ??
+                     CompileMemberBinder<TResult>(record, allowUnbindableFetchResults, allowUnbindableMembers,
+                        firstColumnIndex, lastColumnIndex));
       }
 
       public virtual Func<IDataReader, TResult> CreateScalarReader<TResult>(Type getterType)
@@ -142,73 +139,10 @@ namespace XAdo.Core.Impl
          return r => r.IsDBNull(0) ? default(TResult) : converter(r.GetValue(0));
       }
 
-      public virtual Func<IDataReader, TResult> TryCreateCtorBinder<TResult>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
+      protected virtual Func<IDataReader, TResult> TryCompileCtorBinder<TResult>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-         var key = new BinderIdentity(typeof (TResult), record, allowUnbindableFetchResults, allowUnbindableMembers,firstColumnIndex, lastColumnIndex);
-         return (Func<IDataReader, TResult>)_ctorBinderCache.GetOrAdd(key, s =>
-         {
-            var ctor = TryFindBinderConstructor(typeof (TResult), record);
-            return ctor == null ? null : CompileCtorBinder<TResult>(record, ctor, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex, lastColumnIndex);
-         });
-      }
-
-
-
-
-
-      
-      // initializes and caches a property binders list by entity type and a datareader structure
-      public virtual IList<IAdoReaderToMemberBinder<T>> CreateMemberBinders<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
-      {
-         if (record == null) throw new ArgumentNullException("record");
-         return
-             (IList<IAdoReaderToMemberBinder<T>>)_binderCache.GetOrAdd(
-                 new BinderIdentity(typeof(T), record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex, lastColumnIndex),
-                 k =>
-                 {
-                    var type = typeof(T);
-                    var binders = new List<IAdoReaderToMemberBinder<T>>();
-                    var first = firstColumnIndex.GetValueOrDefault(0);
-                    var last = lastColumnIndex.GetValueOrDefault(record.FieldCount - 1);
-                    for (var i = first; i <= last; i++)
-                    {
-                       var m = GetMemberOrNull(type, record.GetName(i), !allowUnbindableFetchResults);
-                       if (m != null)
-                       {
-                          binders.Add(CreateMemberBinder<T>(m, record.GetFieldType(i), i));
-                       }
-                    }
-
-                    if (binders.Count == 0)
-                    {
-                       if (record.FieldCount == 1)
-                       {
-                          throw new AdoBindingException("Cannot bind " + record.GetFieldType(0) + " to " + typeof(T));
-                       }
-                       throw new AdoBindingException("Type " + typeof(T) + " has no bindable properties");
-                    }
-
-                    if (!allowUnbindableMembers)
-                    {
-                       var set = new HashSet<string>();
-                       for (var i = first; i <= last; i++)
-                       {
-                          set.Add(record.GetName(i));
-                       }
-                       if (GetBindableMembers(type).Any(p => !set.Contains(p.Name)))
-                       {
-                          throw new AdoBindingException("No bindable results for following " + type.Name +
-                                                        " members: " +
-                                                        string.Join(", ",
-                                                            GetBindableMembers(type)
-                                                                .Where(p => !set.Contains(p.Name))
-                                                                .Select(p => p.Name)
-                                                                .ToArray()));
-                       }
-                    }
-
-                    return binders.ToArray();
-                 });
+         var ctor = TryFindBinderConstructor(typeof (TResult));
+         return ctor == null ? null : CompileCtorBinder<TResult>(record, ctor, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex, lastColumnIndex);
       }
 
       public virtual bool IsBindableDataType(Type type)
@@ -226,22 +160,12 @@ namespace XAdo.Core.Impl
          );
       }
 
-      protected virtual MemberInfo GetMemberOrNull(Type type, string name, bool throwException)
-      {
-         var m = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-         if (throwException && m == null)
-         {
-            throw new AdoBindingException("Cannot bind fetched column [" + name + "] result to any member of type " + type.Name);
-         }
-         return m;
-      }
-
       public virtual IEnumerable<MemberInfo> GetBindableMembers(Type type, bool canWrite = true)
       {
          return type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => (!canWrite || p.CanWrite) && IsBindableDataType(p.PropertyType) && p.GetIndexParameters().Length == 0);
       }
 
-      private ConstructorInfo TryFindBinderConstructor(Type type, IDataRecord record)
+      private ConstructorInfo TryFindBinderConstructor(Type type)
       {
          return type.GetConstructors()
             .Where(c => c.GetParameters().Length == GetBindableMembers(type, false).Count())
@@ -272,11 +196,8 @@ namespace XAdo.Core.Impl
          public string Name;
       }
 
-
       private Func<IDataRecord, T> CompileCtorBinder<T>(IDataRecord record, ConstructorInfo ctorInfo, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
       {
-        // return CompileMemberBinder<T>(record, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex,lastColumnIndex);
-
          var binders = new List<ParameterBinder>();
 
          var first = firstColumnIndex.GetValueOrDefault(0);
@@ -342,7 +263,7 @@ namespace XAdo.Core.Impl
                {
                   il.Emit(OpCodes.Ldarg_0);
                   il.Emit(OpCodes.Ldc_I4, b.Ordinal);
-                  il.Emit(OpCodes.Callvirt,GetGetterMethod(b.SetterType));
+                  il.Emit(OpCodes.Callvirt,GetRecordGetterMethod(b.SetterType));
                }
             }
             else
@@ -357,14 +278,6 @@ namespace XAdo.Core.Impl
          var factory = (Func<IDataRecord, Delegate[], T>) dm.CreateDelegate(typeof (Func<IDataRecord, Delegate[], T>));
          var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
-      }
-
-      private static MethodInfo GetGetterMethod(Type type)
-      {
-         type = Nullable.GetUnderlyingType(type) ?? type;
-         var name = "Get" + (type == typeof(Single) ? "Float" : type.Name);
-         IDataRecord r = null;
-         return typeof (IDataRecord).GetMethod(name);
       }
 
       private Func<IDataRecord, T> CompileMemberBinder<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
@@ -432,7 +345,7 @@ namespace XAdo.Core.Impl
             {
                il.Emit(OpCodes.Ldarg_0);
                il.Emit(OpCodes.Ldc_I4, b.Ordinal);
-               il.Emit(OpCodes.Callvirt, GetGetterMethod(b.SetterType));
+               il.Emit(OpCodes.Callvirt, GetRecordGetterMethod(b.SetterType));
             }
             if (b.Member.MemberType == MemberTypes.Property)
             {
@@ -450,6 +363,15 @@ namespace XAdo.Core.Impl
          var delegates = binders.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
       }
+
+      private static MethodInfo GetRecordGetterMethod(Type type)
+      {
+         type = Nullable.GetUnderlyingType(type) ?? type;
+         var name = "Get" + (type == typeof(Single) ? "Float" : type.Name);
+         IDataRecord r = null;
+         return typeof(IDataRecord).GetMethod(name);
+      }
+
 
    }
 }

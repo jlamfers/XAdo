@@ -92,17 +92,17 @@ namespace XAdo.UnitTest
                //.Take(10)
                .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description = x.ProductSpecialOffer().SpecialOffer().Description }, out count)
                .ToList();
-            //var sw = new Stopwatch();
-            //sw.Start();
-            //var list2 = session.From<DbSalesOrderDetail>()
-            //   .OrderBy(x => x.CarrierTrackingNumber)
-            //   .Where(x => x.ModifiedDate != DateTime.Now)
-            //   .Take(10)
-            //   .Select(x => new Temp { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
-            //   .ToList();
-            //sw.Stop();
-            //Debug.WriteLine("#" + count);
-            //Debug.WriteLine(sw.ElapsedMilliseconds);
+            var sw = new Stopwatch();
+            sw.Start();
+            var list2 = session.From<DbSalesOrderDetail>()
+               .OrderBy(x => x.CarrierTrackingNumber)
+               .Where(x => x.ModifiedDate != DateTime.Now)
+               .Take(10)
+               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
+               .ToList();
+            sw.Stop();
+            Debug.WriteLine("#" + count);
+            Debug.WriteLine(sw.ElapsedMilliseconds);
          }
       }
 
@@ -190,10 +190,10 @@ namespace XAdo.UnitTest
          //}
          using (var session = Db.Northwind.CreateSession())
          {
-            var list = session.Query<_DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
+            var list = session.Query<DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
             var sw = new Stopwatch();
             sw.Start();
-            session.Query<_DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
+            session.Query<DbSalesOrderDetail>("select * from Sales.SalesOrderDetail");
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }

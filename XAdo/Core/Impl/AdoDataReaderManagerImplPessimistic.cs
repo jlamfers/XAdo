@@ -20,14 +20,14 @@ namespace XAdo.Core.Impl
         {
         }
 
-        protected override T BindTarget<T>(IDataReader reader, int index, IList<IAdoReaderToMemberBinder<T>> binders, Func<object> activator )
+        protected override T BindTarget<T>(IDataReader reader, int index, Func<IDataReader, T> recordBinder, Func<object> activator)
         {
             if (reader == null) throw new ArgumentNullException("reader");
-            if (binders == null) throw new ArgumentNullException("binders");
+            if (recordBinder == null) throw new ArgumentNullException("recordBinder");
 
-            var result = (T) activator();
-            var allNull = true;
-            foreach (var binder in binders)
+           var result = recordBinder(reader);
+           var allNull = true;
+            foreach (var binder in typeof(T))
             {
                 allNull = allNull && reader.IsDBNull(binder.DataRecordIndex);
                 binder.CopyValue(reader, result);

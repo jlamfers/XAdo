@@ -46,14 +46,10 @@
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
-    <Compile Include="Core\Impl\AdoReaderToMemberBinderImpl.cs" />
-    <Compile Include="Core\Impl\AdoReaderToMemberBinderImplEx.cs" />
     <Compile Include="Core\Impl\GetterFactory.cs" />
     <Compile Include="Core\Interface\IGetterFactory.cs" />
-    <Compile Include="Core\Interface\IActivatorFactory.cs" />
     <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
     <Compile Include="Core\Interface\IAdoRow.cs" />
-    <Compile Include="Core\Impl\ActivatorFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
     <Compile Include="Core\Impl\ConcreteTypeBuilderImpl.cs" />
@@ -86,7 +82,6 @@
     <Compile Include="Core\Impl\AdoClassBinderImpl.cs" />
     <Compile Include="Core\AdoParamHelper.cs" />
     <Compile Include="Core\Interface\IAdoSessionFactory.cs" />
-    <Compile Include="Core\Impl\AdoDataReaderManagerImplPessimistic.cs" />
     <Compile Include="Core\Impl\AdoSessionFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoSessionImpl.cs" />
     <Compile Include="Core\AdoBindingException.cs" />
@@ -101,7 +96,6 @@
     <Compile Include="Core\Interface\IAdoDataReaderManager.cs" />
     <Compile Include="Core\Interface\IAdoMultiBinderFactory.cs" />
     <Compile Include="Core\Interface\IAdoParameter.cs" />
-    <Compile Include="Core\Interface\IAdoReaderToMemberBinder.cs" />
     <Compile Include="Core\Interface\IAdoSession.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoCommandFactoryImpl.cs" />

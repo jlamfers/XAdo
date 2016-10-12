@@ -175,10 +175,8 @@ namespace XAdo
          TryBindSingleton<IAdoParameterFactory, AdoParameterFactoryImpl>();
          TryBindSingleton<IAdoSessionFactory, AdoSessionFactoryImpl>();
          TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();
-         TryBindSingleton<IActivatorFactory, ActivatorFactoryImpl>();
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
-         TryBind(typeof(AdoReaderToMemberBinderImpl<,,>), typeof(AdoReaderToMemberBinderImpl<,,>));
          TryBind(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
 
          var contextInitializer = new ContextInitializer(this);

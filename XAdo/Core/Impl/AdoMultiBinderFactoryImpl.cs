@@ -17,7 +17,7 @@ namespace XAdo.Core.Impl
         }
 
         // finds all column indices in datarecord and initizalizes corresponding binders for type T
-        public virtual IList<IAdoReaderToMemberBinder<T>> InitializeMemberBinders<T, TNext>(IDataRecord record,
+        public virtual Func<IDataReader, T> InitializeMemberBinders<T, TNext>(IDataRecord record,
             bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex)
         {
             if (record == null) throw new ArgumentNullException("record");
@@ -39,12 +39,12 @@ namespace XAdo.Core.Impl
                 if (set.Count == 0)
                 {
                     // we finished type set T
-                    return _binderFactory.CreateMemberBinders<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
+                    return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
                 }
             }
             // we finished the datarecord, so we finished type set T as well
             nextIndex = record.FieldCount;
-            return _binderFactory.CreateMemberBinders<T>(record, allowUnbindableFetchResults,
+            return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,
                 allowUnbindableMembers, first, nextIndex - 1);
         }
 

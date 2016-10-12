@@ -14,26 +14,20 @@ namespace XAdo.Core.Impl
         #region Helper Types
         private interface IReaderHelperAsync
         {
-            Task<IEnumerable> ReadAsync(IAdoDataBinderFactory binderFactory, IActivatorFactory activatorFactory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers);
+            Task<IEnumerable> ReadAsync(IAdoDataBinderFactory binderFactory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers);
         }
 
         private class ReaderHelperAsync<T> : IReaderHelperAsync
         {
-            public async Task<IEnumerable> ReadAsync(IAdoDataBinderFactory binderFactory, IActivatorFactory activatorFactory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
+            public async Task<IEnumerable> ReadAsync(IAdoDataBinderFactory binderFactory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
             {
-                var binders = binderFactory.CreateMemberBinders<T>(reader, allowUnbindableFetchResults, allowUnbindableMembers);
+                var binder = binderFactory.CreateRecordBinder<T>(reader, allowUnbindableFetchResults, allowUnbindableMembers);
 
-                var activator = activatorFactory.GetActivator(typeof(T));
                 var dbreader = (DbDataReader)reader;
                 var list = new List<T>();
                 while (await dbreader.ReadAsync())
                 {
-                    var target = (T)activator();
-                    foreach (var binder in binders)
-                    {
-                        binder.CopyValue(reader, target);
-                    }
-                    list.Add(target);
+                    list.Add(binder(reader));
                 }
                 return list;
             }
@@ -41,38 +35,30 @@ namespace XAdo.Core.Impl
 
         private interface IGraphReaderHelperAsync
         {
-            Task<IEnumerable> ReadAllAsync(AdoDataReaderManagerImpl parent, IAdoMultiBinderFactory binderFactory, IActivatorFactory activatorFactory, Func<object, object, object, object, object, object, object, object, object> factory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers);
+            Task<IEnumerable> ReadAllAsync(AdoDataReaderManagerImpl parent, IAdoMultiBinderFactory binderFactory, Func<object, object, object, object, object, object, object, object, object> factory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers);
         }
 
         private class GraphReaderHelperAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult> : IGraphReaderHelperAsync
         {
-            public async Task<IEnumerable> ReadAllAsync(AdoDataReaderManagerImpl parent, IAdoMultiBinderFactory binderFactory, IActivatorFactory activatorFactory, Func<object, object, object, object, object, object, object, object, object> factory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
+            public async Task<IEnumerable> ReadAllAsync(AdoDataReaderManagerImpl parent, IAdoMultiBinderFactory binderFactory, Func<object, object, object, object, object, object, object, object, object> factory, IDataReader reader, bool allowUnbindableFetchResults, bool allowUnbindableMembers)
             {
                 var next = 0;
                 const int index1 = 0;
                 var binders1 = binderFactory.InitializeMemberBinders<T1, T2>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index2 = next;
-                var activator1 = activatorFactory.GetActivator(typeof(T1));
                 var binders2 = binderFactory.InitializeMemberBinders<T2, T3>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index3 = next;
-                var activator2 = activatorFactory.GetActivator(typeof(T2));
                 var binders3 = binderFactory.InitializeMemberBinders<T3, T4>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index4 = next;
-                var activator3 = activatorFactory.GetActivator(typeof(T3));
                 var binders4 = binderFactory.InitializeMemberBinders<T4, T5>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index5 = next;
-                var activator4 = activatorFactory.GetActivator(typeof(T4));
                 var binders5 = binderFactory.InitializeMemberBinders<T5, T6>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index6 = next;
-                var activator5 = activatorFactory.GetActivator(typeof(T5));
                 var binders6 = binderFactory.InitializeMemberBinders<T6, T7>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index7 = next;
-                var activator6 = activatorFactory.GetActivator(typeof(T6));
                 var binders7 = binderFactory.InitializeMemberBinders<T7, T8>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
                 var index8 = next;
-                var activator7 = activatorFactory.GetActivator(typeof(T7));
                 var binders8 = binderFactory.InitializeMemberBinders<T8, TVoid>(reader, allowUnbindableFetchResults, allowUnbindableMembers, ref next);
-                var activator8 = activatorFactory.GetActivator(typeof(T8));
 
                 var target1 = default(T1);
                 var target2 = default(T2);
@@ -88,20 +74,20 @@ namespace XAdo.Core.Impl
                 var dbreader = (DbDataReader)reader;
                 while (await dbreader.ReadAsync())
                 {
-                    target1 = BindTarget(parent, reader, index1, binders1, activator1);
-                    target2 = BindTarget(parent, reader, index2, binders2, activator2);
+                    target1 = BindTarget(parent, reader, index1, binders1);
+                    target2 = BindTarget(parent, reader, index2, binders2);
                     if (typeof(T3) == typeof(TVoid)) goto @yield;
-                    target3 = BindTarget(parent, reader, index3, binders3, activator3);
+                    target3 = BindTarget(parent, reader, index3, binders3);
                     if (typeof(T4) == typeof(TVoid)) goto @yield;
-                    target4 = BindTarget(parent, reader, index4, binders4, activator4);
+                    target4 = BindTarget(parent, reader, index4, binders4);
                     if (typeof(T5) == typeof(TVoid)) goto @yield;
-                    target5 = BindTarget(parent, reader, index5, binders5, activator5);
+                    target5 = BindTarget(parent, reader, index5, binders5);
                     if (typeof(T6) == typeof(TVoid)) goto @yield;
-                    target6 = BindTarget(parent, reader, index6, binders6, activator6);
+                    target6 = BindTarget(parent, reader, index6, binders6);
                     if (typeof(T7) == typeof(TVoid)) goto @yield;
-                    target7 = BindTarget(parent, reader, index7, binders7, activator7);
+                    target7 = BindTarget(parent, reader, index7, binders7);
                     if (typeof(T8) == typeof(TVoid)) goto @yield;
-                    target8 = BindTarget(parent, reader, index8, binders8, activator8);
+                    target8 = BindTarget(parent, reader, index8, binders8);
                 @yield:
                     list.Add((TResult)factory(target1, target2, target3, target4, target5, target6, target7, target8));
                 }
@@ -117,9 +103,9 @@ namespace XAdo.Core.Impl
                         f((T1)x1, (T2)x2, (T3)x3, (T4)x4, (T5)x5, (T6)x6, (T7)x7, (T8)x8);
             }
 
-            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, IList<IAdoReaderToMemberBinder<T>> binders, Func<object> factory)
+            private static T BindTarget<T>(AdoDataReaderManagerImpl parent, IDataReader reader, int index, Func<IDataReader,T> binders)
             {
-                return parent.BindTarget(reader, index, binders, factory);
+                return parent.BindTarget(reader, index, binders);
             }
         }
 
@@ -173,7 +159,7 @@ namespace XAdo.Core.Impl
                 var concreteType = _concreteTypeBuilder.GetConcreteType(typeof(T));
                 var readerHelper = (IReaderHelperAsync)Activator.CreateInstance(typeof(ReaderHelperAsync<>).MakeGenericType(concreteType));
 
-                var r = await readerHelper.ReadAsync(_binderFactory, _activatorFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
+                var r = await readerHelper.ReadAsync(_binderFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
                 return r.Cast<T>().ToList();
             }
             return result;
@@ -196,7 +182,7 @@ namespace XAdo.Core.Impl
             var t8 = _concreteTypeBuilder.GetConcreteType(typeof(T8));
             var tresult = _concreteTypeBuilder.GetConcreteType(typeof(TResult));
             var readerHelper = (IGraphReaderHelperAsync)Activator.CreateInstance(typeof(GraphReaderHelperAsync<,,,,,,,,>).MakeGenericType(t1, t2, t3, t4, t5, t6, t7, t8, tresult));
-            var result = await readerHelper.ReadAllAsync(this, _multiBinderFactory, _activatorFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
+            var result = await readerHelper.ReadAllAsync(this, _multiBinderFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
             return result.Cast<TResult>().ToList();
         }
     }
