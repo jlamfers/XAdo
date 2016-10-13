@@ -106,7 +106,7 @@ namespace XAdo.Core
             return table;
         }
 
-        public static CollectionDataReader ToDataReader<T>(this IEnumerable<T> enumerable, IEnumerable<KeyValuePair<string, Type>> columnTypeMap = null)
+        public static CollectionDataReader ToDataReader<T>(this IEnumerable<T> enumerable)
             where T: class
         {
             if (enumerable == null) throw new ArgumentNullException("enumerable");

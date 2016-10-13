@@ -121,6 +121,12 @@ namespace XAdo.UnitTest
          }
       }
 
+      [TestMethod]
+      public void Test123()
+      {
+         Debug.WriteLine(typeof(int?).IsValueType);
+      }
+
       public enum FooEnum
       {
          Aap,

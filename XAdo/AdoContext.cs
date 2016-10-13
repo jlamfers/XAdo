@@ -171,7 +171,7 @@ namespace XAdo
          TryBindSingleton<IAdoConnectionQueryManager, AdoConnectionQueryManagerImpl>();
          TryBindSingleton<IAdoDataReaderManager, AdoDataReaderManagerImpl>();
          TryBindSingleton<IAdoTypeConverterFactory, AdoTypeConverterFactoryImpl>();
-         TryBindSingleton<IAdoMultiBinderFactory, AdoMultiBinderFactoryImpl>();
+         TryBindSingleton<IAdoGraphBinderFactory, AdoGraphBinderFactoryImpl>();
          TryBindSingleton<IAdoParameterFactory, AdoParameterFactoryImpl>();
          TryBindSingleton<IAdoSessionFactory, AdoSessionFactoryImpl>();
          TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();

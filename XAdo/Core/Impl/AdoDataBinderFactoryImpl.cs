@@ -15,8 +15,11 @@ namespace XAdo.Core.Impl
 
    public class AdoDataBinderFactoryImpl : IAdoDataBinderFactory
    {
-      protected readonly IAdoTypeConverterFactory TypeConverterFactory;
-      private readonly IAdoClassBinder _classBinder;
+      protected readonly IAdoTypeConverterFactory 
+         TypeConverterFactory;
+
+      private readonly IAdoClassBinder 
+         _classBinder;
 
       private readonly ConcurrentDictionary<BinderIdentity, object>
           _recordBinderCache = new ConcurrentDictionary<BinderIdentity, object>();
@@ -119,11 +122,11 @@ namespace XAdo.Core.Impl
                         firstColumnIndex, lastColumnIndex));
       }
 
-      public virtual Func<IDataReader, TResult> CreateScalarReader<TResult>(Type getterType)
+      public virtual Func<IDataReader, TResult> CreateScalarBinder<TResult>(Type getterType)
       {
          if (getterType == null) throw new ArgumentNullException("getterType");
 
-         if (typeof(TResult).IsAssignableFrom(getterType))
+         if (IsAssignable(getterType,typeof(TResult)))
          {
             var getter = GetterDelegate<TResult>.Getter;
             if (getter != null)
@@ -145,7 +148,7 @@ namespace XAdo.Core.Impl
          return ctor == null ? null : CompileCtorBinder<TResult>(record, ctor, allowUnbindableFetchResults, allowUnbindableMembers, firstColumnIndex, lastColumnIndex);
       }
 
-      public virtual bool IsBindableDataType(Type type)
+      protected virtual bool IsBindableDataType(Type type)
       {
          if (type == null) return false;
          type = Nullable.GetUnderlyingType(type) ?? type;
@@ -158,6 +161,15 @@ namespace XAdo.Core.Impl
              || type.FullName.EndsWith(".SqlGeometry")
              || type.FullName.EndsWith(".SqlHierarchyId")
          );
+      }
+
+      protected virtual bool IsAssignable(Type fromType, Type intoType)
+      {
+         if (fromType == null) throw new ArgumentNullException("fromType");
+         if (intoType == null) throw new ArgumentNullException("intoType");
+
+         if (intoType.IsEnum && IsAssignable(fromType, Enum.GetUnderlyingType(intoType))) return true;
+         return intoType.IsAssignableFrom(fromType);
       }
 
       public virtual IEnumerable<MemberInfo> GetBindableMembers(Type type, bool canWrite = true)
@@ -183,16 +195,6 @@ namespace XAdo.Core.Impl
          public ParameterInfo Parameter;
          public Type GetterType;
          public Type SetterType { get { return Parameter != null ? Parameter.ParameterType : null; }}
-         public string Name;
-      }
-
-      class MemberBinder
-      {
-         public object Getter;
-         public int Ordinal;
-         public MemberInfo Member;
-         public Type GetterType;
-         public Type SetterType { get { return Member != null ? (Member.MemberType == MemberTypes.Property ? Member.CastTo<PropertyInfo>().PropertyType : Member.CastTo<FieldInfo>().FieldType) : null; } }
          public string Name;
       }
 
@@ -248,7 +250,7 @@ namespace XAdo.Core.Impl
             var getter = b.Getter;
             if (getter != null)
             {
-               if (b.GetterType != b.SetterType || b.SetterType == typeof(byte[]) || b.SetterType == typeof(string) || Nullable.GetUnderlyingType(b.SetterType) != null)
+               if (!IsAssignable(b.GetterType, b.SetterType) || IsNullableBindableType(b.SetterType))
                {
                   il.Emit(OpCodes.Ldarg_1);
                   il.Emit(OpCodes.Ldc_I4, i);
@@ -278,6 +280,16 @@ namespace XAdo.Core.Impl
          var factory = (Func<IDataRecord, Delegate[], T>) dm.CreateDelegate(typeof (Func<IDataRecord, Delegate[], T>));
          var delegates = bindersByParameterOrder.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
+      }
+
+      class MemberBinder
+      {
+         public object Getter;
+         public int Ordinal;
+         public MemberInfo Member;
+         public Type GetterType;
+         public Type SetterType { get { return Member != null ? (Member.MemberType == MemberTypes.Property ? Member.CastTo<PropertyInfo>().PropertyType : Member.CastTo<FieldInfo>().FieldType) : null; } }
+         public string Name;
       }
 
       private Func<IDataRecord, T> CompileMemberBinder<T>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, int? firstColumnIndex = null, int? lastColumnIndex = null)
@@ -331,7 +343,7 @@ namespace XAdo.Core.Impl
          {
             var getter = b.Getter;
             il.Emit(OpCodes.Ldloc, obj);
-            if (b.GetterType != b.SetterType || b.SetterType == typeof(byte[]) || b.SetterType == typeof(string) || Nullable.GetUnderlyingType(b.SetterType) != null)
+            if (!IsAssignable(b.GetterType,b.SetterType)  || IsNullableBindableType(b.SetterType))
             {
                il.Emit(OpCodes.Ldarg_1);
                il.Emit(OpCodes.Ldc_I4, i);
@@ -362,6 +374,11 @@ namespace XAdo.Core.Impl
          var factory = (Func<IDataRecord, Delegate[], T>)dm.CreateDelegate(typeof(Func<IDataRecord, Delegate[], T>));
          var delegates = binders.Select(b => b.Getter).Cast<Delegate>().ToArray();
          return r => factory(r, delegates);
+      }
+
+      private static bool IsNullableBindableType(Type type)
+      {
+         return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
       }
 
       private static MethodInfo GetRecordGetterMethod(Type type)

@@ -6,19 +6,18 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    public class AdoMultiBinderFactoryImpl : IAdoMultiBinderFactory
+    public class AdoGraphBinderFactoryImpl : IAdoGraphBinderFactory
     {
         private readonly IAdoDataBinderFactory _binderFactory;
 
-        public AdoMultiBinderFactoryImpl(IAdoDataBinderFactory binderFactory)
+        public AdoGraphBinderFactoryImpl(IAdoDataBinderFactory binderFactory)
         {
             if (binderFactory == null) throw new ArgumentNullException("binderFactory");
             _binderFactory = binderFactory;
         }
 
         // finds all column indices in datarecord and initizalizes corresponding binders for type T
-        public virtual Func<IDataReader, T> InitializeMemberBinders<T, TNext>(IDataRecord record,
-            bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex)
+        public virtual Func<IDataReader, T> CreateRecordBinder<T, TNext>(IDataRecord record, bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int nextIndex)
         {
             if (record == null) throw new ArgumentNullException("record");
 
@@ -44,8 +43,7 @@ namespace XAdo.Core.Impl
             }
             // we finished the datarecord, so we finished type set T as well
             nextIndex = record.FieldCount;
-            return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,
-                allowUnbindableMembers, first, nextIndex - 1);
+            return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
         }
 
     }
