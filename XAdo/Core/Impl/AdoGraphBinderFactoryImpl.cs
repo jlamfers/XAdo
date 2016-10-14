@@ -23,6 +23,10 @@ namespace XAdo.Core.Impl
 
             if (typeof (T) == typeof (TVoid)) return null;
             var allMembers = new HashSet<string>(_binderFactory.GetBindableMembers(typeof(T)).Select(p => p.Name));
+           if (!allMembers.Any())
+           {
+              throw new AdoBindingException("Error with graph binder; No bindable members found for type: "+typeof(T).Name);
+           }
             var set = new HashSet<string>(allMembers);
             var allNextMembers = new HashSet<string>(_binderFactory.GetBindableMembers(typeof(TNext)).Select(p => p.Name));
             var first = nextIndex;
@@ -32,6 +36,10 @@ namespace XAdo.Core.Impl
                 var name = record.GetName(i);
                 if (set.Remove(name) || !allNextMembers.Contains(name))
                 {
+                   if (!allowUnbindableFetchResults && !allNextMembers.Contains(name))
+                   {
+                      throw new AdoBindingException("Error with graph binder; Following column could not be bound: " + name);
+                   }
                     // while type T has property <name>, or not type TNext has property <name>, continue with next
                     continue;
                 }
@@ -41,8 +49,16 @@ namespace XAdo.Core.Impl
                     return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
                 }
             }
+           if (!allowUnbindableMembers && set.Any())
+           {
+              throw new AdoBindingException("Error with graph binder; Following members could not be bound: " + string.Join(", ",set.ToArray()));
+           }
             // we finished the datarecord, so we finished type set T as well
             nextIndex = record.FieldCount;
+           if (typeof (TNext) != typeof (TVoid))
+           {
+               throw new AdoBindingException("Error with graph binder; No columns left to bind.");
+           }
             return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
         }
 

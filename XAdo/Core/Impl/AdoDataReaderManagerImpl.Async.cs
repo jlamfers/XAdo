@@ -114,6 +114,17 @@ namespace XAdo.Core.Impl
       public virtual async Task<List<dynamic>> ReadAllAsync(IDataReader reader)
       {
          if (reader == null) throw new ArgumentNullException("reader");
+         if (reader.FieldCount == 1)
+         {
+            var list = new List<dynamic>();
+            var dbr = (DbDataReader)reader;
+            while (await dbr.ReadAsync())
+            {
+               list.Add(dbr.IsDBNull(0) ? null : dbr.GetValue(0));
+            }
+            return list;
+         }
+
          var columnNames = new string[reader.FieldCount];
          var columnTypes = new Type[reader.FieldCount];
          var index = new Dictionary<string, int>();

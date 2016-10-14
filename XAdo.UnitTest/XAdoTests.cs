@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Quobs;
 using XAdo.Quobs.Generator;
@@ -136,5 +137,61 @@ namespace XAdo.UnitTest
         sw.Stop();
         Debug.WriteLine(sw.ElapsedMilliseconds);
       }
+
+       [TestMethod]
+       public async Task ScalarWorks()
+       {
+          using (var sn = Db.Northwind.CreateSession())
+          {
+             var list = await sn.QueryAsync<float>("SELECT 1 FROM [Production].[WorkOrder]");
+             var t = list.Count();
+             Debug.WriteLine(t);
+          }          
+       }
+
+       public class Person
+       {
+          public int Id;
+          public string FirstName;
+          public string MiddleName;
+          public string LastName;
+          public Address Addres;
+       }
+
+       public class Address
+       {
+          public int Id;
+          public string AddressLine1;
+          public string AddressLine2;
+          public string City;
+       }
+
+
+       [TestMethod]
+       public void TestGraph()
+       {
+          var sql = @"SELECT        Person.Person.BusinessEntityID as Id, Person.Person.FirstName, Person.Person.MiddleName, Person.Person.LastName, Person.Address.AddressID as Id, Person.Address.AddressLine1, Person.Address.City, Person.Address.AddressLine2
+FROM            Person.Address INNER JOIN
+                         Person.BusinessEntityAddress ON Person.Address.AddressID = Person.BusinessEntityAddress.AddressID INNER JOIN
+                         Person.BusinessEntity ON Person.BusinessEntityAddress.BusinessEntityID = Person.BusinessEntity.BusinessEntityID INNER JOIN
+                         Person.Person ON Person.BusinessEntity.BusinessEntityID = Person.Person.BusinessEntityID";
+          using (var sn = Db.Northwind.CreateSession())
+          {
+             var list = sn.Query<Person,Address,Person>(sql, (p, a) =>
+             {
+                p.Addres = a;
+                return p;
+             });
+             list = sn.Query<Person, Address, Person>(sql, (p, a) =>
+             {
+                p.Addres = a;
+                return p;
+             });
+             var t = list.Count();
+             Debug.WriteLine(t);
+          }   
+
+
+       }
     }
 }

@@ -166,7 +166,7 @@ namespace XAdo.Core
 
         public virtual PropertyBuilder ImplementProperty(string name, Type type, MethodAttributes methodAttributes = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig, PropertyAttributes propertyAttributes = PropertyAttributes.HasDefault, FieldBuilder field = null)
         {
-            if (name == null) throw new ArgumentNullException("name");
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
             if (type == null) throw new ArgumentNullException("type");
             field = field ?? GetOrAddField(name, type);
             var property = TypeBuilder.DefineProperty(name, propertyAttributes, type, null);

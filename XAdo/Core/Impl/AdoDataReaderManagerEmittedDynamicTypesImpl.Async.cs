@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -17,6 +18,16 @@ namespace XAdo.Core.Impl
         public override async Task<List<dynamic>> ReadAllAsync(IDataReader reader)
         {
             if (reader == null) throw new ArgumentNullException("reader");
+           if (reader.FieldCount == 1)
+           {
+              var list = new List<dynamic>();
+              var dbreader = (DbDataReader)reader;
+              while (await dbreader.ReadAsync())
+              {
+                 list.Add(dbreader.IsDBNull(0) ? null : dbreader.GetValue(0));
+              }
+              return list;
+           }
             var columnNames = new string[reader.FieldCount];
             var columnTypes = new Type[reader.FieldCount];
             for (var i = 0; i < reader.FieldCount; i++)
@@ -24,6 +35,23 @@ namespace XAdo.Core.Impl
                 columnNames[i] = reader.GetName(i);
                 columnTypes[i] = EnsureNullable(reader.GetFieldType(i));
             }
+
+            if (columnNames.Any(string.IsNullOrWhiteSpace))
+            {
+               // return AdoRow if any column  has no name
+               var meta = new AdoRow.Meta { ColumnNames = columnNames, Index = new Dictionary<string, int>(), Types = columnTypes };
+               var count = reader.FieldCount;
+               var dbreader = (DbDataReader)reader;
+               var result2 = new List<dynamic>();
+               while (await dbreader.ReadAsync())
+               {
+                  var values = new object[count];
+                  reader.GetValues(values);
+                  result2.Add(new AdoRow(meta, values));
+               }
+               return result2;
+            }
+
             var dtoType = AnonymousTypeHelper.GetOrCreateType(columnNames, columnTypes);
             var m = _readAllAsync.MakeGenericMethod(dtoType);
             var taskHelper = ((ITaskHelper)Activator.CreateInstance(typeof(TaskHelper<>).MakeGenericType(dtoType))).SetMethod(m);

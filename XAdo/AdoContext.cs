@@ -190,6 +190,16 @@ namespace XAdo
             // add default int to long converter
             contextInitializer.SetCustomTypeConverter<int, long>(x => 0L + x);
          }
+         if (!contextInitializer.CanCustomConvert(typeof(int), typeof(float)))
+         {
+            // add default int to float converter
+            contextInitializer.SetCustomTypeConverter<int, float>(x => 0F + x);
+         }
+         if (!contextInitializer.CanCustomConvert(typeof(int), typeof(decimal)))
+         {
+            // add default int to decimal converter
+            contextInitializer.SetCustomTypeConverter<int, decimal>(x => 0M + x);
+         }
 
          AdoParamHelper = new AdoParamHelper(_binder.Get<IAdoParameterFactory>());
       }

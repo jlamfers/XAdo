@@ -9,11 +9,10 @@ namespace XAdo.UnitTest
                 .SetConnectionString(@"data source=.\SqlExpress;initial catalog=AdventureWorks2012;integrated security=SSPI", "System.Data.SqlClient")
                 .EnableFieldBinding()
                 .KeepConnectionAlive(false)
-                .AllowUnbindableProperties(true)
+                //.AllowUnbindableProperties(true)
                 .EnableEmittedDynamicTypes()
                 //.EnablePessimisticDataReader()
                 .SetCustomTypeConverter<int,long>(x => 0L + x)
-                //.EnablePessimisticDataReader()
             );
     }
 }

@@ -105,7 +105,7 @@
     <Compile Include="Core\Impl\AdoConnectionFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoConnectionQueryManagerImpl.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerImpl.cs" />
-    <Compile Include="Core\Impl\AdoMultiBinderFactoryImpl.cs" />
+    <Compile Include="Core\Impl\AdoGraphBinderFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoParameterFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoParameterImpl.cs" />
     <Compile Include="Core\Impl\AdoTypeConverterFactoryImpl.cs" />

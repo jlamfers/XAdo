@@ -121,6 +121,15 @@ namespace XAdo.Core.Impl
       public virtual IEnumerable<dynamic> ReadAll(IDataReader reader)
       {
          if (reader == null) throw new ArgumentNullException("reader");
+         if (reader.FieldCount == 1)
+         {
+            while (reader.Read())
+            {
+               yield return reader.IsDBNull(0) ? null : reader.GetValue(0);
+            }
+            yield break;
+         }
+
          var columnNames = new string[reader.FieldCount];
          var columnTypes = new Type[reader.FieldCount];
          var index = new Dictionary<string, int>();
@@ -209,7 +218,6 @@ namespace XAdo.Core.Impl
       {
          if (reader == null) throw new ArgumentNullException("reader");
          if (recordBinder == null) throw new ArgumentNullException("recordBinder");
-
          return reader.IsDBNull(index) ? default(T) : recordBinder(reader);
       }
 
