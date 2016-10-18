@@ -161,7 +161,7 @@ namespace XAdo.Core
         {
             if (_reader == null)
             {
-                throw new ObjectDisposedException(GetType().Name, "You probably have consumed all datareaders while attempting to read another one.");
+                throw new ObjectDisposedException(GetType().Name, "You possibly have consumed all datareaders while attempting to read another one.");
             }
         }
 

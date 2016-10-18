@@ -210,7 +210,7 @@ namespace XAdo.Core.Impl
          var t8 = _concreteTypeBuilder.GetConcreteType(typeof(T8));
          var tresult = _concreteTypeBuilder.GetConcreteType(typeof(TResult));
          var readerHelper = (IGraphReaderHelperAsync)Activator.CreateInstance(typeof(GraphReaderHelperAsync<,,,,,,,,>).MakeGenericType(t1, t2, t3, t4, t5, t6, t7, t8, tresult));
-         var result = await readerHelper.ReadAllAsync(this, _multiBinderFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
+         var result = await readerHelper.ReadAllAsync(this, _graphBinderFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers);
          return result.Cast<TResult>().ToList();
       }
    }

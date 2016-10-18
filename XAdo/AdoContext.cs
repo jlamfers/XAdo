@@ -175,9 +175,10 @@ namespace XAdo
          TryBindSingleton<IAdoParameterFactory, AdoParameterFactoryImpl>();
          TryBindSingleton<IAdoSessionFactory, AdoSessionFactoryImpl>();
          TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();
+         TryBindSingleton(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
+         TryBindSingleton<IAdoParamHelper, AdoParamHelperImpl>();
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
-         TryBind(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
 
          var contextInitializer = new ContextInitializer(this);
          if (initializer != null)
@@ -201,7 +202,7 @@ namespace XAdo
             contextInitializer.SetCustomTypeConverter<int, decimal>(x => 0M + x);
          }
 
-         AdoParamHelper = new AdoParamHelper(_binder.Get<IAdoParameterFactory>());
+         AdoParamHelper = _binder.Get<IAdoParamHelper>();
       }
 
       private void TryBindSingleton<TService, TImpl>() where TImpl : TService
@@ -223,6 +224,13 @@ namespace XAdo
          if (!_binder.CanResolve(serviceType))
          {
             _binder.Bind(serviceType, implementationType);
+         }
+      }
+      private void TryBindSingleton(Type serviceType, Type implementationType)
+      {
+         if (!_binder.CanResolve(serviceType))
+         {
+            _binder.BindSingleton(serviceType, implementationType);
          }
       }
       private void TryBind<TService>(Func<IAdoClassBinder, TService> factory)
@@ -247,7 +255,7 @@ namespace XAdo
              : GetInstance<IAdoSessionFactory>().Create(ConnectionString, ProviderName, CommandTimeout, KeepConnectionAlive, AllowUnbindableFetchResults, AllowUnbindableProperties);
       }
 
-      public virtual AdoParamHelper AdoParamHelper { get; private set; }
+      public virtual IAdoParamHelper AdoParamHelper { get; private set; }
 
       /// <summary>
       /// You may resolve instances from the inner container

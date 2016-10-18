@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -105,16 +108,16 @@ namespace XAdo.Core.Impl
       #endregion
 
       private readonly IAdoDataBinderFactory _binderFactory;
-      private readonly IAdoGraphBinderFactory _multiBinderFactory;
+      private readonly IAdoGraphBinderFactory _graphBinderFactory;
       private readonly IConcreteTypeBuilder _concreteTypeBuilder;
 
-      public AdoDataReaderManagerImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory multiBinderFactory, IConcreteTypeBuilder concreteTypeBuilder)
+      public AdoDataReaderManagerImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory graphBinderFactory, IConcreteTypeBuilder concreteTypeBuilder)
       {
          if (binderFactory == null) throw new ArgumentNullException("binderFactory");
-         if (multiBinderFactory == null) throw new ArgumentNullException("multiBinderFactory");
+         if (graphBinderFactory == null) throw new ArgumentNullException("graphBinderFactory");
          if (concreteTypeBuilder == null) throw new ArgumentNullException("concreteTypeBuilder");
          _binderFactory = binderFactory;
-         _multiBinderFactory = multiBinderFactory;
+         _graphBinderFactory = graphBinderFactory;
          _concreteTypeBuilder = concreteTypeBuilder;
       }
 
@@ -211,7 +214,7 @@ namespace XAdo.Core.Impl
          var t8 = _concreteTypeBuilder.GetConcreteType(typeof(T8));
          var tresult = _concreteTypeBuilder.GetConcreteType(typeof(TResult));
          var readerHelper = (IGraphReaderHelper)Activator.CreateInstance(typeof(GraphReaderHelper<,,,,,,,,>).MakeGenericType(t1, t2, t3, t4, t5, t6, t7, t8, tresult));
-         return readerHelper.ReadAll(this, _multiBinderFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers).Cast<TResult>();
+         return readerHelper.ReadAll(this, _graphBinderFactory, untypedFactory, reader, allowUnbindableFetchResults, allowUnbindableMembers).Cast<TResult>();
       }
 
       protected virtual T BindTarget<T>(IDataReader reader, int index, Func<IDataReader, T> recordBinder)

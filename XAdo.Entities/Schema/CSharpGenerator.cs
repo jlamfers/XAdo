@@ -59,6 +59,8 @@ namespace XAdo.Quobs.Schema
          w.WriteLine("namespace " + _namespace);
          w.WriteLine("{");
          w.Indent++;
+         w.WriteLine("public abstract partial class DbBaseTable {}");
+         w.WriteLine();
 
          foreach (var t in schema.Tables.Where(t => _excludedTables == null || !_excludedTables.IsMatch(GetTableName(t))))
          {
@@ -74,7 +76,7 @@ namespace XAdo.Quobs.Schema
 
       protected virtual void WriteTable(IndentedTextWriter w, TableSchemaItem t)
       {
-         w.WriteLine("public partial class {0}{1}", _prefix,  NormalizeName(t.Name));
+         w.WriteLine("public partial class {0}{1} : DbBaseTable", _prefix, NormalizeName(t.Name));
          w.WriteLine("{");
          w.Indent++;
          foreach (var c in t.Columns)

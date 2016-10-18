@@ -48,7 +48,11 @@
     <Compile Include="Core\GetterSetterUtil.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\Impl\AdoGraphBinderCompilerImpl.cs" />
+    <Compile Include="Core\Interface\IAdoGraphBinderCompilerImpl.cs" />
+    <Compile Include="Core\Interface\IAdoParamHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
+    <Compile Include="Core\Impl\AdoParameterFactoryWithStringSanitizeImpl.cs" />
     <Compile Include="Core\Impl\GetterFactory.cs" />
     <Compile Include="Core\Interface\IGetterFactory.cs" />
     <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
@@ -83,7 +87,7 @@
     <Compile Include="Core\Interface\IAdoSessionInitializer.cs" />
     <Compile Include="Core\Interface\IAdoTypeConverterFactory.cs" />
     <Compile Include="Core\Impl\AdoClassBinderImpl.cs" />
-    <Compile Include="Core\AdoParamHelper.cs" />
+    <Compile Include="Core\Impl\AdoParamHelperImpl.cs" />
     <Compile Include="Core\Interface\IAdoSessionFactory.cs" />
     <Compile Include="Core\Impl\AdoSessionFactoryImpl.cs" />
     <Compile Include="Core\Impl\AdoSessionImpl.cs" />

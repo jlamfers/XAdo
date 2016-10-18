@@ -103,7 +103,6 @@ namespace XAdo.Core.Impl
 
       #endregion
 
-
       public Func<IDataReader, TResult> CreateRecordBinder<TResult>(IDataRecord record, bool allowUnbindableFetchResults,
          bool allowUnbindableMembers,
          int? firstColumnIndex = null, int? lastColumnIndex = null)
@@ -385,7 +384,6 @@ namespace XAdo.Core.Impl
       {
          type = Nullable.GetUnderlyingType(type) ?? type;
          var name = "Get" + (type == typeof(Single) ? "Float" : type.Name);
-         IDataRecord r = null;
          return typeof(IDataRecord).GetMethod(name);
       }
 

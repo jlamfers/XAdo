@@ -40,13 +40,11 @@ namespace XAdo.Core.Impl
                    {
                       throw new AdoBindingException("Error with graph binder; Following column could not be bound: " + name);
                    }
-                    // while type T has property <name>, or not type TNext has property <name>, continue with next
-                    continue;
                 }
                 if (set.Count == 0)
                 {
                     // we finished type set T
-                    return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex - 1);
+                    return _binderFactory.CreateRecordBinder<T>(record, allowUnbindableFetchResults,allowUnbindableMembers, first, nextIndex);
                 }
             }
            if (!allowUnbindableMembers && set.Any())

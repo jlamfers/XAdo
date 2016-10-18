@@ -36,7 +36,7 @@ namespace XAdo.Core.Impl
                 columnTypes[i] = EnsureNullable(reader.GetFieldType(i));
             }
 
-            if (columnNames.Any(string.IsNullOrWhiteSpace))
+            if (columnNames.Any(string.IsNullOrWhiteSpace) || columnNames.Length != columnNames.Distinct().Count())
             {
                // return AdoRow if any column  has no name
                var meta = new AdoRow.Meta { ColumnNames = columnNames, Index = new Dictionary<string, int>(), Types = columnTypes };
