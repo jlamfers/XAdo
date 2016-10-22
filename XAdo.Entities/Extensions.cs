@@ -18,5 +18,14 @@ namespace XAdo.Quobs
       {
          return self == null ? default(T) : (T) self;
       }
+
+      public static string FormatWith(this string self, params object[] args)
+      {
+         return string.Format(self, args);
+      }
+      public static string FormatWith(this string self, IFormatProvider provider, params object[] args)
+      {
+         return string.Format(provider, self, args);
+      }
    }
 }

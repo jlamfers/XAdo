@@ -56,7 +56,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BinderExpressionCompilerTest.cs" />
     <Compile Include="Db.cs" />
+    <Compile Include="DescriptorTest.cs" />
     <Compile Include="Model\WorkOrder.cs" />
     <Compile Include="Model\WorkOrderWithFields.cs" />
     <Compile Include="QuobTest.cs" />

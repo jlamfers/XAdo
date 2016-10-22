@@ -4,11 +4,11 @@ using XAdo.Quobs.Attributes.Core;
 namespace XAdo.Quobs.Attributes
 {
    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-   public class TableAttribute : QuobsAttribute
+   public class QuobsTableAttribute : QuobsAttribute
    {
       private string _tableName;
 
-      public TableAttribute() : base(null)
+      public QuobsTableAttribute() : base(null)
       {
          
       }

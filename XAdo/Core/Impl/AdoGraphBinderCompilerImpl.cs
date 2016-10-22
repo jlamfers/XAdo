@@ -92,10 +92,10 @@ namespace XAdo.Core.Impl
             il.Emit(OpCodes.Ldelem_Ref);
             //il.Emit(OpCodes.Castclass, d.GetType());
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Callvirt, GetInvoke(d));
+            il.Emit(OpCodes.Callvirt, GetTypedInvoke(d));
             delegates[i] = d;
          }
-         il.Emit(OpCodes.Callvirt, GetInvoke(handler_BinderTypes_ResultType));
+         il.Emit(OpCodes.Callvirt, GetTypedInvoke(handler_BinderTypes_ResultType));
          il.Emit(OpCodes.Castclass, typeof(object));
          il.Emit(OpCodes.Ret);
          delegates[i] = handler_BinderTypes_ResultType;
@@ -104,8 +104,7 @@ namespace XAdo.Core.Impl
          return r => factory(r, delegates);
       }
 
-      private Delegate CreateRecordBinder(Type type, Type typeNext, IDataReader reader,
-         bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int next)
+      private Delegate CreateRecordBinder(Type type, Type typeNext, IDataReader reader,bool allowUnbindableFetchResults, bool allowUnbindableMembers, ref int next)
       {
          var m = typeof(IAdoGraphBinderFactory).GetMethods().Single(x => x.Name == "CreateRecordBinder");
          m = m.MakeGenericMethod(type, typeNext);
@@ -115,7 +114,7 @@ namespace XAdo.Core.Impl
          return result;
       }
 
-      private MethodInfo GetInvoke(Delegate d)
+      private static MethodInfo GetTypedInvoke(Delegate d)
       {
          return d.GetType().GetMethods().Single(m => m.Name == "Invoke" && !DelegateMethods.Contains(m));
       }

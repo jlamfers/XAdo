@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
@@ -20,7 +19,7 @@ namespace XAdo.Examples
       }
    }
 
-   [Table("dbo.AWBuildVersion")]
+   [Table("dbo.AWBuildVersion",Schema = "dbo")]
    public partial class DbAWBuildVersion : DbTable
    {
       [Key, Required]
@@ -1418,7 +1417,8 @@ namespace XAdo.Examples
       [Required]
       public virtual DateTime? ModifiedDate { get; set; }
    }
-   [Table("HumanResources.vJobCandidateEducation")]
+   //[Table("HumanResources.vJobCandidateEducation")]
+   //[Table("vJobCandidateEducation", Schema = "HumanResources")]
    public partial class DbvJobCandidateEducation : DbTable
    {
       [Key, Required]

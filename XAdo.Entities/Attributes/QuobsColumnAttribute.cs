@@ -4,11 +4,11 @@ using XAdo.Quobs.Attributes.Core;
 namespace XAdo.Quobs.Attributes
 {
    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-   public class ColumnAttribute : QuobsAttribute
+   public class QuobsColumnAttribute : QuobsAttribute
    {
       private string _columnName;
 
-      public ColumnAttribute() : base(null)
+      public QuobsColumnAttribute() : base(null)
       {
          
       }

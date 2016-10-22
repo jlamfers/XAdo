@@ -46,14 +46,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AutoIncrementAttribute.cs" />
-    <Compile Include="Attributes\ColumnAttribute.cs" />
+    <Compile Include="Attributes\Annotator.cs" />
+    <Compile Include="Attributes\DbViewAttribute.cs" />
+    <Compile Include="Attributes\QuobsColumnAttribute.cs" />
     <Compile Include="Attributes\Core\NameParser.cs" />
+    <Compile Include="Attributes\Descriptor.cs" />
     <Compile Include="Attributes\JoinMethod.cs" />
     <Compile Include="Attributes\JoinType.cs" />
     <Compile Include="Attributes\ReferencedByAttribute.cs" />
     <Compile Include="Attributes\ReferencesAttribute.cs" />
-    <Compile Include="Attributes\TableAttribute.cs" />
+    <Compile Include="Attributes\QuobsTableAttribute.cs" />
     <Compile Include="Attributes\UniqueAttribute.cs" />
+    <Compile Include="Expressions\BinderExpressionCompiler.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Generator\Quobs1.cs">
       <AutoGen>True</AutoGen>

@@ -146,7 +146,7 @@ namespace XAdo.UnitTest
          public DateTime Dt { get; set; }
       }
 
-      [Table(TableName = "Sales.SalesOrderDetail")]
+      [QuobsTable(TableName = "Sales.SalesOrderDetail")]
       public partial class _DbSalesOrderDetail
       {
          public _DbSalesOrderDetail() { }

@@ -2,11 +2,23 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using XAdo.Quobs.Attributes;
 
 namespace XAdo.Quobs.Expressions
 {
    internal static class ExpressionExtensions
    {
+
+      public static bool IsJoinMethod(this Expression expression)
+      {
+         var callExpression = expression as MethodCallExpression;
+         return callExpression != null && callExpression.Method.GetAnnotation<JoinMethodAttribute>() != null;
+      }
+
+      public static bool IsParameter(this Expression expression)
+      {
+         return expression != null && expression.NodeType == ExpressionType.Parameter;
+      }
 
       public static bool IsParameterMember(this Expression expression)
       {

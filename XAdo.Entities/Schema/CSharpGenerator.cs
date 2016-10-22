@@ -42,6 +42,7 @@ namespace XAdo.Quobs.Schema
       {
          var namespaces = schema.Tables.SelectMany(t => t.Columns.Select(c => c.Type.Namespace)).Distinct().ToList();
          namespaces.Add("System.ComponentModel.DataAnnotations");
+         namespaces.Add("System.ComponentModel.DataAnnotations.Schema");
          namespaces.Add("XAdo.Quobs.Attributes");
 
          namespaces =
@@ -62,7 +63,7 @@ namespace XAdo.Quobs.Schema
          w.WriteLine("public abstract partial class DbBaseTable {}");
          w.WriteLine();
 
-         foreach (var t in schema.Tables.Where(t => _excludedTables == null || !_excludedTables.IsMatch(GetTableName(t))))
+         foreach (var t in schema.Tables.Where(t => _excludedTables == null || !_excludedTables.IsMatch(t.Name)))
          {
             WriteTableAttributes(w, t);
             WriteTable(w, t);
@@ -90,8 +91,9 @@ namespace XAdo.Quobs.Schema
 
       protected virtual void WriteTableAttributes(IndentedTextWriter w, TableSchemaItem t)
       {
-         var crud = t.IsView ? ", Crud=\"R\"" : "";
-         w.WriteLine("[Table(TableName = \"{0}\"{1})]",GetTableName(t),crud);
+         var schema = t.Owner != null ? ", Schema=\"{0}\"".FormatWith(t.Owner) : "";
+         var view = t.IsView ? ", DbView" : "";
+         w.WriteLine("[Table(\"{0}\"{1}){2}]", t.Name, schema, view);
          if (t.FKeyTables.Any())
          {
             w.WriteLine("[ReferencedBy(new []{{{0}}})]",string.Join(", ",t.FKeyTables.Select(x => string.Format("typeof({0}{1})",_prefix, NormalizeName(x.Name))).ToArray()));
@@ -115,11 +117,11 @@ namespace XAdo.Quobs.Schema
             }
             if (c.IsAutoIncrement)
             {
-               sw.Write(", AutoIncrement");
+               sw.Write(", DbAutoIncrement");
             }
             if (c.IsUnique)
             {
-               sw.Write(", Unique");
+               sw.Write(", DbUnique");
             }
             if (!c.IsNullable)
             {
@@ -132,7 +134,7 @@ namespace XAdo.Quobs.Schema
             var normalizedName = NormalizePropertyName(c);
             if (normalizedName != c.Name)
             {
-               sw.Write(", Column(ColumnName = \"{0}\")", GetColumnName(c));
+               sw.Write(", Column(\"{0}\")", c.Name);
             }
             var s = sw.ToString().TrimStart(',').TrimStart();
             if (s.Length > 0)
@@ -142,7 +144,7 @@ namespace XAdo.Quobs.Schema
          }
          if (c.References != null)
          {
-            w.WriteLine("[References( Type=typeof({0}{1}), Member=\"{2}\", Column=\"{3}\", Constraint=\"{4}\")]",_prefix, NormalizeName(c.References.Table.Name),NormalizePropertyName(c.References),c.References.Name.Replace(".","\\\\."),c.FKey.FKeyConstrantName);
+            w.WriteLine("[References( Type=typeof({0}{1}), MemberName=\"{2}\", ColumnName=\"{3}\", FKeyName=\"{4}\")]",_prefix, NormalizeName(c.References.Table.Name),NormalizePropertyName(c.References),c.References.Name,c.FKey.FKeyConstrantName);
          }
 
       }
@@ -165,18 +167,6 @@ namespace XAdo.Quobs.Schema
             normalized = "_" + normalized;
          }
          return normalized;
-      }
-
-      protected virtual string GetTableName(TableSchemaItem t)
-      {
-         return t.Owner != null
-            ? t.Owner.Replace(".", "\\\\.") + "." + t.Name.Replace(".", "\\\\.")
-            : t.Name.Replace(".", "\\\\.");
-      }
-
-      protected virtual string GetColumnName(ColumnSchemaItem c)
-      {
-         return c.Name.Replace(".", "\\\\.");
       }
 
       protected virtual void WriteJoinExtension(IndentedTextWriter w, DbSchema schema)

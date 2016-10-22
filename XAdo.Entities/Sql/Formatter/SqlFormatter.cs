@@ -37,7 +37,7 @@ namespace XAdo.Quobs.Sql.Formatter
       public virtual string FormatColumn(MemberInfo member)
       {
          if (member == null) throw new ArgumentNullException("member");
-         var a = member.GetCustomAttribute<ColumnAttribute>();
+         var a = member.GetCustomAttribute<QuobsColumnAttribute>();
          var owner = FormatTableName(member.DeclaringType);
          if (a != null)
          {
@@ -55,7 +55,7 @@ namespace XAdo.Quobs.Sql.Formatter
       public virtual string FormatTableName(Type entityType)
       {
          if (entityType == null) throw new ArgumentNullException("entityType");
-         var a = entityType.GetCustomAttribute<TableAttribute>();
+         var a = entityType.GetCustomAttribute<QuobsTableAttribute>();
          if (a != null)
          {
             if (a.TableNameParts != null)

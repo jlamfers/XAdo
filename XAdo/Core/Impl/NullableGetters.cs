@@ -5,7 +5,11 @@ namespace XAdo.Core.Impl
 {
     public static class NullableGetters
     {
-        public static string GetString(IDataRecord reader, int index)
+       public static object GetValue(IDataRecord reader, int index)
+       {
+          return reader.IsDBNull(index) ? null : reader.GetValue(index);
+       }
+       public static string GetString(IDataRecord reader, int index)
         {
             return reader.IsDBNull(index) ? null : reader.GetString(index);
         }
