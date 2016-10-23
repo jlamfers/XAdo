@@ -45,15 +45,15 @@ namespace XAdo.UnitTest
             return result.Read<T>(false);
          }
 
-         public IEnumerable<T> ExecuteQuery<T>(string sql, Expression<Func<IDataRecord, T>> factory, IDictionary<string, object> args)
+         public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, IDictionary<string, object> args)
          {
-            return _session.Query<T>(sql, factory.Compile(), args, false);
+            return _session.Query<T>(sql, factory, args, false);
          }
 
-         public IEnumerable<T> ExecuteQuery<T>(string sql, Expression<Func<IDataRecord, T>> factory, IDictionary<string, object> args, string sqlCount, out long count)
+         public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, IDictionary<string, object> args, string sqlCount, out long count)
          {
             count =_session.ExecuteScalar<long>(sqlCount);
-            return _session.Query<T>(sql, factory.Compile(), args, false);
+            return _session.Query<T>(sql, factory, args, false);
          }
       }
 

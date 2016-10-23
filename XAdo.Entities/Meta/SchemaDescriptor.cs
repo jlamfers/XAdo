@@ -26,7 +26,7 @@ namespace XAdo.Quobs.Meta
          public TableDescriptor(Type type)
          {
             if (type == null) throw new ArgumentNullException("type");
-            EntityType = type;
+            Type = type;
             var tableAtt = type.GetAnnotation<TableAttribute>();
             if (tableAtt != null)
             {
@@ -56,7 +56,7 @@ namespace XAdo.Quobs.Meta
             }
          }
 
-         public Type EntityType { get; private set; }
+         public Type Type { get; private set; }
          public int Id { get; private set; }
          public string Schema { get; private set; }
          public string Name { get; private set; }
@@ -183,7 +183,6 @@ namespace XAdo.Quobs.Meta
       {
          return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
-
       public static IEnumerable<JoinDescriptor> GetJoinDescriptors(this MethodCallExpression self)
       {
          var atts = self.Method.GetAnnotations<JoinMethodAttribute>();
@@ -198,7 +197,6 @@ namespace XAdo.Quobs.Meta
             return result;
          });
       }
-
       public static ColumnDescriptor GetColumnDescriptor(this MemberInfo self)
       {
          switch (self.MemberType)

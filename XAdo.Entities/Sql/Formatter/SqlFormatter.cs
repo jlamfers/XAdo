@@ -39,7 +39,7 @@ namespace XAdo.Quobs.Sql.Formatter
       {
          if (member == null) throw new ArgumentNullException("member");
          var d = member.GetColumnDescriptor();
-         return FormatTableName(d.Parent.EntityType) +"."+ DelimitIdentifier(d.Name);
+         return FormatTableName(d.Parent.Type) +"."+ DelimitIdentifier(d.Name);
       }
       public virtual string FormatTableName(Type entityType)
       {

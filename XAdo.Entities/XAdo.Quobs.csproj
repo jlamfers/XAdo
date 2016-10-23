@@ -48,6 +48,7 @@
     <Compile Include="Attributes\AutoIncrementAttribute.cs" />
     <Compile Include="Attributes\Annotator.cs" />
     <Compile Include="Attributes\DbViewAttribute.cs" />
+    <Compile Include="Meta\SqlDescriptor.cs" />
     <Compile Include="Meta\SchemaDescriptor.cs" />
     <Compile Include="Attributes\JoinMethodAttribute.cs" />
     <Compile Include="Attributes\JoinType.cs" />
