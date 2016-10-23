@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Expressions;
+using XAdo.Quobs.Meta;
 
 namespace XAdo.Quobs.Sql.Formatter
 {
@@ -22,26 +23,14 @@ namespace XAdo.Quobs.Sql.Formatter
 
       public static string FormatSelectColumn(this ISqlFormatter self, MemberInfo column)
       {
-         var m = column;
-         return self.FormatColumn(m) + (m.GetCustomAttribute<QuobsAttribute>() != null ? " AS " + self.DelimitIdentifier(m.Name) : "");
+         var d = column.GetColumnDescriptor();
+         return self.FormatColumn(d.Member) + (d.Name != d.Member.Name ? " AS " + self.DelimitIdentifier(d.Member.Name) : "");
       }
 
       public static string FormatSelectColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
       {
          var m = column.GetMemberInfo();
          return self.FormatSelectColumn(m);
-      }
-
-      //tuple holds column spec and alias
-      public static SelectColumn FormatSelectTuple(this ISqlFormatter self, MemberInfo column)
-      {
-         var m = column;
-         return new SelectColumn(self.FormatColumn(m), m.GetCustomAttribute<QuobsAttribute>() != null ? self.DelimitIdentifier(m.Name) : null);
-      }
-
-      public static SelectColumn FormatSelectTuple<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
-      {
-         return self.FormatSelectTuple(column.GetMemberInfo());
       }
 
 

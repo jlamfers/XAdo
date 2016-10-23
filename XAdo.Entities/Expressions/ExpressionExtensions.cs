@@ -12,7 +12,7 @@ namespace XAdo.Quobs.Expressions
       public static bool IsJoinMethod(this Expression expression)
       {
          var callExpression = expression as MethodCallExpression;
-         return callExpression != null && callExpression.Method.GetAnnotation<JoinMethodAttribute>() != null;
+         return callExpression != null && callExpression.Method.GetAnnotations<JoinMethodAttribute>().Any();
       }
 
       public static bool IsParameter(this Expression expression)

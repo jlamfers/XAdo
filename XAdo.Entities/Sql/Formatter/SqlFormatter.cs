@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using XAdo.Quobs.Attributes;
+using XAdo.Quobs.Meta;
 
 namespace XAdo.Quobs.Sql.Formatter
 {
@@ -37,37 +38,14 @@ namespace XAdo.Quobs.Sql.Formatter
       public virtual string FormatColumn(MemberInfo member)
       {
          if (member == null) throw new ArgumentNullException("member");
-         var a = member.GetCustomAttribute<QuobsColumnAttribute>();
-         var owner = FormatTableName(member.DeclaringType);
-         if (a != null)
-         {
-            if (a.ColumnNameParts != null)
-            {
-               return owner+"."+DelimitIdentifier(a.ColumnNameParts);
-            }
-            if (a.SqlExpression != null)
-            {
-               return a.SqlExpression;
-            }
-         }
-         return owner+"."+ DelimitIdentifier(member.Name);
+         var d = member.GetColumnDescriptor();
+         return FormatTableName(d.Parent.EntityType) +"."+ DelimitIdentifier(d.Name);
       }
       public virtual string FormatTableName(Type entityType)
       {
          if (entityType == null) throw new ArgumentNullException("entityType");
-         var a = entityType.GetCustomAttribute<QuobsTableAttribute>();
-         if (a != null)
-         {
-            if (a.TableNameParts != null)
-            {
-               return DelimitIdentifier(a.TableNameParts);
-            }
-            if (a.SqlExpression != null)
-            {
-               return a.SqlExpression;
-            }
-         }
-         return DelimitIdentifier(entityType.Name);
+         var d = entityType.GetTableDescriptor();
+         return DelimitIdentifier(d.Schema,d.Name);
       }
 
       public virtual string ConcatenateSqlStatements(IEnumerable<string> statements)
@@ -190,15 +168,7 @@ WHERE __rowNum BETWEEN ({2} + 1) AND ({2} + {3})
          return this;
       }
 
-      public virtual string DelimitIdentifier(string qualifiedName)
-      {
-         if (qualifiedName.StartsWith(IdentifierDelimiterLeft))
-         {
-            return qualifiedName;
-         }
-         return IdentifierDelimiterLeft + qualifiedName + IdentifierDelimiterRight;
-      }
-      public virtual string DelimitIdentifier(IList<string> nameParts)
+      public virtual string DelimitIdentifier(params string[] nameParts)
       {
          var sb = new StringBuilder();
          var sep = "";

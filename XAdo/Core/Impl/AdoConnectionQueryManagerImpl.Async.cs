@@ -186,7 +186,45 @@ namespace XAdo.Core.Impl
             }
         }
 
-        public virtual async Task<AdoMultiResultReaderAsync> QueryMultipleAsync(IDbConnection cn, string sql,
+       public virtual async Task<List<T>> QueryAsync<T>(IDbConnection cn, string sql, Func<IDataRecord, T> factory, object param = null, IDbTransaction tr = null,
+          int? commandTimeout = null, CommandType? commandType = null)
+       {
+          if (cn == null) throw new ArgumentNullException("cn");
+          if (sql == null) throw new ArgumentNullException("sql");
+          var wasopen = cn.State == ConnectionState.Open;
+          var skipClose = false;
+          if (!wasopen)
+          {
+             await EnsureOpenAsync(cn);
+          }
+          try
+          {
+             var result = new List<T>();
+             using (var cmd = (DbCommand)CreateCommand(cn, sql, param, tr, commandTimeout, commandType))
+             {
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                   while (await reader.NextResultAsync())
+                      result.Add(factory(reader));
+                }
+             }
+             if (!wasopen)
+             {
+                skipClose = true;
+                cn.Close();
+             }
+             return result;
+          }
+          finally
+          {
+             if (!wasopen && !skipClose)
+             {
+                cn.Close();
+             }
+          }
+       }
+
+       public virtual async Task<AdoMultiResultReaderAsync> QueryMultipleAsync(IDbConnection cn, string sql,
             object param = null, IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
             bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)
         {

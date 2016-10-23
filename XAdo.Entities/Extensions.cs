@@ -14,6 +14,11 @@ namespace XAdo.Quobs
          return value;
       }
 
+      public static bool IsNullable(this Type self)
+      {
+         return self != null && Nullable.GetUnderlyingType(self) != null;
+      }
+
       public static T CastTo<T>(this object self)
       {
          return self == null ? default(T) : (T) self;
@@ -23,6 +28,7 @@ namespace XAdo.Quobs
       {
          return string.Format(self, args);
       }
+
       public static string FormatWith(this string self, IFormatProvider provider, params object[] args)
       {
          return string.Format(provider, self, args);

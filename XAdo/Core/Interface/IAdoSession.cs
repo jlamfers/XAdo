@@ -9,6 +9,7 @@ namespace XAdo.Core.Interface
         T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null);
         object ExecuteScalar(string sql, object param = null, CommandType? commandType = null);
         IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null);
+        IEnumerable<T> Query<T>(string sql, Func<IDataRecord,T> factory,  object param = null, bool buffered = true, CommandType? commandType = null);
         IEnumerable<dynamic> Query(string sql, object param = null, bool buffered = true, CommandType? commandType = null);
         AdoMultiResultReader QueryMultiple(string sql, object param = null, CommandType? commandType = null);
 

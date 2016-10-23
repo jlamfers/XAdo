@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Core;
 using XAdo.Quobs.Attributes;
+using XAdo.Quobs.Meta;
 
 namespace XAdo.Quobs.Expressions
 {
@@ -80,14 +81,31 @@ namespace XAdo.Quobs.Expressions
       private class OrderedColumnDescriptor
       {
          public int Order;
-         public Descriptor.ColumnDescriptor Descriptor;
+         public SchemaDescriptor.ColumnDescriptor Descriptor;
       }
 
-      public class CompileResult
+      public class CompileBaseResult
       {
-         public List<Descriptor.ColumnDescriptor> Columns { get; set; }
-         public List<Descriptor.JoinDescriptor> Joins { get; set; }
-         public Expression<Func<IDataRecord,object>> BinderExpression { get; set; }
+         public List<SchemaDescriptor.ColumnDescriptor> Columns { get; set; }
+         public List<SchemaDescriptor.JoinDescriptor> Joins { get; set; }
+         public virtual Expression BinderExpression { get; set; }
+         
+      }
+      public class CompileResult : CompileBaseResult
+      {
+         public new Expression<Func<IDataRecord, object>> BinderExpression
+         {
+            set { base.BinderExpression = value; }
+            get { return (Expression<Func<IDataRecord, object>>)base.BinderExpression; }
+         }
+      }
+      public class CompileResult<T> : CompileBaseResult
+      {
+         public new Expression<Func<IDataRecord, T>> BinderExpression
+         {
+            set { base.BinderExpression = value; }
+            get { return (Expression<Func<IDataRecord, T>>)base.BinderExpression; }
+         }
       }
 
       private ParameterExpression
@@ -96,17 +114,31 @@ namespace XAdo.Quobs.Expressions
       private Dictionary<MemberInfo, OrderedColumnDescriptor>
          _columns;
 
-      private Dictionary<string,Descriptor.JoinDescriptor>
+      private Dictionary<string,SchemaDescriptor.JoinDescriptor>
          _joins;
 
       public CompileResult Compile(LambdaExpression expression)
       {
          _parameter = Expression.Parameter(typeof (IDataRecord),"rdr");
          _columns = new Dictionary<MemberInfo, OrderedColumnDescriptor>();
-         _joins = new Dictionary<string, Descriptor.JoinDescriptor>();
+         _joins = new Dictionary<string, SchemaDescriptor.JoinDescriptor>();
          var body = Expression.Convert(Visit(expression.Body),typeof(object));
          var binderExpression = Expression.Lambda<Func<IDataRecord, object>>(body, _parameter);
          return new CompileResult
+         {
+            BinderExpression = binderExpression,
+            Joins = _joins.Values.ToList(),
+            Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList()
+         };
+      }
+      public CompileResult<T> Compile<T>(LambdaExpression expression)
+      {
+         _parameter = Expression.Parameter(typeof(IDataRecord), "rdr");
+         _columns = new Dictionary<MemberInfo, OrderedColumnDescriptor>();
+         _joins = new Dictionary<string, SchemaDescriptor.JoinDescriptor>();
+         var body = Visit(expression.Body);
+         var binderExpression = Expression.Lambda<Func<IDataRecord, T>>(body, _parameter);
+         return new CompileResult<T>
          {
             BinderExpression = binderExpression,
             Joins = _joins.Values.ToList(),
@@ -123,11 +155,13 @@ namespace XAdo.Quobs.Expressions
       {
          if (node.IsJoinMethod())
          {
-            var jd = node.GetJoinDescriptor();
-            if (!_joins.ContainsKey(jd.Expression))
+            foreach (var jd in node.GetJoinDescriptors())
             {
-               _joins.Add(jd.Expression, jd);
-            };
+               if (!_joins.ContainsKey(jd.Expression))
+               {
+                  _joins.Add(jd.Expression, jd);
+               }
+            }
             return Visit(node.Arguments[0]);
          }
          return base.Visit(node);
@@ -143,7 +177,7 @@ namespace XAdo.Quobs.Expressions
          // add column
          if (!_columns.ContainsKey(node.Member))
          {
-            _columns.Add(node.Member, new OrderedColumnDescriptor { Descriptor = node.Member.GetDescriptor() , Order = _columns.Count});
+            _columns.Add(node.Member, new OrderedColumnDescriptor { Descriptor = node.Member.GetColumnDescriptor() , Order = _columns.Count});
          }
 
          var memberType = node.Member.GetMemberType();
@@ -155,15 +189,15 @@ namespace XAdo.Quobs.Expressions
          return readerMethod.ReturnType != memberType ? (Expression) Expression.Convert(result, memberType) : result;
       }
 
-      private static MethodInfo GetReaderMethod(Descriptor.ColumnDescriptor d)
+      private static MethodInfo GetReaderMethod(SchemaDescriptor.ColumnDescriptor d)
       {
          var type = d.Member.GetMemberType();
-         if (d.Required || ( type.IsValueType && Nullable.GetUnderlyingType(type) == null))
+         if (d.Required || ( type.IsValueType && !type.IsNullable()))
          {
             var m = typeof (IDataRecord).GetMethod(GetGetterName(type));
             if (m != null) return m;
          }
-         if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+         if (!type.IsValueType || type.IsNullable())
          {
             var m = typeof (NullableGetters).GetMethod(GetGetterName(Nullable.GetUnderlyingType(type) ?? type));
             if (m != null) return m;

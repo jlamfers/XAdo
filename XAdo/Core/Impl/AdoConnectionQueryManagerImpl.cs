@@ -201,6 +201,41 @@ namespace XAdo.Core.Impl
          }
       }
 
+      public virtual IEnumerable<T> Query<T>(IDbConnection cn, string sql, Func<IDataRecord, T> factory, object param = null, IDbTransaction tr = null,
+         int? commandTimeout = null, CommandType? commandType = null)
+      {
+         if (cn == null) throw new ArgumentNullException("cn");
+         if (sql == null) throw new ArgumentNullException("sql");
+
+         var wasopen = cn.State == ConnectionState.Open;
+         var skipClose = false;
+         if (!wasopen)
+         {
+            EnsureOpen(cn);
+         }
+         try
+         {
+            using (var cmd = CreateCommand(cn, sql, param, tr, commandTimeout, commandType))
+            {
+               using (var reader = cmd.ExecuteReader())
+               {
+                  while (reader.Read())
+                     yield return factory(reader);
+               }
+            }
+            if (wasopen) yield break;
+            skipClose = true;
+            cn.Close();
+         }
+         finally
+         {
+            if (!wasopen && !skipClose)
+            {
+               cn.Close();
+            }
+         }
+      }
+
       public virtual AdoMultiResultReader QueryMultiple(IDbConnection cn, string sql, object param = null,
           IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
           bool allowUnbindableFetchResults = true, bool allowUnbindableMembers = false)

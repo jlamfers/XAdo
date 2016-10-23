@@ -8,7 +8,7 @@ namespace XAdo.Core.Impl
     public partial class AdoSessionImpl
     {
 
-        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, CommandType? commandType = null)
+       public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return await _connectionQueryManager.ExecuteScalarAsync<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType);
@@ -18,12 +18,18 @@ namespace XAdo.Core.Impl
             EnsureNotDisposed();
             return await _connectionQueryManager.ExecuteScalarAsync(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType);
         }
-        public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null, CommandType? commandType = null)
+
+       public virtual async Task<List<T>> QueryAsync<T>(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return await _connectionQueryManager.QueryAsync<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
         }
-        public virtual async Task<List<dynamic>> QueryAsync(string sql, object param = null, CommandType? commandType = null)
+       public virtual async Task<List<T>> QueryAsync<T>(string sql, Func<IDataRecord, T> factory, object param = null, CommandType? commandType = null)
+       {
+          EnsureNotDisposed();
+          return await _connectionQueryManager.QueryAsync<T>(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout, commandType);
+       }
+       public virtual async Task<List<dynamic>> QueryAsync(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return await _connectionQueryManager.QueryAsync(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType);

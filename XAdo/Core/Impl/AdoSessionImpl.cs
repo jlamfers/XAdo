@@ -126,7 +126,14 @@ namespace XAdo.Core.Impl
             return buffered ? enumerable.ToList() : enumerable;
         }
 
-        public virtual IEnumerable<dynamic> Query(string sql, object param = null, bool buffered = true,
+        public virtual IEnumerable<T> Query<T>(string sql, Func<IDataRecord, T> factory, object param = null, bool buffered = true, CommandType? commandType = null)
+       {
+          EnsureNotDisposed();
+          var enumerable = _connectionQueryManager.Query<T>(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout, commandType);
+          return buffered ? enumerable.ToList() : enumerable;
+       }
+
+       public virtual IEnumerable<dynamic> Query(string sql, object param = null, bool buffered = true,
             CommandType? commandType = null)
         {
             EnsureNotDisposed();

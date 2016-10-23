@@ -1,9 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using XAdo.Quobs.Attributes;
 
 namespace XAdo.UnitTest.Model
 {
-   [Quobs("Production.WorkOrder")]
+   [Table("WorkOrder", Schema = "Production")]
     public partial class WorkOrder
     {
         public int WorkOrderID { get; set; }

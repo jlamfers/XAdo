@@ -17,7 +17,6 @@ namespace XAdo.Quobs.Sql.Formatter
 
       ISqlFormatter FormatSqlSelectCount(TextWriter writer, ISqlSelectMeta meta);
 
-      string DelimitIdentifier(string qualifiedName);
-      string DelimitIdentifier(IList<string> nameParts);
+      string DelimitIdentifier(params string[] nameParts);
    }
 }

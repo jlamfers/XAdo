@@ -48,14 +48,11 @@
     <Compile Include="Attributes\AutoIncrementAttribute.cs" />
     <Compile Include="Attributes\Annotator.cs" />
     <Compile Include="Attributes\DbViewAttribute.cs" />
-    <Compile Include="Attributes\QuobsColumnAttribute.cs" />
-    <Compile Include="Attributes\Core\NameParser.cs" />
-    <Compile Include="Attributes\Descriptor.cs" />
-    <Compile Include="Attributes\JoinMethod.cs" />
+    <Compile Include="Meta\SchemaDescriptor.cs" />
+    <Compile Include="Attributes\JoinMethodAttribute.cs" />
     <Compile Include="Attributes\JoinType.cs" />
     <Compile Include="Attributes\ReferencedByAttribute.cs" />
     <Compile Include="Attributes\ReferencesAttribute.cs" />
-    <Compile Include="Attributes\QuobsTableAttribute.cs" />
     <Compile Include="Attributes\UniqueAttribute.cs" />
     <Compile Include="Expressions\BinderExpressionCompiler.cs" />
     <Compile Include="Extensions.cs" />
@@ -81,7 +78,6 @@
     <Compile Include="Sql\Formatter\ISqlSelectMeta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Expressions\MemberInfoFinder.cs" />
-    <Compile Include="Attributes\QuobsAttribute.cs" />
     <Compile Include="Expressions\ExpressionExtensions.cs" />
     <Compile Include="Quob~1.cs" />
     <Compile Include="Sql\Formatter\SqlFormmaterExtension.cs" />

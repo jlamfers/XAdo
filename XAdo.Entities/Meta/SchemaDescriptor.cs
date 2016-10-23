@@ -7,14 +7,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Threading;
+using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Expressions;
 
-namespace XAdo.Quobs.Attributes
+namespace XAdo.Quobs.Meta
 {
-   public static class Descriptor
+   public static class SchemaDescriptor
    {
-      private static int _aliasInc;
+      private static int _idInc;
 
       private static readonly ConcurrentDictionary<MemberInfo,object> Cache = 
          new ConcurrentDictionary<MemberInfo, object>(); 
@@ -38,7 +40,7 @@ namespace XAdo.Quobs.Attributes
             var viewAtt = type.GetAnnotation<DbViewAttribute>();
             IsView = viewAtt != null;
             IsReadOnly = viewAtt != null && viewAtt.IsReadOnly;
-            Alias = "__t_" + Interlocked.Increment(ref _aliasInc);
+            Id = Interlocked.Increment(ref _idInc);
 
             Columns =
                type.GetProperties()
@@ -55,7 +57,7 @@ namespace XAdo.Quobs.Attributes
          }
 
          public Type EntityType { get; private set; }
-         public string Alias { get; private set; }
+         public int Id { get; private set; }
          public string Schema { get; private set; }
          public string Name { get; private set; }
          public bool IsView { get; private set; }
@@ -74,7 +76,7 @@ namespace XAdo.Quobs.Attributes
          {
             Parent = parent;
             Member = m;
-            Alias = "__c_"+Interlocked.Increment(ref _aliasInc);
+            Id = Interlocked.Increment(ref _idInc);
             var columnAtt = m.GetAnnotation<ColumnAttribute>();
             Name = columnAtt != null ? columnAtt.Name : m.Name;
             IsPKey = m.GetAnnotation<KeyAttribute>() != null;
@@ -92,7 +94,7 @@ namespace XAdo.Quobs.Attributes
 
          }
          public TableDescriptor Parent { get; private set; }
-         public string Alias { get; private set; }
+         public int Id { get; private set; }
          public string Name { get; private set; }
          public bool IsPKey { get; private set; }
          public bool IsUnique { get; private set; }
@@ -115,15 +117,15 @@ namespace XAdo.Quobs.Attributes
 
          public ReferenceDescriptor(ColumnDescriptor fkey, Type type, string memberName, string name)
          {
-            ForeignKey = fkey;
+            ForeignKeyColumn = fkey;
             Name = name;
             _type = type;
             _memberName = memberName;
          }
 
          public string Name { get; private set; }
-         public ColumnDescriptor ForeignKey { get; private set; }
-         public ColumnDescriptor Referenced
+         public ColumnDescriptor ForeignKeyColumn { get; private set; }
+         public ColumnDescriptor ReferencedColumn
          {
             get {
                return _referencedColumn ?? (_referencedColumn = (ColumnDescriptor) Cache[_type.GetMember(_memberName).Single()]);
@@ -132,7 +134,7 @@ namespace XAdo.Quobs.Attributes
 
          public override string ToString()
          {
-            return "FK " + ForeignKey + " => " + Referenced;
+            return "FKey " + ForeignKeyColumn + " => " + ReferencedColumn;
          }
       }
       public class JoinDescriptor
@@ -143,42 +145,71 @@ namespace XAdo.Quobs.Attributes
          }
          public string Expression { get; private set; }
          public JoinType JoinType { get; set; }
+
+         public override string ToString()
+         {
+            var sb = new StringBuilder();
+            switch (JoinType)
+            {
+               case JoinType.Inner:
+                  sb.Append("INNER ");
+                  break;
+               case JoinType.Left:
+                  sb.Append("LEFT OUTER ");
+                  break;
+               case JoinType.Right:
+                  sb.Append("RIGHT OUTER ");
+                  break;
+               case JoinType.Full:
+                  sb.Append("FULL OUTER ");
+                  break;
+               default:
+                  throw new ArgumentOutOfRangeException();
+            }
+            sb.Append(Expression);
+            return sb.ToString();
+         }
       }
 
-      public static TableDescriptor GetDescriptor(this Type self)
+      public static TableDescriptor GetTableDescriptor(this Type self)
       {
          return Cache.GetOrAdd(self, t => new TableDescriptor(self)).CastTo<TableDescriptor>();
       }
-      public static ColumnDescriptor GetDescriptor(this FieldInfo self)
+      public static ColumnDescriptor GetColumnDescriptor(this FieldInfo self)
       {
-         return Cache.GetOrAdd(self, t => self.ReflectedType.GetDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
+         return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
-      public static ColumnDescriptor GetDescriptor(this PropertyInfo self)
+      public static ColumnDescriptor GetColumnDescriptor(this PropertyInfo self)
       {
-         return Cache.GetOrAdd(self, t => self.ReflectedType.GetDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
+         return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
-      public static ColumnDescriptor GetDescriptor(this MemberInfo self)
+
+      public static IEnumerable<JoinDescriptor> GetJoinDescriptors(this MethodCallExpression self)
+      {
+         var atts = self.Method.GetAnnotations<JoinMethodAttribute>();
+         if (!atts.Any()) return new JoinDescriptor[0];
+         return atts.Select(att =>
+         {
+            var result = new JoinDescriptor(att.Expression);
+            if (self.Method.GetParameters().Count() == 2)
+            {
+               result.JoinType = (JoinType) self.Arguments[1].GetExpressionValue();
+            }
+            return result;
+         });
+      }
+
+      public static ColumnDescriptor GetColumnDescriptor(this MemberInfo self)
       {
          switch (self.MemberType)
          {
             case MemberTypes.Property:
-               return self.CastTo<PropertyInfo>().GetDescriptor();
+               return self.CastTo<PropertyInfo>().GetColumnDescriptor();
             case MemberTypes.Field:
-               return self.CastTo<FieldInfo>().GetDescriptor();
+               return self.CastTo<FieldInfo>().GetColumnDescriptor();
             default:
                throw new NotSupportedException("type " + self.MemberType + " is not supported.");
          }
-      }
-      public static JoinDescriptor GetJoinDescriptor(this MethodCallExpression self)
-      {
-         var att = self.Method.GetAnnotation<JoinMethodAttribute>();
-         if (att == null) return null;
-         var result =  new JoinDescriptor(att.Expression);
-         if (self.Method.GetParameters().Count() == 2)
-         {
-            result.JoinType = (JoinType)self.Arguments[1].GetExpressionValue();
-         }
-         return result;
       }
 
    }

@@ -8,6 +8,8 @@ namespace XAdo.Core.Interface
     public partial interface IAdoSession
     {
         Task<List<T>> QueryAsync<T>(string sql, object param = null, CommandType? commandType = null);
+        Task<List<T>> QueryAsync<T>(string sql, Func<IDataRecord, T> factory, object param = null, CommandType? commandType = null);
+
         Task<T> ExecuteScalarAsync<T>(string sql, object param = null, CommandType? commandType = null);
         Task<object> ExecuteScalarAsync(string sql, object param = null, CommandType? commandType = null);
         Task<List<object>> QueryAsync(string sql, object param = null, CommandType? commandType = null);

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Core.Interface;
 using XAdo.Quobs;
@@ -41,6 +43,17 @@ namespace XAdo.UnitTest
             var result = _session.QueryMultiple(sqlCount + ";" + sql, args);
             count = result.Read<long>().Single();
             return result.Read<T>(false);
+         }
+
+         public IEnumerable<T> ExecuteQuery<T>(string sql, Expression<Func<IDataRecord, T>> factory, IDictionary<string, object> args)
+         {
+            return _session.Query<T>(sql, factory.Compile(), args, false);
+         }
+
+         public IEnumerable<T> ExecuteQuery<T>(string sql, Expression<Func<IDataRecord, T>> factory, IDictionary<string, object> args, string sqlCount, out long count)
+         {
+            count =_session.ExecuteScalar<long>(sqlCount);
+            return _session.Query<T>(sql, factory.Compile(), args, false);
          }
       }
 
@@ -146,7 +159,7 @@ namespace XAdo.UnitTest
          public DateTime Dt { get; set; }
       }
 
-      [QuobsTable(TableName = "Sales.SalesOrderDetail")]
+      [Table("SalesOrderDetail", Schema = "Sales")]
       public partial class _DbSalesOrderDetail
       {
          public _DbSalesOrderDetail() { }

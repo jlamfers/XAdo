@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Quobs.Attributes;
+using XAdo.Quobs.Meta;
 
 namespace XAdo.UnitTest
 {
@@ -20,7 +21,7 @@ namespace XAdo.UnitTest
          foreach (
             var t in baseTableType.Assembly.GetTypes().Where(t => !t.IsAbstract && baseTableType.IsAssignableFrom(t)))
          {
-            list.Add(t.GetDescriptor());
+            list.Add(t.GetTableDescriptor());
          }
       }
    }

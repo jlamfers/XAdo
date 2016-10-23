@@ -22,6 +22,8 @@ namespace XAdo.Core.Interface
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
             bool allowUnbindableMembers = false);
 
+        IEnumerable<T> Query<T>(IDbConnection cn, string sql, Func<IDataRecord,T> factory,  object param = null, IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null);
+
         AdoMultiResultReader QueryMultiple(IDbConnection cn, string sql, object param = null, IDbTransaction tr = null,
             int? commandTimeout = null, CommandType? commandType = null, bool allowUnbindableFetchResults = true,
             bool allowUnbindableMembers = false);
