@@ -58,7 +58,7 @@ namespace XAdo.Quobs.Schema
 
          foreach (var fkey in fkeys)
          {
-            db.FKeys.Add(new FKeySchemaItem(db, fkey.FK_CONSTRAINT_NAME, fkey.FK_TABLE_SCHEMA, fkey.FK_TABLE_NAME, fkey.FK_COLUMN_NAME, fkey.REF_CONSTRAINT_NAME, fkey.REF_TABLE_SCHEMA, fkey.REF_TABLE_NAME, fkey.REF_COLUMN_NAME));
+            db.FKeys.Add(new DbFKeyItem(db, fkey.FK_CONSTRAINT_NAME, fkey.FK_TABLE_SCHEMA, fkey.FK_TABLE_NAME, fkey.FK_COLUMN_NAME, fkey.REF_CONSTRAINT_NAME, fkey.REF_TABLE_SCHEMA, fkey.REF_TABLE_NAME, fkey.REF_COLUMN_NAME));
          }
 
          return db.AsReadOnly();
@@ -126,13 +126,13 @@ namespace XAdo.Quobs.Schema
             var ds = new DataSet();
             adapter.FillSchema(ds, SchemaType.Mapped, tablename);
 
-            var dbTable = new TableSchemaItem(schema, table.TABLE_SCHEMA, table.TABLE_NAME, table.TABLE_TYPE == "VIEW");
+            var dbTable = new DbTableItem(schema, table.TABLE_SCHEMA, table.TABLE_NAME, table.TABLE_TYPE == "VIEW");
             schema.Tables.Add(dbTable);
 
             foreach (DataColumn dataColumn in ds.Tables[0].Columns)
             {
                var ispkey = dataColumn.AutoIncrement || dataColumn.Table.PrimaryKey.Contains(dataColumn);
-               schema.Columns.Add(new ColumnSchemaItem(schema, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName,dataColumn.DataType, ispkey, dataColumn.AutoIncrement, dataColumn.AllowDBNull, dataColumn.Unique,dataColumn.DefaultValue, dataColumn.MaxLength));
+               schema.Columns.Add(new DbColumnItem(schema, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName,dataColumn.DataType, ispkey, dataColumn.AutoIncrement, dataColumn.AllowDBNull, dataColumn.Unique,dataColumn.DefaultValue, dataColumn.MaxLength));
             }
 
          }

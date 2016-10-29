@@ -5,7 +5,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Core;
-using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Meta;
 
 namespace XAdo.Quobs.Expressions
@@ -89,6 +88,8 @@ namespace XAdo.Quobs.Expressions
          public List<SchemaDescriptor.ColumnDescriptor> Columns { get; set; }
          public List<SchemaDescriptor.JoinDescriptor> Joins { get; set; }
          public virtual Expression BinderExpression { get; set; }
+         public Dictionary<MemberInfo, Expression> MemberMap { get; set; }
+         public ParameterExpression OrigParameter { get; set; }
          
       }
       public class CompileResult : CompileBaseResult
@@ -117,18 +118,28 @@ namespace XAdo.Quobs.Expressions
       private Dictionary<string,SchemaDescriptor.JoinDescriptor>
          _joins;
 
+      private Dictionary<MemberInfo, Expression>
+         _memberMap;
+
+      private ParameterExpression
+         _origParameter;
+
       public CompileResult Compile(LambdaExpression expression)
       {
          _parameter = Expression.Parameter(typeof (IDataRecord),"rdr");
          _columns = new Dictionary<MemberInfo, OrderedColumnDescriptor>();
          _joins = new Dictionary<string, SchemaDescriptor.JoinDescriptor>();
+         _memberMap = new Dictionary<MemberInfo, Expression>();
+         _origParameter = expression.Parameters.Single();
          var body = Expression.Convert(Visit(expression.Body),typeof(object));
          var binderExpression = Expression.Lambda<Func<IDataRecord, object>>(body, _parameter);
          return new CompileResult
          {
             BinderExpression = binderExpression,
             Joins = _joins.Values.ToList(),
-            Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList()
+            Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList(),
+            MemberMap = _memberMap,
+            OrigParameter = _origParameter
          };
       }
       public CompileResult<T> Compile<T>(LambdaExpression expression)
@@ -136,19 +147,41 @@ namespace XAdo.Quobs.Expressions
          _parameter = Expression.Parameter(typeof(IDataRecord), "rdr");
          _columns = new Dictionary<MemberInfo, OrderedColumnDescriptor>();
          _joins = new Dictionary<string, SchemaDescriptor.JoinDescriptor>();
+         _memberMap = new Dictionary<MemberInfo, Expression>();
+         _origParameter = expression.Parameters.Single();
          var body = Visit(expression.Body);
          var binderExpression = Expression.Lambda<Func<IDataRecord, T>>(body, _parameter);
          return new CompileResult<T>
          {
             BinderExpression = binderExpression,
             Joins = _joins.Values.ToList(),
-            Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList()
+            Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList(),
+            MemberMap = _memberMap,
+            OrigParameter = _origParameter
          };
       }
 
       protected override Expression VisitParameter(ParameterExpression node)
       {
          return _parameter;
+      }
+
+      protected override Expression VisitNew(NewExpression node)
+      {
+         var members = node.Members;
+         if (members != null)
+         {
+            for (var i = 0; i < members.Count; i++)
+            {
+               _memberMap[members[i]] = node.Arguments[i];
+            }
+         }
+         return base.VisitNew(node);
+      }
+      protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+      {
+         _memberMap[node.Member] = node.Expression;
+         return base.VisitMemberAssignment(node);
       }
 
       protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -189,10 +222,11 @@ namespace XAdo.Quobs.Expressions
          return readerMethod.ReturnType != memberType ? (Expression) Expression.Convert(result, memberType) : result;
       }
 
-      private static MethodInfo GetReaderMethod(SchemaDescriptor.ColumnDescriptor d)
+      private MethodInfo GetReaderMethod(SchemaDescriptor.ColumnDescriptor d)
       {
          var type = d.Member.GetMemberType();
-         if (d.Required || ( type.IsValueType && !type.IsNullable()))
+
+         if ((d.Member.ReflectedType == _origParameter.Type &&  d.Required) || ( type.IsValueType && !type.IsNullable()))
          {
             var m = typeof (IDataRecord).GetMethod(GetGetterName(type));
             if (m != null) return m;
@@ -205,7 +239,6 @@ namespace XAdo.Quobs.Expressions
          return typeof (NullableGetters).GetMethod("GetValue");
       }
      
-
       private static string GetGetterName(Type type)
       {
          return "Get" + (type == typeof(Single) ? "Float" : type.Name);

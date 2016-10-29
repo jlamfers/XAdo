@@ -73,6 +73,11 @@ namespace XAdo.Quobs.Meta
             _hashcode = expression.GetHashCode();
          }
 
+         public JoinDescriptor(SchemaDescriptor.JoinDescriptor other)
+            : base(other.Expression)
+         {
+            JoinType = other.JoinType;
+         }
 
          // note: equality does not depend on join type
          public override int GetHashCode()
@@ -92,19 +97,23 @@ namespace XAdo.Quobs.Meta
          }
       }
 
-      public class SelectDescriptor
+      public class QueryDescriptor
       {
-         public SelectDescriptor()
+         public QueryDescriptor()
          {
             SelectColumns = new List<SelectColumnDescriptor>();
+
             DiscriminatorPredicates = new List<string>();
+            DiscriminatorArguments = new Dictionary<string, object>();
+
             WhereClausePredicates = new List<string>();
+            Arguments = new Dictionary<string, object>();
+
+            GroupByColumns = new List<string>();
+
             HavingClausePredicates = new List<string>();
             OrderColumns = new List<OrderColumnDescriptor>();
-            GroupByColumns = new List<string>();
             Joins = new List<JoinDescriptor>();
-            WhereClauseJoins = new List<JoinDescriptor>();
-            Arguments = new Dictionary<string, object>();
          }
 
          public List<SelectColumnDescriptor> SelectColumns { get; private set; }
@@ -114,10 +123,10 @@ namespace XAdo.Quobs.Meta
          public List<OrderColumnDescriptor> OrderColumns { get; private set; }
          public List<string> GroupByColumns { get; private set; }
          public List<JoinDescriptor> Joins { get; private set; }
-         public List<JoinDescriptor> WhereClauseJoins { get; private set; }
          public string TableName { get; set; }
          public bool Distict { get; set; }
          public IDictionary<string, object> Arguments { get; private set; }
+         public IDictionary<string, object> DiscriminatorArguments { get; private set; }
 
          public void WriteSelect(TextWriter writer)
          {
@@ -138,11 +147,11 @@ namespace XAdo.Quobs.Meta
                                  t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
             }
             writer.WriteLine("FROM {0}", self.TableName);
-            if (self.Joins.Any() || self.WhereClauseJoins.Any())
+            if (self.Joins.Any())
             {
                writer.WriteLine("   " +
                            String.Join("\r\n   ",
-                              self.Joins.Concat(self.WhereClauseJoins).Select(j => j.ToString()).ToArray()));
+                              self.Joins.Select(j => j.ToString()).ToArray()));
             }
             if (self.WhereClausePredicates.Any() || self.DiscriminatorPredicates.Any())
             {
@@ -181,7 +190,7 @@ namespace XAdo.Quobs.Meta
             }
             writer.Write("SELECT COUNT(1) FROM (");
             clone.WriteSelect(writer);
-            writer.Write(") AS t");
+            writer.Write(") AS __t");
          }
 
          public override string ToString()
@@ -193,21 +202,43 @@ namespace XAdo.Quobs.Meta
             }
          }
 
-         public SelectDescriptor Clone()
+         public QueryDescriptor Clone(bool reset = false)
          {
-            var clone = new SelectDescriptor();
+            var clone = new QueryDescriptor();
             clone.SelectColumns.AddRange(SelectColumns.Select(c => c.Clone()));
             clone.DiscriminatorPredicates.AddRange(DiscriminatorPredicates);
-            clone.WhereClausePredicates.AddRange(WhereClausePredicates);
             clone.HavingClausePredicates.AddRange(HavingClausePredicates);
             clone.OrderColumns.AddRange(OrderColumns.Select(c => c.Clone()));
             clone.GroupByColumns.AddRange(GroupByColumns);
             clone.Joins.AddRange(Joins.Select(c => c.Clone()));
-            clone.WhereClauseJoins.AddRange(WhereClauseJoins.Select(c => c.Clone()));
             clone.TableName = TableName;
             clone.Distict = Distict;
-            clone.Arguments = Arguments.ToDictionary(e => e.Key, e => e.Value);
+            clone.DiscriminatorArguments = DiscriminatorArguments.ToDictionary(e => e.Key, e => e.Value);
+            if (!reset)
+            {
+               clone.Arguments = Arguments.ToDictionary(e => e.Key, e => e.Value);
+               clone.WhereClausePredicates.AddRange(WhereClausePredicates);
+            }
             return clone;
+         }
+
+         public IDictionary<string, object> GetArguments()
+         {
+            var dict = Arguments.ToDictionary(i => i.Key, i => i.Value);
+            foreach (var item in DiscriminatorArguments)
+            {
+               dict.Add(item.Key,item.Value);
+            }
+            return dict;
+         }
+
+         public QueryDescriptor AddJoins(IEnumerable<JoinDescriptor> joins)
+         {
+            foreach (var j in joins.Where(j => !Joins.Contains(j)))
+            {
+               Joins.Add(j);
+            }
+            return this;
          }
       }
    }

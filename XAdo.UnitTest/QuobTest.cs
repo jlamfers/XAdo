@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Core.Interface;
 using XAdo.Quobs;
 using XAdo.Quobs.Attributes;
+using XAdo.Quobs.Meta;
 using XAdo.Quobs.Sql;
 using XAdo.Quobs.Sql.Formatter;
 using XAdo.Quobs.Generator;
@@ -52,12 +53,12 @@ namespace XAdo.UnitTest
 
          public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, IDictionary<string, object> args, string sqlCount, out long count)
          {
-            count =_session.ExecuteScalar<long>(sqlCount);
+            count = _session.ExecuteScalar<long>(sqlCount);
             return _session.Query<T>(sql, factory, args, false);
          }
       }
 
-      public static IQuob<T> From<T>(this IAdoSession self)
+      public static Quob<T> From<T>(this IAdoSession self)
       {
          return new Quob<T>(new SqlServerFormatter(), new SqlExecuter(self));
       }
@@ -73,10 +74,10 @@ namespace XAdo.UnitTest
          {
             this._Item1 = _item1;
             this._Item2 = _item2;
-            Description = (string)TypeDescriptor.GetConverter(typeof (string)).ConvertFrom(test);
+            Description = (string)TypeDescriptor.GetConverter(typeof(string)).ConvertFrom(test);
          }
 
-         public static Temp CreateTemp(IDataRecord r, Delegate[] d )
+         public static Temp CreateTemp(IDataRecord r, Delegate[] d)
          {
             return new Temp(((Func<IDataRecord, int, string>)d[0])(r, 11), ((Func<IDataRecord, int, decimal?>)d[1])(r, 12), ((Func<IDataRecord, int, int>)d[2])(r, 13));
          }
@@ -90,7 +91,7 @@ namespace XAdo.UnitTest
          public string _Item1;// { get; set; }
          public decimal? _Item2;// { get; set; }
          public string Description;//{ get; set; }
-      
+
       }
 
       [TestMethod]
@@ -100,21 +101,23 @@ namespace XAdo.UnitTest
          {
             long count;
             var list = session.From<DbSalesOrderDetail>()
-               .OrderBy(x => x.CarrierTrackingNumber)
+               //.OrderBy(x => x.CarrierTrackingNumber)
                .Where(x => x.ModifiedDate != DateTime.Now && x.ProductSpecialOffer().ModifiedDate != null && x.ProductSpecialOffer().SpecialOffer().Description != "No Discount")
                //.Take(10)
-               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description = x.ProductSpecialOffer().SpecialOffer().Description }, out count)
+               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description = x.ProductSpecialOffer().SpecialOffer().Description })//, out count)
+               .Where(i => i._Item2 > 0)
+               .OrderBy(i => i._Item1)
                .ToList();
             var sw = new Stopwatch();
             sw.Start();
             var list2 = session.From<DbSalesOrderDetail>()
-               .OrderBy(x => x.CarrierTrackingNumber)
+               //.OrderBy(x => x.CarrierTrackingNumber)
                .Where(x => x.ModifiedDate != DateTime.Now)
-               .Take(10)
-               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount }, out count)
+               //.Take(10)
+               .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount })//, out count)
                .ToList();
             sw.Stop();
-            Debug.WriteLine("#" + count);
+            //Debug.WriteLine("#" + count);
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
       }

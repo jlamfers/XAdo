@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Attributes;
+using System.Text;
 using XAdo.Quobs.Expressions;
 using XAdo.Quobs.Meta;
 
@@ -9,35 +12,124 @@ namespace XAdo.Quobs.Sql.Formatter
 {
    public static class SqlFormmaterExtension
    {
-      public static string FormatColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
+
+      public static ISqlFormatter ConcatenateSqlStatements(this ISqlFormatter self, TextWriter w, IEnumerable<string> statements)
       {
-         var m = column.GetMemberInfo();
-         return self.FormatColumn(m);
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (statements == null) throw new ArgumentNullException("statements");
+         foreach (var s in statements)
+         {
+            w.Write(s);
+            w.Write(self.StatementSeperator);
+            w.Write(Environment.NewLine);
+         }
+         return self;
       }
 
-      public static string FormatAlias<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
+      public static string FormatIdentifier(this ISqlFormatter self, params string[] identifiers)
       {
-         var m = column.GetMemberInfo();
-         return self.DelimitIdentifier(m.Name);
+         using (var sw = new StringWriter())
+         {
+            self.FormatIdentifier(sw, identifiers);
+            return sw.GetStringBuilder().ToString();
+         }
+      }
+      public static ISqlFormatter FormatIdentifier(this ISqlFormatter self, TextWriter w, params string[] identifiers)
+      {
+         string sep = null;
+         foreach (var p in identifiers)
+         {
+            if (p == null) continue;
+            w.Write(sep);
+            var delimited = p.StartsWith(self.IdentifierDelimiterLeft);
+            if (!delimited)
+               w.Write(self.IdentifierDelimiterLeft);
+            w.Write(p);
+            if (!delimited)
+               w.Write(self.IdentifierDelimiterRight);
+            sep = sep ?? ".";
+         }
+         return self;
       }
 
-      public static string FormatSelectColumn(this ISqlFormatter self, MemberInfo column)
+      public static ISqlFormatter FormatParameterName(this ISqlFormatter self, TextWriter w, string parameterName)
       {
-         var d = column.GetColumnDescriptor();
-         return self.FormatColumn(d.Member) + (d.Name != d.Member.Name ? " AS " + self.DelimitIdentifier(d.Member.Name) : "");
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (parameterName == null) throw new ArgumentNullException("parameterName");
+         w.Write(parameterName.StartsWith(self.ParameterPrefix) ? parameterName  : self.ParameterPrefix + parameterName);
+         return self;
       }
 
-      public static string FormatSelectColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column)
+      public static ISqlFormatter FormatTable(this ISqlFormatter self, TextWriter w, SchemaDescriptor.TableDescriptor table, string alias = null)
       {
-         var m = column.GetMemberInfo();
-         return self.FormatSelectColumn(m);
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (table == null) throw new ArgumentNullException("table");
+         self.FormatIdentifier(w, table.Schema, table.Name);
+         if (alias == null) return self;
+         w.Write(" AS ");
+         self.FormatIdentifier(w,alias);
+         return self;
+      }
+      public static ISqlFormatter FormatTable(this ISqlFormatter self, TextWriter w, Type type, string alias = null)
+      {
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (type == null) throw new ArgumentNullException("type");
+         return self.FormatTable(w, type.GetTableDescriptor(), alias);
+      }
+      public static string FormatTable(this ISqlFormatter self, Type type, string alias = null)
+      {
+         using (var sw = new StringWriter())
+         {
+            self.FormatTable(sw, type,alias);
+            return sw.GetStringBuilder().ToString();
+         }
       }
 
-
-      public static OrderColumn FormatOrderByColumn<T>(this ISqlFormatter self, Expression<Func<T, object>> column, bool descending)
+      public static ISqlFormatter FormatColumn(this ISqlFormatter self, TextWriter w, SchemaDescriptor.ColumnDescriptor column, bool aliased = false, string columnAlias = null, string tableAlias = null)
       {
-         return new OrderColumn(self.FormatAlias(column), descending);
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (column == null) throw new ArgumentNullException("column");
+         if (tableAlias != null)
+         {
+            self.FormatIdentifier(w,tableAlias, column.Name);
+         }
+         else
+         {
+            self.FormatIdentifier(w,column.Parent.Schema,column.Parent.Name, column.Name);
+         }
+         if (!aliased) return self;
+         w.Write(" AS ");
+         self.FormatIdentifier(w, columnAlias ?? column.Member.Name);
+         return self;
+      }
+      public static string FormatColumn(this ISqlFormatter self, SchemaDescriptor.ColumnDescriptor column, bool aliased = false, string columnAlias = null, string tableAlias = null)
+      {
+         using (var sw = new StringWriter())
+         {
+            self.FormatColumn(sw, column, aliased, columnAlias, tableAlias);
+            return sw.GetStringBuilder().ToString();
+         }
+
+      }
+      public static ISqlFormatter FormatColumn(this ISqlFormatter self, TextWriter w, MemberInfo column, bool aliased = false, string columnAlias = null, string tableAlias = null)
+      {
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (column == null) throw new ArgumentNullException("column");
+         return self.FormatColumn(w, column.GetColumnDescriptor(),aliased,columnAlias,tableAlias);
       }
 
+      public static ISqlFormatter FormatColumn(this ISqlFormatter self, TextWriter w, Expression column, bool aliased = false, string columnAlias = null, string tableAlias = null)
+      {
+         if (self == null) throw new ArgumentNullException("self");
+         if (w == null) throw new ArgumentNullException("w");
+         if (column == null) throw new ArgumentNullException("column");
+         return self.FormatColumn(w, column.GetMemberInfo(), aliased, columnAlias, tableAlias);
+      }
    }
 }

@@ -43,7 +43,7 @@ namespace XAdo.UnitTest
       [TestMethod]
       public void Test()
       {
-         var result = QuobMock<DbCustomer>.Compile(p => new {Name = p.Person().FirstName, p.Person().LastName, p.AccountNumber, Address=new{p.Person().BusinessEntity().BusinessEntityID}});
+         var result = QuobMock<DbCustomer>.Compile(p => new { Name = p.Person().FirstName, p.Person().LastName, p.AccountNumber, Address = new { p.Person().BusinessEntity().BusinessEntityID } });
          Debug.WriteLine(result.BinderExpression);
          var d = result.BinderExpression.Compile();
          var sw = new Stopwatch();
@@ -57,6 +57,11 @@ namespace XAdo.UnitTest
          sw.Stop();
          Debug.WriteLine(sw.ElapsedMilliseconds);
 
+      }
+
+      public class Address
+      {
+         public int? Number { get; set; }
       }
 
       [TestMethod]
@@ -74,9 +79,9 @@ namespace XAdo.UnitTest
                         Name = p.Person().FirstName,
                         p.Person().LastName,
                         p.AccountNumber,
-                        Address = new
+                        Address = new Address
                         {
-                           p.Person().BusinessEntity().BusinessEntityID
+                           Number = p.Person().BusinessEntity().BusinessEntityID
                         }
                      });
             var sql = quob.CastTo<ISqlBuilder>().GetSql();

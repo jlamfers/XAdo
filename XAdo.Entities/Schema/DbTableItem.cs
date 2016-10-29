@@ -5,18 +5,18 @@ using System.Linq;
 namespace XAdo.Quobs.Schema
 {
    [Serializable]
-   public class TableSchemaItem : SchemaItem
+   public class DbTableItem : DbItem
    {
       [NonSerialized]
-      private IList<ColumnSchemaItem> _columns;
+      private IList<DbColumnItem> _columns;
 
       [NonSerialized]
-      private IList<TableSchemaItem> _fkeyTables;
+      private IList<DbTableItem> _fkeyTables;
 
       [NonSerialized]
-      private IList<ColumnSchemaItem> _fkeyColumns;
+      private IList<DbColumnItem> _fkeyColumns;
 
-      public TableSchemaItem(DbSchema schema, string owner, string name, bool isView)
+      public DbTableItem(DbSchema schema, string owner, string name, bool isView)
       {
          Schema = schema;
          IsView = isView;
@@ -28,15 +28,15 @@ namespace XAdo.Quobs.Schema
       public string Name { get; private set; }
       public bool IsView { get; private set; }
 
-      public IList<ColumnSchemaItem> Columns
+      public IList<DbColumnItem> Columns
       {
          get { return _columns ?? (_columns = Schema.Columns.Where(c => c.TableOwner == Owner && c.TableName == Name).ToList().AsReadOnly()); }
       }
-      public IList<ColumnSchemaItem> FKeyColumns
+      public IList<DbColumnItem> FKeyColumns
       {
          get { return _fkeyColumns ?? (_fkeyColumns = Columns.Where(c => c.References != null).ToList().AsReadOnly()); }
       }
-      public IList<TableSchemaItem> FKeyTables
+      public IList<DbTableItem> FKeyTables
       {
          get
          {

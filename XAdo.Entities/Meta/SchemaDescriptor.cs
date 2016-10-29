@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Expressions;
+using XAdo.Quobs.Sql.Formatter;
 
 namespace XAdo.Quobs.Meta
 {
@@ -69,6 +70,7 @@ namespace XAdo.Quobs.Meta
          {
             return Schema != null ? "[{0}].[{1}]".FormatWith(Schema, Name) : "["+ Name+"]";
          }
+
       }
       public class ColumnDescriptor
       {

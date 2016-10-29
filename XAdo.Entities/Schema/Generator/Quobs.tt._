@@ -5,8 +5,8 @@
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Xml.Linq" #>
 <#@ assembly name="System.Configuration" #>
-<#@ assembly name="C:\Work\XAdo\XAdo\XAdo.Entities\bin\Debug\XAdo.Quobs.dll" #>
-<#@ import namespace="XAdo.Quobs.Schema" #>
+<#@ assembly name="[!!CONFIGURE_YOUR_PATH_HERE]\XAdo.Quobs.dll" #>
+<#@ import namespace="XAdo.Quobs.Generator" #>
 <#@ import namespace="System.Data.Common" #>
 
 //------------------------------------------------------------------------------
@@ -17,8 +17,17 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
+<#
+   /********************** Configurable settings ************************/
+   var connectionString = 
+        @"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true"; // <= change into your connection string
+   var provider = 
+        "System.Data.SqlClient"; // <= change your db provider if needed
+   var @namespace = 
+        "XAdo.Quobs.Generated"; // <= change into your generated namespace
+   /*********************************************************************/
+#>
 <#=
-	new CSharpGenerator()
-	   .Generate(@"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true", "System.Data.SqlClient","XAdo.Quobs.Generator")
+	new CSharpGenerator().Generate(connectionString, provider,@namespace)
 #>
 

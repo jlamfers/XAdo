@@ -6,21 +6,21 @@ using System.Runtime.Serialization;
 namespace XAdo.Quobs.Schema
 {
    [Serializable]
-   public class DbSchema : IEnumerable<TableSchemaItem>, ISerializable
+   public class DbSchema : IEnumerable<DbTableItem>, ISerializable
    {
       public DbSchema(string name)
       {
          Name = name;
-         Tables = new List<TableSchemaItem>();
-         Columns = new List<ColumnSchemaItem>();
-         FKeys = new List<FKeySchemaItem>();
+         Tables = new List<DbTableItem>();
+         Columns = new List<DbColumnItem>();
+         FKeys = new List<DbFKeyItem>();
       }
 
       protected DbSchema(SerializationInfo info, StreamingContext context)
       {
-         Tables = (IList<TableSchemaItem>)info.GetValue("Tables", typeof(IList<TableSchemaItem>));
-         Columns = (IList<ColumnSchemaItem>)info.GetValue("Columns", typeof(IList<ColumnSchemaItem>));
-         FKeys = (IList<FKeySchemaItem>)info.GetValue("FKeys", typeof(IList<FKeySchemaItem>));
+         Tables = (IList<DbTableItem>)info.GetValue("Tables", typeof(IList<DbTableItem>));
+         Columns = (IList<DbColumnItem>)info.GetValue("Columns", typeof(IList<DbColumnItem>));
+         FKeys = (IList<DbFKeyItem>)info.GetValue("FKeys", typeof(IList<DbFKeyItem>));
 
          foreach (var t in Tables) t.Schema = this;
          foreach (var t in Columns) t.Schema = this;
@@ -36,22 +36,22 @@ namespace XAdo.Quobs.Schema
 
 
       public string Name { get; private set; }
-      public IList<TableSchemaItem> Tables { get; private set; }
-      public IList<ColumnSchemaItem> Columns { get; private set; }
-      public IList<FKeySchemaItem> FKeys { get; private set; }
+      public IList<DbTableItem> Tables { get; private set; }
+      public IList<DbColumnItem> Columns { get; private set; }
+      public IList<DbFKeyItem> FKeys { get; private set; }
 
       internal DbSchema AsReadOnly()
       {
-         var tables = Tables as List<TableSchemaItem>;
-         var columns = Columns as List<ColumnSchemaItem>;
-         var fkeys = FKeys as List<FKeySchemaItem>;
+         var tables = Tables as List<DbTableItem>;
+         var columns = Columns as List<DbColumnItem>;
+         var fkeys = FKeys as List<DbFKeyItem>;
          if (tables != null) Tables = tables.AsReadOnly();
          if (columns != null) Columns = columns.AsReadOnly();
          if (fkeys != null) FKeys = fkeys.AsReadOnly();
          return this;
       }
 
-      public IEnumerator<TableSchemaItem> GetEnumerator()
+      public IEnumerator<DbTableItem> GetEnumerator()
       {
          return Tables.GetEnumerator();
       }

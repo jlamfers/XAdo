@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace XAdo.Quobs.Schema
 {
    [Serializable]
-   public class SchemaItem
+   public class DbItem
    {
       [NonSerialized]
       private DbSchema _schema;

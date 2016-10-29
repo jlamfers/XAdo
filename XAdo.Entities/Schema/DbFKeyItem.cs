@@ -3,9 +3,9 @@ using System;
 namespace XAdo.Quobs.Schema
 {
    [Serializable]
-   public class FKeySchemaItem : SchemaItem
+   public class DbFKeyItem : DbItem
    {
-      public FKeySchemaItem(DbSchema schema, string fKeyConstrantName, string fKeyTableSchema, string fKeyTableName, string fKeyColumnName, string refConstraintName, string refTableSchema, string refTableName, string refColumnName)
+      public DbFKeyItem(DbSchema schema, string fKeyConstrantName, string fKeyTableSchema, string fKeyTableName, string fKeyColumnName, string refConstraintName, string refTableSchema, string refTableName, string refColumnName)
       {
          Schema = schema;
 

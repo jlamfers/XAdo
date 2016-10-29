@@ -90,12 +90,11 @@ namespace XAdo.UnitTest
        [TestMethod]
        public void T4Works()
        {
-          new QuobsEntityCSharpGenerator().Generate(
-             factory: DbProviderFactories.GetFactory("System.Data.SqlClient"),
+          new CSharpGenerator().Generate(
              connectionString: @"Server=.\SqlExpress;Database=AdventureWorks2012;Trusted_Connection=true",
+             providerInvariantName:"System.Data.SqlClient",
              @namespace: "MyApp.Database.Tables",
-             classNamePrefix: "Db",
-             normalizePrimaryKey: false);
+             prefix: "Db");
 
        }
 

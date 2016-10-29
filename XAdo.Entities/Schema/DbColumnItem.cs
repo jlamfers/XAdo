@@ -5,18 +5,18 @@ using System.Linq;
 namespace XAdo.Quobs.Schema
 {
    [Serializable]
-   public class ColumnSchemaItem : SchemaItem
+   public class DbColumnItem : DbItem
    {
-      private static readonly ColumnSchemaItem Empty = new ColumnSchemaItem();
+      private static readonly DbColumnItem Empty = new DbColumnItem();
       [NonSerialized]
-      private TableSchemaItem _table;
+      private DbTableItem _table;
 
       [NonSerialized]
-      private ColumnSchemaItem _references;
+      private DbColumnItem _references;
 
-      private ColumnSchemaItem() { }
+      private DbColumnItem() { }
 
-      public ColumnSchemaItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isAutoIncrement, bool isNullable, bool isUnique, object defaultValue, int maxLength)
+      public DbColumnItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isAutoIncrement, bool isNullable, bool isUnique, object defaultValue, int maxLength)
       {
          Schema = database;
          TableOwner = tableSchema;
@@ -31,12 +31,12 @@ namespace XAdo.Quobs.Schema
          Name = name;
       }
 
-      public TableSchemaItem Table
+      public DbTableItem Table
       {
          get { return _table ?? (_table = Schema.Tables.Single(t => t.Owner == TableOwner && t.Name == TableName)); }
       }
 
-      public ColumnSchemaItem References
+      public DbColumnItem References
       {
          get
          {
@@ -56,8 +56,8 @@ namespace XAdo.Quobs.Schema
       }
 
       [NonSerialized]
-      private FKeySchemaItem _fkey;
-      public FKeySchemaItem FKey
+      private DbFKeyItem _fkey;
+      public DbFKeyItem FKey
       {
          get
          {

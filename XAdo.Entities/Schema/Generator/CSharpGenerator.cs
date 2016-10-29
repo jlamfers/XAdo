@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CSharp;
+using XAdo.Quobs.Schema;
 
-namespace XAdo.Quobs.Schema
+namespace XAdo.Quobs.Generator
 {
    public class CSharpGenerator
    {
@@ -75,7 +76,7 @@ namespace XAdo.Quobs.Schema
          w.WriteLine("}");
       }
 
-      protected virtual void WriteTable(IndentedTextWriter w, TableSchemaItem t)
+      protected virtual void WriteTable(IndentedTextWriter w, DbTableItem t)
       {
          w.WriteLine("public partial class {0}{1} : DbBaseTable", _prefix, NormalizeName(t.Name));
          w.WriteLine("{");
@@ -89,7 +90,7 @@ namespace XAdo.Quobs.Schema
          w.WriteLine("}");
       }
 
-      protected virtual void WriteTableAttributes(IndentedTextWriter w, TableSchemaItem t)
+      protected virtual void WriteTableAttributes(IndentedTextWriter w, DbTableItem t)
       {
          var schema = t.Owner != null ? ", Schema=\"{0}\"".FormatWith(t.Owner) : "";
          var view = t.IsView ? ", DbView" : "";
@@ -100,14 +101,14 @@ namespace XAdo.Quobs.Schema
          }
       }
 
-      protected virtual void WriteColumn(IndentedTextWriter w, ColumnSchemaItem c)
+      protected virtual void WriteColumn(IndentedTextWriter w, DbColumnItem c)
       {
          var type = Nullable.GetUnderlyingType(c.Type) ?? c.Type;
          var typeName =  type.Name + (type.IsValueType ? "?" : "");
          w.WriteLine("public virtual {0} {1} {{get; set;}}",typeName, NormalizePropertyName(c));
       }
 
-      protected virtual void WriteColumnAttributes(IndentedTextWriter w, ColumnSchemaItem c)
+      protected virtual void WriteColumnAttributes(IndentedTextWriter w, DbColumnItem c)
       {
          using (var sw = new StringWriter())
          {
@@ -159,7 +160,7 @@ namespace XAdo.Quobs.Schema
          return normalized;
       }
 
-      protected virtual string NormalizePropertyName(ColumnSchemaItem c)
+      protected virtual string NormalizePropertyName(DbColumnItem c)
       {
          var normalized = NormalizeName(c.Name);
          if (normalized == (_prefix ??"")+ NormalizeName(c.TableName))
@@ -179,7 +180,7 @@ namespace XAdo.Quobs.Schema
             var fkeys = t.FKeyColumns.OrderBy(k => k.FKey.FKeyConstrantName).ToArray();
             for(var i = 0; i < fkeys.Length; i++)
             {
-               var cols = new List<ColumnSchemaItem>(new[] {fkeys[i]});
+               var cols = new List<DbColumnItem>(new[] {fkeys[i]});
                while (i < fkeys.Length - 1 && fkeys[i].FKey.FKeyConstrantName == fkeys[i + 1].FKey.FKeyConstrantName)
                {
                   cols.Add(fkeys[++i]);
@@ -225,11 +226,11 @@ namespace XAdo.Quobs.Schema
 
       }
 
-      protected virtual string FormatFullTableName(TableSchemaItem t)
+      protected virtual string FormatFullTableName(DbTableItem t)
       {
          return string.Format("[{0}].[{1}]", t.Owner, t.Name);
       }
-      protected virtual string FormatColumnJoin(ColumnSchemaItem c)
+      protected virtual string FormatColumnJoin(DbColumnItem c)
       {
          return string.Format("[{0}].[{1}].[{2}] = [{3}].[{4}].[{5}]", 
             c.Table.Owner,
