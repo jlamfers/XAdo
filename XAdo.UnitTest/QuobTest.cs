@@ -37,6 +37,12 @@ namespace XAdo.UnitTest
          {
             return _session.Query<T>(sql, args, false);
          }
+         public IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, out long count)
+         {
+            var reader = _session.QueryMultiple(sql, args);
+            count = reader.Read<long>().Single();
+            return reader.Read<T>(false);
+         }
 
          public IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, string sqlCount, out long count)
          {
@@ -123,6 +129,21 @@ namespace XAdo.UnitTest
             sw.Stop();
             //Debug.WriteLine("#" + count);
             Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
+      [TestMethod]
+      public void QuobWorks()
+      {
+         using (var session = Db.Northwind.CreateSession())
+         {
+            long count;
+            var list = session
+               .From<DbPerson>()
+               .Skip(10)
+               .Take(10)
+               .OrderBy(p => p.FirstName)
+               .ToList(out count);
          }
       }
 

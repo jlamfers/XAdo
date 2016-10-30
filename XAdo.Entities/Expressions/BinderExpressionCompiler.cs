@@ -88,8 +88,8 @@ namespace XAdo.Quobs.Expressions
          public List<SchemaDescriptor.ColumnDescriptor> Columns { get; set; }
          public List<SchemaDescriptor.JoinDescriptor> Joins { get; set; }
          public virtual Expression BinderExpression { get; set; }
-         public Dictionary<MemberInfo, Expression> MemberMap { get; set; }
-         public ParameterExpression OrigParameter { get; set; }
+         public Dictionary<MemberInfo, Expression> MemberToExpressionMap { get; set; }
+         public ParameterExpression ToParameter { get; set; }
          
       }
       public class CompileResult : CompileBaseResult
@@ -138,8 +138,8 @@ namespace XAdo.Quobs.Expressions
             BinderExpression = binderExpression,
             Joins = _joins.Values.ToList(),
             Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList(),
-            MemberMap = _memberMap,
-            OrigParameter = _origParameter
+            MemberToExpressionMap = _memberMap,
+            ToParameter = _origParameter
          };
       }
       public CompileResult<T> Compile<T>(LambdaExpression expression)
@@ -156,8 +156,8 @@ namespace XAdo.Quobs.Expressions
             BinderExpression = binderExpression,
             Joins = _joins.Values.ToList(),
             Columns = _columns.Values.OrderBy(c => c.Order).Select(c => c.Descriptor).ToList(),
-            MemberMap = _memberMap,
-            OrigParameter = _origParameter
+            MemberToExpressionMap = _memberMap,
+            ToParameter = _origParameter
          };
       }
 

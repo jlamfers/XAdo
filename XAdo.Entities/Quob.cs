@@ -26,12 +26,13 @@ namespace XAdo.Quobs
          _descriptor = new QueryDescriptor(){TableName = formatter.FormatTable(typeof(T))};
       }
 
-      public MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
+      public virtual MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
          var result = PrepareMapExpression(mapExpression);
          return new MappedQuob<TMapped>(_formatter,_executer,result.BinderExpression.Compile(),_descriptor.Clone(),result);
       }
-      public Quob<T> Discriminate(Expression<Func<T, bool>> whereClause)
+
+      public virtual Quob<T> Discriminate(Expression<Func<T, bool>> whereClause)
       {
          var result = new WhereClauseCompiler(_formatter).Compile(whereClause);
          _descriptor.AddJoins(result.Joins.Values);
@@ -42,7 +43,7 @@ namespace XAdo.Quobs
          }
          return this;
       }
-      public Quob<T> Where(Expression<Func<T, bool>> whereClause)
+      public virtual Quob<T> Where(Expression<Func<T, bool>> whereClause)
       {
          var result = new WhereClauseCompiler(_formatter).Compile(whereClause);
          _descriptor.AddJoins(result.Joins.Values);
@@ -53,32 +54,59 @@ namespace XAdo.Quobs
          }
          return this;
       }
-      public Quob<T> Skip(int skip)
+      public virtual Quob<T> Skip(int skip)
       {
          _descriptor.Skip = skip;
          return this;
       }
-      public Quob<T> Take(int take)
+      public virtual Quob<T> Take(int take)
       {
          _descriptor.Take = take;
          return this;
       }
 
-      public Quob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual Quob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(false, false, expressions);
       }
-      public Quob<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual Quob<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(false, true, expressions);
       }
-      public Quob<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual Quob<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(true, false, expressions);
       }
-      public Quob<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual Quob<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(true, true, expressions);
+      }
+
+      public virtual List<T> ToList(out long count)
+      {
+         return GetEnumerable(out count).ToList();
+      }
+      public virtual T[] ToArray(out long count)
+      {
+         return GetEnumerable(out count).ToArray();
+      }
+      protected virtual IEnumerable<T> GetEnumerable(out long count)
+      {
+         EnsureColumnsSelected();
+         using (var w = new StringWriter())
+         {
+            _descriptor.WriteCount(w);
+            w.Write(_formatter.StatementSeperator);
+            if (_descriptor.IsPaged())
+            {
+               _formatter.FormatPageQuery(w, _descriptor);
+            }
+            else
+            {
+               _descriptor.WriteSelect(w);
+            }
+            return _executer.ExecuteQuery<T>(w.GetStringBuilder().ToString(), GetArguments(), out count);
+         }
       }
 
       private Quob<T> OrderBy(bool keepOrder, bool descending, params Expression<Func<T, object>>[] expressions)
@@ -108,13 +136,18 @@ namespace XAdo.Quobs
          return result;
       }
 
-      public IEnumerator<T> GetEnumerator()
+      IEnumerator<T> IEnumerable<T>.GetEnumerator()
       {
-         return _executer.ExecuteQuery<T>(GetSql(), GetArguments()).GetEnumerator();
+         return GetEnumerator();
       }
       IEnumerator IEnumerable.GetEnumerator()
       {
          return GetEnumerator();
+      }
+      protected virtual IEnumerator<T> GetEnumerator()
+      {
+         EnsureColumnsSelected();
+         return _executer.ExecuteQuery<T>(GetSql(), GetArguments()).GetEnumerator();
       }
 
       string ISqlBuilder.GetSql()
@@ -143,6 +176,17 @@ namespace XAdo.Quobs
       protected virtual IDictionary<string, object> GetArguments()
       {
          return _descriptor.GetArguments();
+      }
+
+      protected virtual void EnsureColumnsSelected()
+      {
+         if (!_descriptor.SelectColumns.Any())
+         {
+            foreach (var c in typeof(T).GetTableDescriptor().Columns)
+            {
+               _descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(_formatter.FormatColumn(c),_formatter.FormatIdentifier(c.Member.Name)));
+            }
+         }
       }
    }
 }

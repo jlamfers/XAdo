@@ -48,7 +48,7 @@
     <Compile Include="Attributes\AutoIncrementAttribute.cs" />
     <Compile Include="Attributes\Annotator.cs" />
     <Compile Include="Attributes\DbViewAttribute.cs" />
-    <Compile Include="Expressions\ExpressionSwapper.cs" />
+    <Compile Include="Expressions\ExpressionSubstituter.cs" />
     <Compile Include="Expressions\WhereClauseCompiler.cs" />
     <Compile Include="IQuob.cs" />
     <Compile Include="MappedQuob.cs" />

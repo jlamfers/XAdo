@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using XAdo.Quobs.Descriptor;
 using XAdo.Quobs.Expressions;
 
@@ -13,7 +10,7 @@ namespace XAdo.Quobs.Sql.Formatter
    public static class SqlFormmaterExtension
    {
 
-      public static ISqlFormatter ConcatenateSqlStatements(this ISqlFormatter self, TextWriter w, IEnumerable<string> statements)
+      public static ISqlFormatter ConcatenateSqlStatements(this ISqlFormatter self, TextWriter w, params string[] statements)
       {
          if (self == null) throw new ArgumentNullException("self");
          if (w == null) throw new ArgumentNullException("w");

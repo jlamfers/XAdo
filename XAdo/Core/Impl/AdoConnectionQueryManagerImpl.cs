@@ -255,8 +255,7 @@ namespace XAdo.Core.Impl
          {
             cmd = CreateCommand(cn, sql, param, tr, commandTimeout, commandType);
             reader = cmd.ExecuteReader(wasopen ? CommandBehavior.Default : CommandBehavior.CloseConnection);
-            var multiReader = new AdoMultiResultReader(reader, cmd, allowUnbindableFetchResults,
-                allowUnbindableMembers, _dataReaderManager);
+            var multiReader = new AdoMultiResultReader(reader, cmd, allowUnbindableFetchResults,allowUnbindableMembers, _dataReaderManager);
             skipClose = true;
             return multiReader;
          }

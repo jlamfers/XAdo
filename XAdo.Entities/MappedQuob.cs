@@ -19,7 +19,7 @@ namespace XAdo.Quobs
       private readonly QueryDescriptor _descriptor;
       private readonly BinderExpressionCompiler.CompileResult<T> _binderCompileResult;
 
-      internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord,T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult )
+      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord,T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult )
       {
          _formatter = formatter;
          _executer = executer;
@@ -27,9 +27,9 @@ namespace XAdo.Quobs
          _descriptor = descriptor;
          _binderCompileResult = binderCompileResult;
       }
-      public MappedQuob<T> Where(Expression<Func<T, bool>> whereClause)
+      public virtual MappedQuob<T> Where(Expression<Func<T, bool>> whereClause)
       {
-         var substitutedWhereClause = new ExpressionSwapper().Substitute(whereClause, _binderCompileResult.MemberMap,_binderCompileResult.OrigParameter);
+         var substitutedWhereClause = new ExpressionSubstituter().Substitute(whereClause, _binderCompileResult.MemberToExpressionMap,_binderCompileResult.ToParameter);
          var result = new WhereClauseCompiler(_formatter).Compile(substitutedWhereClause);
          var descriptor = _descriptor.Clone(true);
          descriptor.WhereClausePredicates.Add(result.SqlWhereClause);
@@ -39,32 +39,32 @@ namespace XAdo.Quobs
          }
          return new MappedQuob<T>(_formatter,_executer,_binder, descriptor, _binderCompileResult);
       }
-      public MappedQuob<T> Skip(int skip)
+      public virtual MappedQuob<T> Skip(int skip)
       {
          var descriptor = _descriptor.Clone();
          descriptor.Skip = skip;
          return new MappedQuob<T>(_formatter, _executer, _binder, descriptor, _binderCompileResult);
       }
-      public MappedQuob<T> Take(int take)
+      public virtual MappedQuob<T> Take(int take)
       {
          var descriptor = _descriptor.Clone();
          descriptor.Take = take;
          return new MappedQuob<T>(_formatter, _executer, _binder, descriptor, _binderCompileResult);
       }
 
-      public MappedQuob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual MappedQuob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(false, false, expressions);
       }
-      public MappedQuob<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual MappedQuob<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(false, true, expressions);
       }
-      public MappedQuob<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual MappedQuob<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(true, false, expressions);
       }
-      public MappedQuob<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual MappedQuob<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
          return OrderBy(true, true, expressions);
       }
@@ -79,19 +79,23 @@ namespace XAdo.Quobs
          foreach (var expression in expressions)
          {
             var m = expression.GetMemberInfo();
-            var mappedTo = _binderCompileResult.MemberMap[m].GetMemberInfo();
+            var mappedTo = _binderCompileResult.MemberToExpressionMap[m].GetMemberInfo();
             descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(_formatter.FormatColumn(mappedTo.GetColumnDescriptor()),descending));
          }
          return new MappedQuob<T>(_formatter, _executer, _binder, descriptor, _binderCompileResult);
       }
 
-      public IEnumerator<T> GetEnumerator()
+      IEnumerator<T> IEnumerable<T>.GetEnumerator()
       {
-         return _executer.ExecuteQuery(GetSql(), _binder, GetArguments()).GetEnumerator();
+         return GetEnumerator();
       }
       IEnumerator IEnumerable.GetEnumerator()
       {
          return GetEnumerator();
+      }
+      protected virtual IEnumerator<T> GetEnumerator()
+      {
+         return _executer.ExecuteQuery(GetSql(), _binder, GetArguments()).GetEnumerator();
       }
 
       string ISqlBuilder.GetSql()

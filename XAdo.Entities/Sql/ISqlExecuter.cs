@@ -12,5 +12,6 @@ namespace XAdo.Quobs.Sql
       IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, string sqlCount, out long count);
       IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord,T> binder, IDictionary<string, object> args);
       IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> binder, IDictionary<string, object> args, string sqlCount, out long count);
+      IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, out long count);
    }
 }
