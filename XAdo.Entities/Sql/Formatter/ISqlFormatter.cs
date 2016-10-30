@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using XAdo.Quobs.Descriptor;
 
 namespace XAdo.Quobs.Sql.Formatter
 {
    public interface ISqlFormatter
    {
       ISqlFormatter FormatSqlMethod(string methodName, TextWriter writer, params Action<TextWriter>[] arguments);
-      //ISqlFormatter FormatSqlSelectPaged(TextWriter writer, ISqlSelectMeta meta, string parNameSkip, string parNameTake);
+      ISqlFormatter FormatPageQuery(TextWriter writer, QueryDescriptor descriptor);
       string ParameterPrefix { get; }
       string StatementSeperator { get; }
       string IdentifierDelimiterLeft { get; }

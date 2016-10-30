@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Attributes;
-using XAdo.Quobs.Meta;
+using XAdo.Quobs.Descriptor;
 using XAdo.Quobs.Sql.Formatter;
 
 namespace XAdo.Quobs.Expressions
@@ -14,7 +14,7 @@ namespace XAdo.Quobs.Expressions
    {
       public class CompileResult
       {
-         public CompileResult(string sql, IDictionary<string, object> arguments, Dictionary<string, SqlDescriptor.JoinDescriptor> joins)
+         public CompileResult(string sql, IDictionary<string, object> arguments, Dictionary<string, QueryDescriptor.JoinDescriptor> joins)
          {
             SqlWhereClause = sql;
             Arguments = arguments;
@@ -23,10 +23,10 @@ namespace XAdo.Quobs.Expressions
 
          public string SqlWhereClause { get; private set; }
          public IDictionary<string, object> Arguments { get; private set; }
-         public Dictionary<string, SqlDescriptor.JoinDescriptor> Joins { get; private set; }
+         public Dictionary<string, QueryDescriptor.JoinDescriptor> Joins { get; private set; }
       }
 
-      private Dictionary<string, SqlDescriptor.JoinDescriptor>
+      private Dictionary<string, QueryDescriptor.JoinDescriptor>
          _joins;
       private Dictionary<string, object>
          _arguments;
@@ -68,7 +68,7 @@ namespace XAdo.Quobs.Expressions
       {
          Writer = new StringWriter();
          _arguments = new Dictionary<string, object>();
-         _joins = new Dictionary<string, SqlDescriptor.JoinDescriptor>();
+         _joins = new Dictionary<string, QueryDescriptor.JoinDescriptor>();
          Visit(expression);
          return new CompileResult(Writer.CastTo<StringWriter>().GetStringBuilder().ToString(),_arguments,_joins);
       }
@@ -231,7 +231,7 @@ namespace XAdo.Quobs.Expressions
                join.JoinType = joinType;
                if (!_joins.ContainsKey(join.Expression))
                {
-                  _joins[join.Expression] = new SqlDescriptor.JoinDescriptor(join);
+                  _joins[join.Expression] = new QueryDescriptor.JoinDescriptor(join);
                }
             }
             Visit(node.Arguments[0]);

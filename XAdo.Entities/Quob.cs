@@ -1,148 +1,148 @@
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using XAdo.Quobs.Descriptor;
+using XAdo.Quobs.Expressions;
 using XAdo.Quobs.Sql;
 using XAdo.Quobs.Sql.Formatter;
 
 namespace XAdo.Quobs
 {
-   public class Quob : IQuob, ISqlBuilder
+   public class Quob<T> : IQuob<T>, IEnumerable<T>, ISqlBuilder
    {
-      public Quob(string rawTableName, ISqlFormatter formatter, ISqlExecuter executer)
+      private readonly ISqlFormatter _formatter;
+      private readonly ISqlExecuter _executer;
+
+      private readonly QueryDescriptor
+         _descriptor;
+
+      public Quob(ISqlFormatter formatter, ISqlExecuter executer)
       {
-         if (rawTableName == null) throw new ArgumentNullException("rawTableName");
-         if (formatter == null) throw new ArgumentNullException("formatter");
-         if (executer == null) throw new ArgumentNullException("executer");
-         Formatter = formatter;
-         Executer = executer;
-         Meta = new SqlSelectMeta { TableName = rawTableName };
+         _formatter = formatter;
+         _executer = executer;
+         _descriptor = new QueryDescriptor(){TableName = formatter.FormatTable(typeof(T))};
       }
 
-      public virtual IQuob Select(params SelectColumn[] raw)
+      public MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
-         Meta.SelectColumns.AddRange(raw);
-         return this;
+         var result = PrepareMapExpression(mapExpression);
+         return new MappedQuob<TMapped>(_formatter,_executer,result.BinderExpression.Compile(),_descriptor.Clone(),result);
       }
-      public virtual IQuob Select(params string[] raw)
+      public Quob<T> Discriminate(Expression<Func<T, bool>> whereClause)
       {
-         Meta.SelectColumns.AddRange(raw.Select(s => new SelectColumn(s)));
-         return this;
-      }
-
-      public virtual IQuob Join(params string[] joins)
-      {
-         foreach (var join in joins)
+         var result = new WhereClauseCompiler(_formatter).Compile(whereClause);
+         _descriptor.AddJoins(result.Joins.Values);
+         _descriptor.DiscriminatorClausePredicates.Add(result.SqlWhereClause);
+         foreach (var arg in result.Arguments)
          {
-            if (!Meta.Joins.Contains(join))
+            _descriptor.DiscriminatorArguments[arg.Key] = arg.Value;
+         }
+         return this;
+      }
+      public Quob<T> Where(Expression<Func<T, bool>> whereClause)
+      {
+         var result = new WhereClauseCompiler(_formatter).Compile(whereClause);
+         _descriptor.AddJoins(result.Joins.Values);
+         _descriptor.WhereClausePredicates.Add(result.SqlWhereClause);
+         foreach (var arg in result.Arguments)
+         {
+            _descriptor.Arguments[arg.Key] = arg.Value;
+         }
+         return this;
+      }
+      public Quob<T> Skip(int skip)
+      {
+         _descriptor.Skip = skip;
+         return this;
+      }
+      public Quob<T> Take(int take)
+      {
+         _descriptor.Take = take;
+         return this;
+      }
+
+      public Quob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
+      {
+         return OrderBy(false, false, expressions);
+      }
+      public Quob<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
+      {
+         return OrderBy(false, true, expressions);
+      }
+      public Quob<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
+      {
+         return OrderBy(true, false, expressions);
+      }
+      public Quob<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
+      {
+         return OrderBy(true, true, expressions);
+      }
+
+      private Quob<T> OrderBy(bool keepOrder, bool descending, params Expression<Func<T, object>>[] expressions)
+      {
+         if (!keepOrder)
+         {
+            _descriptor.OrderColumns.Clear();
+         }
+         foreach (var expression in expressions)
+         {
+            var d = expression.GetMemberInfo().GetColumnDescriptor();
+            _descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(_formatter.FormatColumn(d), descending));
+         }
+         return this;
+      }
+
+      private BinderExpressionCompiler.CompileResult<TMapped> PrepareMapExpression<TMapped>(Expression<Func<T, TMapped>> mapExpression)
+      {
+         var compiler = new BinderExpressionCompiler();
+         var result = compiler.Compile<TMapped>(mapExpression);
+         var joins =
+            result.Joins.Select(j => new QueryDescriptor.JoinDescriptor(j.Expression, j.JoinType))
+               .Where(j => !_descriptor.Joins.Contains(j));
+         _descriptor.Joins.AddRange(joins);
+         _descriptor.SelectColumns.AddRange(result.Columns.Select(c => new QueryDescriptor.SelectColumnDescriptor(_formatter.FormatColumn(c),null)));
+         _descriptor.EnsureSelectColumnsAreAliased();
+         return result;
+      }
+
+      public IEnumerator<T> GetEnumerator()
+      {
+         return _executer.ExecuteQuery<T>(GetSql(), GetArguments()).GetEnumerator();
+      }
+      IEnumerator IEnumerable.GetEnumerator()
+      {
+         return GetEnumerator();
+      }
+
+      string ISqlBuilder.GetSql()
+      {
+         return GetSql();
+      }
+      IDictionary<string, object> ISqlBuilder.GetArguments()
+      {
+         return GetArguments();
+      }
+      protected virtual string GetSql()
+      {
+         using (var w = new StringWriter())
+         {
+            if (_descriptor.IsPaged())
             {
-               Meta.Joins.Add(join);
-            }
-            
-         }
-         return this;
-      }
-
-      public virtual IQuob Where(params string[] raw)
-      {
-         Meta.WhereClausePredicates.CastTo<List<string>>().AddRange(raw);
-         return this;
-      }
-
-      public virtual IQuob Having(params string[] raw)
-      {
-         Meta.HavingClausePredicates.CastTo<List<string>>().AddRange(raw);
-         return this;
-      }
-
-      public virtual IQuob OrderBy(params OrderColumn[] columns)
-      {
-         Meta.OrderColumns.AddRange(columns);
-         return this;
-      }
-
-      public virtual IQuob GroupBy(params string[] raw)
-      {
-         Meta.GroupByColumns.CastTo<List<string>>().AddRange(raw);
-         return this;
-      }
-
-      public IQuob Skip(int? value)
-      {
-         Meta.Arguments[SqlFormatter.ParNameSkip] = value;
-         return this;
-      }
-
-      public IQuob Take(int? value)
-      {
-         Meta.Arguments[SqlFormatter.ParNameTake] = value;
-         return this;
-      }
-
-      public virtual IQuob Distinct()
-      {
-         Meta.CastTo<SqlSelectMeta>().Distict = true;
-         return this;
-      }
-
-      public virtual long Count()
-      {
-         using (var w = new StringWriter())
-         {
-            Formatter.FormatSqlSelectCount(w, Meta);
-            var sql = w.GetStringBuilder().ToString();
-            return Executer.ExecuteScalar<long>(sql, Meta.Arguments);
-         }
-      }
-      public virtual IEnumerable<dynamic> ToEnumerable()
-      {
-         return Executer.ExecuteQuery<dynamic>(GetSql(), Meta.Arguments);
-      }
-      public virtual IList<dynamic> ToList()
-      {
-         var list = ToEnumerable();
-         return (list as IList<dynamic>) ?? list.ToList();
-      }
-      public virtual IEnumerable<dynamic> ToEnumerable(out long count)
-      {
-         using (var w = new StringWriter())
-         {
-            Formatter.FormatSqlSelectCount(w, Meta);
-            var sqlCount = w.GetStringBuilder().ToString();
-            return Executer.ExecuteQuery<dynamic>(GetSql(), Meta.Arguments, sqlCount, out count);
-         }
-
-      }
-      public virtual IList<dynamic> ToList(out long count)
-      {
-         var list = ToEnumerable(out count);
-         return (list as IList<dynamic>) ?? list.ToList();
-      }
-
-      protected virtual ISqlFormatter Formatter { get; private set; }
-      protected virtual ISqlSelectMeta Meta { get; private set; }
-      protected virtual ISqlExecuter Executer { get; private set; }
-
-      public virtual string GetSql()
-      {
-         using (var w = new StringWriter())
-         {
-            var parNameSkip = Meta.Arguments.ContainsKey(SqlFormatter.ParNameSkip) ? SqlFormatter.ParNameSkip : null;
-            var parNameTake = Meta.Arguments.ContainsKey(SqlFormatter.ParNameTake) ? SqlFormatter.ParNameTake : null;
-            if (parNameSkip != null || parNameTake != null)
-            {
-               Formatter.FormatSqlSelectPaged(w, Meta,parNameSkip, parNameTake);
+               _formatter.FormatPageQuery(w, _descriptor);
             }
             else
             {
-               Formatter.FormatSqlSelect(w, Meta);
+               _descriptor.WriteSelect(w);
             }
             return w.GetStringBuilder().ToString();
          }
       }
-      public virtual IDictionary<string, object> GetArguments()
+      protected virtual IDictionary<string, object> GetArguments()
       {
-         return Meta.Arguments.ToDictionary(x => x.Key, x => x.Value);
+         return _descriptor.GetArguments();
       }
    }
 }

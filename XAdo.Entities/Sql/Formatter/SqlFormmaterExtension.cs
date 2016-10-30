@@ -5,8 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using XAdo.Quobs.Descriptor;
 using XAdo.Quobs.Expressions;
-using XAdo.Quobs.Meta;
 
 namespace XAdo.Quobs.Sql.Formatter
 {
@@ -60,6 +60,12 @@ namespace XAdo.Quobs.Sql.Formatter
          if (parameterName == null) throw new ArgumentNullException("parameterName");
          w.Write(parameterName.StartsWith(self.ParameterPrefix) ? parameterName  : self.ParameterPrefix + parameterName);
          return self;
+      }
+      public static string FormatParameterName(this ISqlFormatter self, string parameterName)
+      {
+         if (self == null) throw new ArgumentNullException("self");
+         if (parameterName == null) throw new ArgumentNullException("parameterName");
+         return parameterName.StartsWith(self.ParameterPrefix) ? parameterName : self.ParameterPrefix + parameterName;
       }
 
       public static ISqlFormatter FormatTable(this ISqlFormatter self, TextWriter w, SchemaDescriptor.TableDescriptor table, string alias = null)

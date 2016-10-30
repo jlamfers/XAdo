@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Core;
-using XAdo.Quobs.Meta;
+using XAdo.Quobs.Descriptor;
 
 namespace XAdo.Quobs.Expressions
 {

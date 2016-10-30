@@ -7,13 +7,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using XAdo.Quobs.Attributes;
 using XAdo.Quobs.Expressions;
-using XAdo.Quobs.Sql.Formatter;
 
-namespace XAdo.Quobs.Meta
+namespace XAdo.Quobs.Descriptor
 {
    public static class SchemaDescriptor
    {
@@ -150,26 +148,7 @@ namespace XAdo.Quobs.Meta
 
          public override string ToString()
          {
-            var sb = new StringBuilder();
-            switch (JoinType)
-            {
-               case JoinType.Inner:
-                  sb.Append("INNER ");
-                  break;
-               case JoinType.Left:
-                  sb.Append("LEFT OUTER ");
-                  break;
-               case JoinType.Right:
-                  sb.Append("RIGHT OUTER ");
-                  break;
-               case JoinType.Full:
-                  sb.Append("FULL OUTER ");
-                  break;
-               default:
-                  throw new ArgumentOutOfRangeException();
-            }
-            sb.Append(Expression);
-            return sb.ToString();
+            return JoinType.ToSqlJoinExpression(Expression);
          }
       }
 

@@ -50,11 +50,13 @@
     <Compile Include="Attributes\DbViewAttribute.cs" />
     <Compile Include="Expressions\ExpressionSwapper.cs" />
     <Compile Include="Expressions\WhereClauseCompiler.cs" />
-    <Compile Include="Meta\Quob.cs">
+    <Compile Include="IQuob.cs" />
+    <Compile Include="MappedQuob.cs" />
+    <Compile Include="Quob.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Meta\SqlDescriptor.cs" />
-    <Compile Include="Meta\SchemaDescriptor.cs" />
+    <Compile Include="Descriptor\QueryDescriptor.cs" />
+    <Compile Include="Descriptor\SchemaDescriptor.cs" />
     <Compile Include="Attributes\JoinMethodAttribute.cs" />
     <Compile Include="Attributes\JoinType.cs" />
     <Compile Include="Attributes\ReferencedByAttribute.cs" />

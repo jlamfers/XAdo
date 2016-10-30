@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Quobs.Attributes;
-using XAdo.Quobs.Meta;
+using XAdo.Quobs.Descriptor;
 
 namespace XAdo.UnitTest
 {

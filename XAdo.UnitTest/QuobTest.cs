@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using XAdo.Core.Interface;
 using XAdo.Quobs;
 using XAdo.Quobs.Attributes;
-using XAdo.Quobs.Meta;
 using XAdo.Quobs.Sql;
 using XAdo.Quobs.Sql.Formatter;
 using XAdo.Quobs.Generator;
@@ -101,21 +100,26 @@ namespace XAdo.UnitTest
          {
             long count;
             var list = session.From<DbSalesOrderDetail>()
-               //.OrderBy(x => x.CarrierTrackingNumber)
+               .OrderBy(x => x.CarrierTrackingNumber)
                .Where(x => x.ModifiedDate != DateTime.Now && x.ProductSpecialOffer().ModifiedDate != null && x.ProductSpecialOffer().SpecialOffer().Description != "No Discount")
-               //.Take(10)
+               .Take(10)
                .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount, Description = x.ProductSpecialOffer().SpecialOffer().Description })//, out count)
                .Where(i => i._Item2 > 0)
                .OrderBy(i => i._Item1)
                .ToList();
             var sw = new Stopwatch();
             sw.Start();
-            var list2 = session.From<DbSalesOrderDetail>()
-               //.OrderBy(x => x.CarrierTrackingNumber)
+            var q = session.From<DbSalesOrderDetail>()
+               .OrderBy(x => x.CarrierTrackingNumber)
                .Where(x => x.ModifiedDate != DateTime.Now)
-               //.Take(10)
+               .Take(10)
+               .Skip(10)
                .Select(x => new { _Item1 = x.CarrierTrackingNumber, _Item2 = x.UnitPriceDiscount })//, out count)
-               .ToList();
+               .AddOrderBy(x => x._Item2)
+               ;
+            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var list2 = q.ToList();
+               
             sw.Stop();
             //Debug.WriteLine("#" + count);
             Debug.WriteLine(sw.ElapsedMilliseconds);
