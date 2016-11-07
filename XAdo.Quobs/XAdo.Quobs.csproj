@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B1D11F2B-BEC5-426D-9705-EE9AF4CDC3F5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XAdo.Quobs</RootNamespace>
+    <AssemblyName>XAdo.Quobs</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AdoSessionExtension.cs" />
+    <Compile Include="Core\BaseQuob.cs" />
+    <Compile Include="Core\BinderExpressionCompiler.cs" />
+    <Compile Include="Core\ExpressionExtensions.cs" />
+    <Compile Include="Core\ExpressionSubstituter.cs" />
+    <Compile Include="Core\FormatterExtension.cs" />
+    <Compile Include="Core\ISqlBuilder.cs" />
+    <Compile Include="Core\ISqlExecuter.cs" />
+    <Compile Include="Core\MemberFormatter.cs" />
+    <Compile Include="Core\QueryDescriptor.cs" />
+    <Compile Include="Core\QuobContext.cs" />
+    <Compile Include="Core\DbSchema\Attributes\AutoIncrementAttribute.cs" />
+    <Compile Include="Core\DbSchema\Attributes\DbUniqueAttribute.cs" />
+    <Compile Include="Core\DbSchema\Attributes\DbViewAttribute.cs" />
+    <Compile Include="Core\DbSchema\Attributes\JoinMethodAttribute.cs" />
+    <Compile Include="Core\DbSchema\Attributes\JoinType.cs" />
+    <Compile Include="Core\DbSchema\Attributes\ReferencedByAttribute.cs" />
+    <Compile Include="Core\DbSchema\Attributes\ReferencesAttribute.cs" />
+    <Compile Include="Core\DbSchema\DbColumnItem.cs" />
+    <Compile Include="Core\DbSchema\DbFKeyItem.cs" />
+    <Compile Include="Core\DbSchema\DbItem.cs" />
+    <Compile Include="Core\DbSchema\DbSchema.cs" />
+    <Compile Include="Core\DbSchema\DbSchemaDescriptor.cs" />
+    <Compile Include="Core\DbSchema\DbSchemaReader.cs" />
+    <Compile Include="Core\DbSchema\DbTableItem.cs" />
+    <Compile Include="Core\DbSchema\Extensions.cs" />
+    <Compile Include="Core\DbSchema\Generator\CSharpGenerator.cs" />
+    <Compile Include="MappedQuob.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Quob.cs" />
+    <Compile Include="Core\SqlExpression\Core\Annotator.cs" />
+    <Compile Include="Core\SqlExpression\Core\Extensions.cs" />
+    <Compile Include="Core\SqlExpression\Core\KnownMembers.cs" />
+    <Compile Include="Core\SqlExpression\Core\MemberInfoFinder.cs" />
+    <Compile Include="Core\SqlExpression\SqlAggregateAttribute.cs" />
+    <Compile Include="Core\SqlExpression\SqlBetweenAttribute.cs" />
+    <Compile Include="Core\SqlExpression\SqlBuilderContext.cs" />
+    <Compile Include="Core\SqlExpression\SqlExpressionBuilder.cs" />
+    <Compile Include="Core\SqlExpression\SqlInAttribute.cs" />
+    <Compile Include="Core\SqlExpression\SqlMethodExtensions.cs" />
+    <Compile Include="Core\SqlExpression\SqlWeekNumberAttribute.cs" />
+    <Compile Include="Core\SqlExpression\Sql\BaseSqlFormatter.cs" />
+    <Compile Include="Core\SqlExpression\Sql\CustomSqlExpressionBuilderAttribute.cs" />
+    <Compile Include="Core\SqlExpression\Sql\ICustomSqlExpressionBuilder.cs" />
+    <Compile Include="Core\SqlExpression\Sql\IMemberFormatter.cs" />
+    <Compile Include="Core\SqlExpression\Sql\ISqlFormatter.cs" />
+    <Compile Include="Formatters\Ms2012SqlFormatter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\XAdo\XAdo.csproj">
+      <Project>{de35b1af-d6a1-4324-840a-11854787ded4}</Project>
+      <Name>XAdo</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

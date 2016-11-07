@@ -138,12 +138,12 @@ namespace XAdo.UnitTest
          using (var session = Db.Northwind.CreateSession())
          {
             long count;
-            var list = session
+            var q = session
                .From<DbPerson>()
                .Skip(10)
                .Take(10)
-               .OrderBy(p => p.FirstName)
-               .ToList(out count);
+               .OrderBy(p => p.FirstName);
+            q.ToList(out count);
          }
       }
 

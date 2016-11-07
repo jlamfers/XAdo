@@ -14,8 +14,8 @@ namespace XAdo.Core.Interface
         Task<object> ExecuteScalarAsync(string sql, object param = null, CommandType? commandType = null);
         Task<List<object>> QueryAsync(string sql, object param = null, CommandType? commandType = null);
 
-        Task<AdoMultiResultReaderAsync> QueryMultipleAsync(string sql, object param = null,
-            CommandType? commandType = null);
+        Task<AdoMultiResultReaderAsync> QueryMultipleAsync(string sql, object param = null,CommandType? commandType = null);
+        Task<AdoMultiResultReaderAsync> QueryMultipleAsync(string sql, IEnumerable<Delegate> factories,  object param = null, CommandType? commandType = null);
 
         Task<List<TResult>> QueryAsync<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory, object param = null,
             CommandType? commandType = null);

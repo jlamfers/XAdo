@@ -40,7 +40,14 @@ namespace XAdo.Core.Impl
             return await _connectionQueryManager.QueryMultipleAsync(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
 
         }
-        public virtual async Task<List<TResult>> QueryAsync<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory, object param = null, CommandType? commandType = null)
+
+        public virtual async Task<AdoMultiResultReaderAsync> QueryMultipleAsync(string sql, IEnumerable<Delegate> factories, object param = null, CommandType? commandType = null)
+       {
+          EnsureNotDisposed();
+          return await _connectionQueryManager.QueryMultipleAsync(LazyInitializedConnection, sql, factories, param, _tr, _commandTimeout, commandType);
+       }
+
+       public virtual async Task<List<TResult>> QueryAsync<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return await _connectionQueryManager.QueryAsync(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout, commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);

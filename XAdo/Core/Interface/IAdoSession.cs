@@ -12,6 +12,8 @@ namespace XAdo.Core.Interface
         IEnumerable<T> Query<T>(string sql, Func<IDataRecord,T> factory,  object param = null, bool buffered = true, CommandType? commandType = null);
         IEnumerable<dynamic> Query(string sql, object param = null, bool buffered = true, CommandType? commandType = null);
         AdoMultiResultReader QueryMultiple(string sql, object param = null, CommandType? commandType = null);
+        AdoMultiResultReader QueryMultiple(string sql, IEnumerable<Delegate> factories, object param = null, CommandType? commandType = null);
+
 
         IEnumerable<TResult> Query<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory, object param = null,
             bool buffered = true, CommandType? commandType = null);

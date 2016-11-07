@@ -271,7 +271,51 @@ namespace XAdo.Core.Impl
             }
         }
 
-        public virtual async Task<List<TResult>> QueryAsync<T1, T2, TResult>(IDbConnection cn, string sql,
+       public virtual async Task<AdoMultiResultReaderAsync> QueryMultipleAsync(IDbConnection cn, string sql, IEnumerable<Delegate> factories, object param = null,IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null)
+       {
+          if (cn == null) throw new ArgumentNullException("cn");
+          if (sql == null) throw new ArgumentNullException("sql");
+
+          var wasopen = cn.State == ConnectionState.Open;
+          var skipClose = false;
+          if (!wasopen)
+          {
+             await EnsureOpenAsync(cn);
+          }
+          DbCommand cmd = null;
+          DbDataReader reader = null;
+          try
+          {
+             cmd = (DbCommand)CreateCommand(cn, sql, param, tr, commandTimeout, commandType);
+             reader =
+                 await cmd.ExecuteReaderAsync(wasopen ? CommandBehavior.Default : CommandBehavior.CloseConnection);
+             var multiReader = new AdoMultiResultReaderAsync(reader, cmd, factories, _dataReaderManager);
+             skipClose = true;
+             return multiReader;
+          }
+          catch
+          {
+             if (reader != null)
+             {
+                if (!reader.IsClosed)
+                {
+                   try
+                   {
+                      cmd.Cancel();
+                   }
+                   catch
+                   {
+                   }
+                }
+                reader.Dispose();
+             }
+             if (cmd != null) cmd.Dispose();
+             if (!wasopen && !skipClose) cn.Close();
+             throw;
+          }
+       }
+
+       public virtual async Task<List<TResult>> QueryAsync<T1, T2, TResult>(IDbConnection cn, string sql,
             Func<T1, T2, TResult> factory, object param = null, IDbTransaction tr = null, int? commandTimeout = null,
             CommandType? commandType = null, bool allowUnbindableFetchResults = true,
             bool allowUnbindableMembers = false)

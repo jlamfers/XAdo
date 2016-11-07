@@ -142,8 +142,7 @@ namespace XAdo.Core.Impl
             return buffered ? enumerable.ToList() : enumerable;
         }
 
-        public virtual AdoMultiResultReader QueryMultiple(string sql, object param = null,
-            CommandType? commandType = null)
+        public virtual AdoMultiResultReader QueryMultiple(string sql, object param = null,CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return _connectionQueryManager.QueryMultiple(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
@@ -151,7 +150,14 @@ namespace XAdo.Core.Impl
 
         }
 
-        public virtual IEnumerable<TResult> Query<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory,
+        public virtual AdoMultiResultReader QueryMultiple(string sql, IEnumerable<Delegate> factories, object param = null,
+          CommandType? commandType = null)
+       {
+          EnsureNotDisposed();
+          return _connectionQueryManager.QueryMultiple(LazyInitializedConnection, sql, factories, param, _tr, _commandTimeout, commandType);
+       }
+
+       public virtual IEnumerable<TResult> Query<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory,
             object param = null, bool buffered = true, CommandType? commandType = null)
         {
             EnsureNotDisposed();

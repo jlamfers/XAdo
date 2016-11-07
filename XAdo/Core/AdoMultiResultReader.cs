@@ -6,12 +6,13 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core
 {
-    public class AdoMultiResultReader
+    public class AdoMultiResultReader : IDisposable
     {
         private int _currentResultIndex;
         private IDataReader _reader;
         private IDbCommand _command;
-        private readonly bool _allowUnbindableFetchResults;
+       private readonly Delegate[] _factories;
+       private readonly bool _allowUnbindableFetchResults;
         private readonly bool _allowUnbindableMembers;
         private readonly IAdoDataReaderManager _dataReaderQuery;
 
@@ -22,6 +23,16 @@ namespace XAdo.Core
             _allowUnbindableFetchResults = allowUnbindableFetchResults;
             _allowUnbindableMembers = allowUnbindableMembers;
             _dataReaderQuery = dataReaderQuery;
+        }
+
+        internal AdoMultiResultReader(IDataReader reader, IDbCommand command, IEnumerable<Delegate> factories, IAdoDataReaderManager dataReaderQuery)
+        {
+           _reader = reader;
+           _command = command;
+           _factories = factories.ToArray();
+           _allowUnbindableFetchResults = true;
+           _allowUnbindableMembers = true;
+           _dataReaderQuery = dataReaderQuery;
         }
 
         public IEnumerable<dynamic> Read(bool buffered = true)
@@ -45,37 +56,37 @@ namespace XAdo.Core
         }
         public IEnumerable<TResult> Read<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
         public IEnumerable<TResult> Read<T1, T2, T3,T4, TResult>(Func<T1, T2, T3,T4, TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
         public IEnumerable<TResult> Read<T1, T2, T3, T4,T5, TResult>(Func<T1, T2, T3, T4,T5, TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
         public IEnumerable<TResult> Read<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5,T6, TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
         public IEnumerable<TResult> Read<T1, T2, T3, T4, T5, T6,T7, TResult>(Func<T1, T2, T3, T4, T5, T6, T7,TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
         public IEnumerable<TResult> Read<T1, T2, T3, T4, T5, T6, T7,T8, TResult>(Func<T1, T2, T3, T4, T5, T6, T7,T8, TResult> f, bool buffered = true)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
             var enumerable = CurrentResultReader(_currentResultIndex, f);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -85,7 +96,22 @@ namespace XAdo.Core
             if (index != _currentResultIndex) yield break;
             try
             {
-                foreach (var e in _dataReaderQuery.ReadAll<T>(_reader,_allowUnbindableFetchResults, _allowUnbindableMembers)) yield return e;
+               if (_factories != null)
+               {
+                  var f = (Func<IDataRecord,T>)_factories[index];
+                  while (_reader.Read())
+                  {
+                     yield return f(_reader);
+                  }
+               }
+               else
+               {
+
+                  foreach (
+                     var e in
+                        _dataReaderQuery.ReadAll<T>(_reader, _allowUnbindableFetchResults, _allowUnbindableMembers))
+                     yield return e;
+               }
             }
             finally
             {
@@ -121,6 +147,7 @@ namespace XAdo.Core
         }
         private IEnumerable<TResult> CurrentResultReader<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(int index, Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> f)
         {
+           EnsureNoFactories();
             if (index != _currentResultIndex) yield break;
             try
             {
@@ -143,10 +170,21 @@ namespace XAdo.Core
             if (index != _currentResultIndex) yield break;
             try
             {
-                foreach (var e in _dataReaderQuery.ReadAll(_reader)) yield return e;
-                if (index != _currentResultIndex) yield break;
-                index = -1;
-                NextResult();
+               if (_factories != null)
+               {
+                  var f = _factories[index];
+                  while (_reader.Read())
+                  {
+                     yield return f.DynamicInvoke(_reader);
+                  }
+               }
+               else
+               {
+                  foreach (var e in _dataReaderQuery.ReadAll(_reader)) yield return e;
+               }
+               if (index != _currentResultIndex) yield break;
+               index = -1;
+               NextResult();
             }
             finally
             {
@@ -163,6 +201,13 @@ namespace XAdo.Core
             {
                 throw new ObjectDisposedException(GetType().Name, "You possibly have consumed all datareaders while attempting to read another one.");
             }
+        }
+        private void EnsureNoFactories()
+        {
+           if (_factories != null)
+           {
+              throw new InvalidOperationException("You cannot bind a graph while using custom binding factories. Invoke read using a single generic argument.");
+           }
         }
 
         private void NextResult()

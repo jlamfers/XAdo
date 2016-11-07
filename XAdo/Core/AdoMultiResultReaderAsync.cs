@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Threading.Tasks;
 using XAdo.Core.Interface;
 
@@ -15,14 +16,25 @@ namespace XAdo.Core
         private readonly bool _allowUnbindableFetchResults;
         private readonly bool _allowUnbindableMembers;
         private readonly IAdoDataReaderManager _dataReaderQuery;
+       private Delegate[] _factories;
 
-        internal AdoMultiResultReaderAsync(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableMembers, IAdoDataReaderManager dataReaderQuery)
+       internal AdoMultiResultReaderAsync(IDataReader reader, IDbCommand command, bool allowUnbindableFetchResults, bool allowUnbindableMembers, IAdoDataReaderManager dataReaderQuery)
         {
             _reader = (DbDataReader)reader;
             _command = command;
             _allowUnbindableFetchResults = allowUnbindableFetchResults;
             _allowUnbindableMembers = allowUnbindableMembers;
             _dataReaderQuery = dataReaderQuery;
+        }
+
+       public AdoMultiResultReaderAsync(IDataReader reader, DbCommand command, IEnumerable<Delegate> factories, IAdoDataReaderManager dataReaderQuery)
+        {
+           _reader = (DbDataReader)reader;
+           _command = command;
+           _factories = factories.ToArray();
+           _allowUnbindableFetchResults = true;
+           _allowUnbindableMembers = true;
+           _dataReaderQuery = dataReaderQuery;
         }
 
         public async Task<List<dynamic>>  ReadAsync()
@@ -78,8 +90,23 @@ namespace XAdo.Core
             {
                 return new List<T>();
             }
-            var result =  await _dataReaderQuery.ReadAllAsync<T>(_reader, _allowUnbindableFetchResults, _allowUnbindableMembers);
-            if (index == _currentResultIndex)
+           List<T> result;
+           if (_factories == null)
+           {
+              result =
+                 await _dataReaderQuery.ReadAllAsync<T>(_reader, _allowUnbindableFetchResults, _allowUnbindableMembers);
+           }
+           else
+           {
+              result = new List<T>();
+              var f = (Func<IDataRecord,T>)_factories[index];
+              while (await _reader.ReadAsync())
+              {
+                 result.Add(f(_reader));
+              }
+           }
+
+           if (index == _currentResultIndex)
             {
                 await NextResultAsync();
             }
@@ -87,6 +114,7 @@ namespace XAdo.Core
         }
         private async Task<List<TResult>> CurrentResultReaderAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(int index, Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> f)
         {
+           EnsureNoFactories();
             if (index != _currentResultIndex)
             {
                 return new List<TResult>();
@@ -104,13 +132,35 @@ namespace XAdo.Core
             {
                 return new List<dynamic>();
             }
-            var result = await _dataReaderQuery.ReadAllAsync(_reader);
-            if (index == _currentResultIndex)
+           List<object> result;
+           if (_factories == null)
+           {
+              result = await _dataReaderQuery.ReadAllAsync(_reader);
+           }
+           else
+           {
+              result = new List<object>();
+              var f = _factories[index];
+              while (await _reader.ReadAsync())
+              {
+                 result.Add(f.DynamicInvoke(_reader));
+              }
+           }
+           if (index == _currentResultIndex)
             {
                 await NextResultAsync();
             }
             return result;
         }
+
+        private void EnsureNoFactories()
+        {
+           if (_factories != null)
+           {
+              throw new InvalidOperationException("You cannot bind a graph while using custom binding factories. Invoke read using a single generic argument.");
+           }
+        }
+
 
         private void EnsureNotDisposed()
         {
