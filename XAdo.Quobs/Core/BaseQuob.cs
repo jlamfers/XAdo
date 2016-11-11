@@ -32,7 +32,7 @@ namespace XAdo.Quobs.Core
          var context = new QuobContext(Formatter);
 
          sqlBuilder.BuildSql(context, whereClause);
-         Descriptor.AddJoins(context.GetJoins(whereClause.CastTo<LambdaExpression>().Parameters[0].Type));
+         Descriptor.AddJoins(context.QuobJoins);
          Descriptor.WhereClausePredicates.Add(context.ToString());
          foreach (var arg in context.Arguments)
          {

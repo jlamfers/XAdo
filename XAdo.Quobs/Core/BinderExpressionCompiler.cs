@@ -138,6 +138,7 @@ namespace XAdo.Quobs.Core
       public class CompileResult<T> 
       {
          public List<ColumnInfo> Columns { get; set; }
+         [Obsolete]
          public List<QueryDescriptor.JoinDescriptor> Joins { get; set; }
          public Dictionary<MemberInfo, Expression> MemberToExpressionMap { get; set; }
          public ParameterExpression OrigParameter { get; set; }
@@ -150,7 +151,7 @@ namespace XAdo.Quobs.Core
       private Dictionary<ColumnInfo, ColumnInfo>
          _columns;
 
-      private Dictionary<string, DbSchemaDescriptor.JoinDescriptor>
+      private List<DbSchemaDescriptor.JoinPath>
          _joins;
 
       private Dictionary<MemberInfo, Expression>
@@ -168,7 +169,7 @@ namespace XAdo.Quobs.Core
       {
          _parameter = Expression.Parameter(typeof(IDataRecord), "rdr");
          _columns = new Dictionary<ColumnInfo, ColumnInfo>();
-         _joins = new Dictionary<string, DbSchemaDescriptor.JoinDescriptor>();
+         _joins = new List<DbSchemaDescriptor.JoinPath>();
          _memberMap = new Dictionary<MemberInfo, Expression>();
          _origParameter = expression.Parameters.Single();
          var body = Visit(expression.Body);
@@ -176,7 +177,7 @@ namespace XAdo.Quobs.Core
          return new CompileResult<T>
          {
             BinderExpression = binderExpression,
-            Joins = _joins.Values.Sort(expression.Parameters[0].Type).Select(j => new QueryDescriptor.JoinDescriptor(_formatter.FormatJoin(j.Expression),j.JoinType.ToJoinTypeString())).ToList(),
+            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter.IdentifierDelimiterLeft,_formatter.IdentifierDelimiterRight),j.JoinType.ToJoinTypeString())).ToList(),
             Columns = _columns.Keys.OrderBy(c => c.Index).ToList(),
             MemberToExpressionMap = _memberMap,
             OrigParameter = _origParameter
@@ -235,14 +236,9 @@ namespace XAdo.Quobs.Core
       {
          if (node.IsJoinMethod())
          {
-            foreach (var jd in node.GetJoinDescriptors())
-            {
-               if (!_joins.ContainsKey(jd.Expression))
-               {
-                  _joins.Add(jd.Expression, jd);
-               }
-            }
-            return Visit(node.Arguments[0]);
+            var joinPath = node.GetJoinPath();
+            _joins.Add(joinPath);
+            return node;
          }
          return base.VisitMethodCall(node);
       }

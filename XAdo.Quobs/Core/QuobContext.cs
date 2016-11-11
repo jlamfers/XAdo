@@ -5,45 +5,39 @@ using System.Linq.Expressions;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core
 {
    public class QuobContext : SqlBuilderContext
    {
-      private Dictionary<string, DbSchemaDescriptor.JoinDescriptor>
-         _schemaJoins;
+      private readonly List<DbSchemaDescriptor.JoinPath>
+         _joins;
 
-      public QuobContext(ISqlFormatter formatter,Dictionary<string, DbSchemaDescriptor.JoinDescriptor> schemaJoins = null)
+      public QuobContext(ISqlFormatter formatter, List<DbSchemaDescriptor.JoinPath> joins = null)
          : base(formatter)
       {
          VisitorHook = _VisitorHook;
-         _schemaJoins = schemaJoins ?? new Dictionary<string, DbSchemaDescriptor.JoinDescriptor>();
+         _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
       }
 
-      public IEnumerable<QueryDescriptor.JoinDescriptor> GetJoins(Type startTable)
+      public IEnumerable<DbSchemaDescriptor.JoinPath> Joins
       {
-         return _schemaJoins.Values.Sort(startTable).Select(j => new QueryDescriptor.JoinDescriptor(Formatter.FormatJoin(j.Expression), j.JoinType.ToJoinTypeString()));
+         get { return _joins.Distinct(); }
+      }
+
+      [Obsolete]
+      public IEnumerable<QueryDescriptor.JoinDescriptor> QuobJoins
+      {
+         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter.IdentifierDelimiterLeft,Formatter.IdentifierDelimiterRight),j.JoinType.ToJoinTypeString())); }
       }
 
       private Expression _VisitorHook(ExpressionVisitor visitor, SqlBuilderContext context, Expression exp)
       {
-         var m = exp as MethodCallExpression;
-         if (m == null) return null;
-         if (m.Method.GetAnnotation<JoinMethodAttribute>() == null) return null;
-         var joinType = m.Arguments.Count > 1 ? (JoinType)m.Arguments[1].GetExpressionValue() : JoinType.Inner;
-         var joins = m.Method.GetJoinDescriptors(joinType).ToArray();
-         foreach (var join in joins)
-         {
-            if (!_schemaJoins.ContainsKey(join.Expression))
-            {
-               _schemaJoins.Add(join.Expression, join);
-            }
-         }
-         visitor.Visit(m.Arguments[0]);
+         var joinPath = exp.GetJoinPath();
+         if (joinPath == null) return null;
+         _joins.Add(joinPath);
          return exp;
       }
-
    }
 }
