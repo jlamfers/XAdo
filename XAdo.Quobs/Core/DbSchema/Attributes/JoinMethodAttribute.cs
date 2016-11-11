@@ -6,18 +6,14 @@ namespace XAdo.Quobs.Core.DbSchema.Attributes
    public class JoinMethodAttribute : Attribute
    {
       /// <summary>
-      /// Join expression without join type (no INNER, LEFT, RIGHT etc...)
+      /// If true, then this join represents a this=>N cardinality, else this=>1
       /// </summary>
-      public string Expression { get; set; }
-
-      /// <summary>
-      /// If true, then this join represents a *-N cardinality, else *-1
-      /// </summary>
-      public bool NChilds { get; set; }
+      public bool Reversed { get; set; }
 
       public Type LeftTableType { get; set; }
 
       public Type RightTableType { get; set; }
 
+      public string FKeyName { get; set; }
    }
 }

@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Formatters;
 
 namespace XAdo.Quobs

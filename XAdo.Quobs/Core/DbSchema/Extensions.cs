@@ -16,12 +16,12 @@ namespace XAdo.Quobs.Core.DbSchema
          {
             foreach (var join in list)
             {
-               if (join.RightTableType == startType)
+               if (join.LeftTableType == startType)
                {
                   result.Insert(0, join);
                   continue;
                }
-               if (result.Any(x => x.LeftTableType == join.RightTableType))
+               if (result.Any(x => x.RightTableType == join.LeftTableType))
                {
                   result.Add(join);
                   continue;
@@ -40,6 +40,13 @@ namespace XAdo.Quobs.Core.DbSchema
             list = todo;
             todo = new List<DbSchemaDescriptor.JoinDescriptor>();
          }
+      }
+
+      internal static string Delimit(this string self, string delimiterLeft, string delimiterRight)
+      {
+         if (self == null) return null;
+         if (self.StartsWith(delimiterLeft)) return self;
+         return delimiterLeft + self + delimiterRight;
       }
    }
 }

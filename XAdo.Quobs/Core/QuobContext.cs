@@ -31,14 +31,13 @@ namespace XAdo.Quobs.Core
       {
          var m = exp as MethodCallExpression;
          if (m == null) return null;
-         var joins = m.Method.GetJoinDescriptors().ToArray();
-         if (joins.Length == 0) return null;
+         if (m.Method.GetAnnotation<JoinMethodAttribute>() == null) return null;
          var joinType = m.Arguments.Count > 1 ? (JoinType)m.Arguments[1].GetExpressionValue() : JoinType.Inner;
+         var joins = m.Method.GetJoinDescriptors(joinType).ToArray();
          foreach (var join in joins)
          {
             if (!_schemaJoins.ContainsKey(join.Expression))
             {
-               join.JoinType = joinType;
                _schemaJoins.Add(join.Expression, join);
             }
          }

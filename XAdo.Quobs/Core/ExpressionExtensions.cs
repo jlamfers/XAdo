@@ -25,15 +25,12 @@ namespace XAdo.Quobs.Core
       {
          var atts = self.Method.GetAnnotations<JoinMethodAttribute>();
          if (!atts.Any()) return new DbSchemaDescriptor.JoinDescriptor[0];
-         return atts.Select(att =>
+         var joinType = JoinType.Inner;
+         if (self.Method.GetParameters().Count() == 2)
          {
-            var result = new DbSchemaDescriptor.JoinDescriptor(att.Expression,att.LeftTableType,att.RightTableType,att.NChilds);
-            if (self.Method.GetParameters().Count() == 2)
-            {
-               result.JoinType = (JoinType)self.Arguments[1].GetExpressionValue();
-            }
-            return result;
-         });
+            joinType = (JoinType)self.Arguments[1].GetExpressionValue();
+         }
+         return self.Method.GetJoinDescriptors(joinType);
       }
    }
 }

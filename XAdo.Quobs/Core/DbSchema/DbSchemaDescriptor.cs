@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
+using System.Text;
 using System.Threading;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
@@ -19,6 +22,8 @@ namespace XAdo.Quobs.Core.DbSchema
 
       private static readonly ConcurrentDictionary<MemberInfo,object> Cache = 
          new ConcurrentDictionary<MemberInfo, object>();
+      private static readonly ConcurrentDictionary<string, JoinInfo> JoinLookup =
+         new ConcurrentDictionary<string, JoinInfo>();
 
       public class TableDescriptor
       {
@@ -69,6 +74,23 @@ namespace XAdo.Quobs.Core.DbSchema
             return Schema != null ? string.Format("[{0}].[{1}]",Schema, Name) : "["+ Name+"]";
          }
 
+         public string Format(string leftDelimiter, string rightDelimiter, string alias = null)
+         {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(Schema))
+            {
+               sb.Append(Schema.Delimit(leftDelimiter,rightDelimiter));
+               sb.Append(".");
+            }
+            sb.Append(Name.Delimit(leftDelimiter, rightDelimiter));
+            if (alias != null)
+            {
+               sb.Append(" AS ");
+               sb.Append(alias.Delimit(leftDelimiter, rightDelimiter));
+            }
+            return sb.ToString();
+         }
+
       }
       public class ColumnDescriptor
       {
@@ -108,6 +130,14 @@ namespace XAdo.Quobs.Core.DbSchema
          {
             return Parent + ".[" + Name + "]";
          }
+         public string Format(string leftDelimiter, string rightDelimiter, string tableAlias = null)
+         {
+            var sb = new StringBuilder(tableAlias.Delimit(leftDelimiter, rightDelimiter) ?? Parent.Format(leftDelimiter, rightDelimiter));
+            sb.Append(".");
+            sb.Append(Name.Delimit(leftDelimiter, rightDelimiter));
+            return sb.ToString();
+         }
+
       }
       public class ReferenceDescriptor
       {
@@ -137,23 +167,161 @@ namespace XAdo.Quobs.Core.DbSchema
             return "FKey " + ForeignKeyColumn + " => " + ReferencedColumn;
          }
       }
+
+      public class JoinInfo
+      {
+         private JoinInfo() { }
+         public JoinInfo(string constraintName, Type leftTable, Type rightTable)
+         {
+            ConstraintName = constraintName;
+            LeftTable = leftTable.GetTableDescriptor();
+            RightTable = rightTable.GetTableDescriptor();
+            var references = LeftTable.Columns.Where(c => c.References != null && c.References.Name == constraintName)
+               .Select(c => c.References)
+               .ToArray();
+            LeftColumns = references.Select(r => r.ForeignKeyColumn).ToList().AsReadOnly();
+            RightColumns = references.Select(r => r.ReferencedColumn).ToList().AsReadOnly();
+         }
+         public string ConstraintName { get; private set; }
+         public TableDescriptor LeftTable { get; private set; }
+         public TableDescriptor RightTable { get; private set; }
+         public IList<ColumnDescriptor> LeftColumns { get; private set; }
+         public IList<ColumnDescriptor> RightColumns { get; private set; }
+         public bool Reversed { get; private set; }
+
+         public JoinInfo Reverse(bool? reversed = null)
+         {
+            reversed = reversed ?? !Reversed;
+            return reversed.Value == Reversed
+               ? this
+               : new JoinInfo
+               {
+                  ConstraintName = ConstraintName,
+                  LeftTable = RightTable,
+                  RightTable = LeftTable,
+                  LeftColumns = RightColumns,
+                  RightColumns = LeftColumns,
+                  Reversed = reversed.Value
+               };
+         }
+
+         public string Format(string delimiterLeft, string delimiterRight, string leftAlias=null, string rightAlias = null)
+         {
+            using (var sw = new StringWriter())
+            {
+               sw.Write("JOIN {0} ON ",RightTable.Format(delimiterLeft,delimiterRight));
+               if (rightAlias != null)
+               {
+                  sw.Write(" AS ");
+                  sw.Write(rightAlias.Delimit(delimiterLeft,delimiterRight));
+                  sw.Write(" ");
+               }
+               var and = "";
+               for (var i = 0; i < LeftColumns.Count; i++)
+               {
+                  sw.Write(and);
+                  sw.Write(LeftColumns[i].Format(delimiterLeft,delimiterRight,leftAlias));
+                  sw.Write(" = ");
+                  sw.Write(RightColumns[i].Format(delimiterLeft, delimiterRight,rightAlias));
+                  and = " AND ";
+               }
+               return sw.GetStringBuilder().ToString();
+            }
+         }
+
+         public override int GetHashCode()
+         {
+            unchecked
+            {
+               return Reversed ? ConstraintName.GetHashCode() * 829 : ConstraintName.GetHashCode();
+            }
+         }
+
+         public override bool Equals(object obj)
+         {
+            var other = obj as JoinInfo;
+            return other != null && other.ConstraintName == ConstraintName && other.Reversed == Reversed;
+         }
+      }
       public class JoinDescriptor
       {
-         public JoinDescriptor(string expression, Type leftTableType, Type rightTableType, bool nchilds)
+         public JoinDescriptor(JoinInfo joinInfo, JoinType joinType)
          {
-            Expression = expression;
-            LeftTableType = leftTableType;
-            RightTableType = rightTableType;
-            NChilds = nchilds;
+            JoinInfo = joinInfo;
+            JoinType = joinType;
          }
-         public string Expression { get; private set; }
-         public JoinType JoinType { get; set; }
-         public bool NChilds { get; private set; }
-         public Type LeftTableType { get; private set; }
-         public Type RightTableType { get; private set; }
-         public override string ToString()
+         public JoinInfo JoinInfo { get; private set; }
+         public JoinType JoinType { get; private set; }
+         public Type LeftTableType { get { return JoinInfo.LeftTable.Type; } }
+         public Type RightTableType { get { return JoinInfo.RightTable.Type; } }
+
+         public string LeftTableAlias { get; set; }
+         public string RightTableAlias { get; set; }
+
+         public string Format(string delimerLeft, string delimiterRight)
          {
-            return JoinType.ToJoinTypeString()+" "+Expression;
+            return JoinType.ToJoinTypeString() + " " +
+                   JoinInfo.Format(delimerLeft, delimiterRight, LeftTableAlias, RightTableAlias);
+         }
+
+         [Obsolete]
+         public string Expression
+         {
+            get { return JoinInfo.Format("[", "]"); }
+         }
+
+         public override int GetHashCode()
+         {
+            unchecked
+            {
+               return JoinInfo.GetHashCode() + (JoinType.GetHashCode()*829);
+            }
+         }
+
+         public override bool Equals(object obj)
+         {
+            var other = obj as JoinDescriptor;
+            return other != null && JoinInfo.Equals(other.JoinInfo) && JoinType == other.JoinType;
+         }
+      }
+      public class JoinPath
+      {
+         public JoinPath(IEnumerable<JoinDescriptor> joins)
+         {
+            Joins = joins.ToArray();
+         }
+
+         public IList<JoinDescriptor> Joins { get; private set; }
+
+         public override int GetHashCode()
+         {
+            unchecked
+            {
+               var hashcode = 829;
+               foreach (var j in Joins)
+               {
+                  hashcode += j.GetHashCode();
+                  hashcode *= 5;
+               }
+               return hashcode;
+            }
+         }
+
+         public override bool Equals(object obj)
+         {
+            var other = obj as JoinPath;
+            return other != null &&  Joins.SequenceEqual(other.Joins);
+         }
+
+         public string Format(string delimiterLeft, string delimiterRight)
+         {
+            var sb = new StringBuilder();
+            foreach (var j in Joins)
+            {
+               sb.Append("   ");
+               sb.AppendLine(j.Format(delimiterLeft, delimiterRight));
+            }
+            return sb.ToString();
          }
       }
 
@@ -169,18 +337,21 @@ namespace XAdo.Quobs.Core.DbSchema
       {
          return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
-      public static IList<JoinDescriptor> GetJoinDescriptors(this MethodInfo self, JoinType? joinType = null)
+      public static IList<JoinDescriptor> GetJoinDescriptors(this MethodInfo self, JoinType joinType)
       {
          var atts = self.GetAnnotations<JoinMethodAttribute>();
          if (!atts.Any()) return new JoinDescriptor[0];
          return atts.Select(att =>
          {
-            var result = new JoinDescriptor(att.Expression,att.LeftTableType,att.RightTableType,att.NChilds);
-            if (joinType != null)
+            var joinInfo = JoinLookup.GetOrAdd(att.FKeyName, n =>
+               new JoinInfo(att.FKeyName, att.Reversed ? att.RightTableType : att.LeftTableType, att.Reversed ? att.LeftTableType : att.RightTableType));
+
+            if (att.Reversed)
             {
-               result.JoinType = joinType.Value;
+               joinInfo = joinInfo.Reverse();
             }
-            return result;
+
+            return new JoinDescriptor(joinInfo, joinType);
          }).ToList();
       }
       public static ColumnDescriptor GetColumnDescriptor(this MemberInfo self)

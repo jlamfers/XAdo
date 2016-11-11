@@ -152,6 +152,8 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       [SqlAggregate.Count]
       public static int Count(this object value) { throw NotImplemented(); }
+      [SqlAggregate.Count]
+      public static int Count(this string value) { throw NotImplemented(); }
 
       #endregion
       #endregion

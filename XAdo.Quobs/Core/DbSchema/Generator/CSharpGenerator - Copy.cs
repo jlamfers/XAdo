@@ -202,17 +202,27 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
                name = NormalizeName(name);
                
 
-               var tableTypesExpression =
+               var expression = new StringBuilder("JOIN ");
+               var tableNamesExpression =
                   string.Format(
                      @"LeftTableType=typeof({0}{1}), RightTableType=typeof({0}{2})",
                        _prefix,
-                        NormalizeName(cols[0].Table.Name),
-                        NormalizeName(cols[0].References.Table.Name)
+                        NormalizeName(cols[0].References.Table.Name),
+                        NormalizeName(cols[0].Table.Name)
                      );
 
-               w.WriteLine("[JoinMethod({0}, FKeyName=\"{1}\")]", tableTypesExpression, fkeys[i].FKey.FKeyConstraintName);
+               expression.Append(FormatFullTableName(cols[0].References.Table));
+               expression.Append(" ON ");
+               var and = "";
+               foreach (var col in cols)
+               {
+                  expression.Append(and);
+                  expression.Append(FormatColumnJoin(col));
+                  and = " AND ";
+               }
+               w.WriteLine("[JoinMethod( Expression = @\"{0}\", {1}, FKeyName=\"{2}\")]", expression, tableNamesExpression, fkeys[i].FKey.FKeyConstraintName);
                w.WriteLine("public static {0}{1} {2}(this {3}{4} self, JoinType join){{return null;}}",_prefix,NormalizeName(cols[0].References.TableName),name,_prefix,NormalizeName(cols[0].TableName));
-               w.WriteLine("[JoinMethod( {0}, FKeyName=\"{1}\")]", tableTypesExpression, fkeys[i].FKey.FKeyConstraintName);
+               w.WriteLine("[JoinMethod( Expression = @\"{0}\", {1}, FKeyName=\"{2}\")]", expression, tableNamesExpression, fkeys[i].FKey.FKeyConstraintName);
                w.WriteLine("public static {0}{1} {2}(this {3}{4} self){{return null;}}", _prefix, NormalizeName(cols[0].References.TableName), name, _prefix, NormalizeName(cols[0].TableName));
 
             }
@@ -258,18 +268,28 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
                   name = NormalizeName(name + "_N");
 
 
-                  var tableTypesExpression =
+                  var expression = new StringBuilder("JOIN ");
+                  var tableNamesExpression =
                      string.Format(
                         @"LeftTableType=typeof({0}{1}), RightTableType=typeof({0}{2})",
                           _prefix,
-                           NormalizeName(cols[0].References.Table.Name),
-                           NormalizeName(cols[0].Table.Name)
+                           NormalizeName(cols[0].Table.Name),
+                           NormalizeName(cols[0].References.Table.Name)
                         );
 
-                  w.WriteLine("[JoinMethod({0}, FKeyName=\"{1}\", Reversed=true)]", tableTypesExpression, fkeys[i].FKey.FKeyConstraintName);
+                  expression.Append(FormatFullTableName(cols[0].Table));
+                  expression.Append(" ON ");
+                  var and = "";
+                  foreach (var col in cols)
+                  {
+                     expression.Append(and);
+                     expression.Append(FormatColumnJoinChild(col));
+                     and = " AND ";
+                  }
+                  w.WriteLine("[JoinMethod( Expression = @\"{0}\", NChilds=true, {1}, FKeyName=\"{2}\")]", expression, tableNamesExpression, fkeys[i].FKey.FKeyConstraintName);
                   w.WriteLine("public static {0}{1} {2}(this {3}{4} self, JoinType join){{return null;}}", _prefix,
                      NormalizeName(cols[0].TableName), name, _prefix, NormalizeName(cols[0].References.TableName));
-                  w.WriteLine("[JoinMethod({0}, FKeyName=\"{1}\", Reversed = true)]", tableTypesExpression, fkeys[i].FKey.FKeyConstraintName);
+                  w.WriteLine("[JoinMethod( Expression = @\"{0}\", NChilds=true, {1}, FKeyName=\"{2}\")]", expression, tableNamesExpression, fkeys[i].FKey.FKeyConstraintName);
                   w.WriteLine("public static {0}{1} {2}(this {3}{4} self){{return null;}}", _prefix,
                      NormalizeName(cols[0].TableName), name, _prefix, NormalizeName(cols[0].References.TableName));
 
