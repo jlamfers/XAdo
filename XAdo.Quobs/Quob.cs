@@ -113,7 +113,7 @@ namespace XAdo.Quobs
          var compiler = new BinderExpressionCompiler(Formatter);
          var result = compiler.Compile<TMapped>(mapExpression);
          Descriptor.AddJoins(result.Joins);
-         Descriptor.SelectColumns.AddRange(result.Columns.Select(c => new QueryDescriptor.SelectColumnDescriptor(c.Sql, c.Alias)));
+         Descriptor.SelectColumns.AddRange(result.Columns.Select(c => new QueryDescriptor.SelectColumnDescriptor(c.Sql, c.Alias, c.MappedMember)));
          Descriptor.EnsureSelectColumnsAreAliased();
          return result;
       }
@@ -153,7 +153,7 @@ namespace XAdo.Quobs
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(Formatter.FormatColumn(c), Formatter.FormatIdentifier(c.Member.Name)));
+               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(Formatter.FormatColumn(c), Formatter.FormatIdentifier(c.Member.Name), c.Member));
             }
          }
       }

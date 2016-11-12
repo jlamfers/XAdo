@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core
@@ -21,13 +22,15 @@ namespace XAdo.Quobs.Core
       {
          public SelectColumnDescriptor() { }
 
-         public SelectColumnDescriptor(string expression, string alias)
+         public SelectColumnDescriptor(string expression, string alias, MemberInfo member)
          {
             Expression = expression;
             Alias = alias;
+            Member = member;
          }
          public string Expression { get; set; }
          public string Alias { get; set; }
+         public MemberInfo Member { get; set; }
 
          public override string ToString()
          {
@@ -36,7 +39,7 @@ namespace XAdo.Quobs.Core
 
          public SelectColumnDescriptor Clone()
          {
-            return new SelectColumnDescriptor(Expression, Alias);
+            return new SelectColumnDescriptor(Expression, Alias,Member);
          }
       }
 

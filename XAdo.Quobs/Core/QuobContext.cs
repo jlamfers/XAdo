@@ -11,14 +11,18 @@ namespace XAdo.Quobs.Core
 {
    public class QuobContext : SqlBuilderContext
    {
+
       private readonly List<DbSchemaDescriptor.JoinPath>
          _joins;
+
+      private int _tableAliasIndex;
+
 
       public QuobContext(ISqlFormatter formatter, List<DbSchemaDescriptor.JoinPath> joins = null)
          : base(formatter)
       {
-         VisitorHook = _VisitorHook;
          _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
+         _tableAliasIndex = _joins.SelectMany(j => j.Joins).Count();
       }
 
       public IEnumerable<DbSchemaDescriptor.JoinPath> Joins
@@ -26,18 +30,75 @@ namespace XAdo.Quobs.Core
          get { return _joins.Distinct(); }
       }
 
+
       [Obsolete]
       public IEnumerable<QueryDescriptor.JoinDescriptor> QuobJoins
       {
-         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter.IdentifierDelimiterLeft,Formatter.IdentifierDelimiterRight),j.JoinType.ToJoinTypeString())); }
+         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter.IdentifierDelimiterLeft,Formatter.IdentifierDelimiterRight,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())); }
       }
 
-      private Expression _VisitorHook(ExpressionVisitor visitor, SqlBuilderContext context, Expression exp)
+      public override void WriteFormattedColumn(MemberExpression exp)
       {
-         var joinPath = exp.GetJoinPath();
-         if (joinPath == null) return null;
-         _joins.Add(joinPath);
-         return exp;
+         var joinPath = exp.Expression.GetJoinPath();
+         if (joinPath != null)
+         {
+            var other = _joins.FirstOrDefault(j => j.EqualsOrStartsWith(joinPath));
+            if (other != null)
+            {
+               joinPath = other.Joins.Count == joinPath.Joins.Count
+                  ? other
+                  : new DbSchemaDescriptor.JoinPath(other.Joins.Take(joinPath.Joins.Count));
+            }
+            else
+            {
+               other = _joins.Where(j => joinPath.EqualsOrStartsWith(j)).OrderByDescending(j => j.Joins.Count).FirstOrDefault();
+               if (other != null)
+               {
+                  // add joins to existing join path
+                  other.Joins = other.Joins.Concat(joinPath.Joins.Skip(other.Joins.Count)).ToList();
+               }
+               else
+               {
+                  // it is a new path
+                  _joins.Add(joinPath);
+               }
+            }
+            // now set aliases
+            foreach (var path in _joins)
+            {
+               for (var i = 0; i < path.Joins.Count; i++)
+               {
+                  var join = path.Joins[i];
+                  if (i == 0)
+                  {
+                     if (join.RightTableAlias == null)
+                     {
+                        join.RightTableAlias = "__j" + (++_tableAliasIndex);
+                     }
+                  }
+                  else
+                  {
+                     if (join.RightTableAlias == null)
+                     {
+                        join.RightTableAlias = "__j" + (++_tableAliasIndex);
+                     }
+                     if (join.LeftTableAlias == null)
+                     {
+                        join.LeftTableAlias = path.Joins[i - 1].RightTableAlias;
+                     }
+                  }
+               
+            }
+            }
+         }
+         var descriptor = exp.Member.GetColumnDescriptor();
+         var alias = default(string);
+         if (joinPath != null)
+         {
+            alias = joinPath.Joins.Last().RightTableAlias;
+         }
+         Writer.Write(descriptor.Format(Formatter.IdentifierDelimiterLeft, Formatter.IdentifierDelimiterRight,alias));
       }
+
    }
 }

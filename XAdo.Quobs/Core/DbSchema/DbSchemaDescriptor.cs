@@ -209,13 +209,14 @@ namespace XAdo.Quobs.Core.DbSchema
          {
             using (var sw = new StringWriter())
             {
-               sw.Write("JOIN {0} ON ",RightTable.Format(delimiterLeft,delimiterRight));
+               sw.Write("JOIN {0} ",RightTable.Format(delimiterLeft,delimiterRight));
                if (rightAlias != null)
                {
                   sw.Write(" AS ");
                   sw.Write(rightAlias.Delimit(delimiterLeft,delimiterRight));
                   sw.Write(" ");
                }
+               sw.Write(" ON ");
                var and = "";
                for (var i = 0; i < LeftColumns.Count; i++)
                {
@@ -291,7 +292,7 @@ namespace XAdo.Quobs.Core.DbSchema
             Joins = joins.ToArray();
          }
 
-         public IList<JoinDescriptor> Joins { get; private set; }
+         public IList<JoinDescriptor> Joins { get; internal set; }
 
          public override int GetHashCode()
          {
@@ -313,6 +314,12 @@ namespace XAdo.Quobs.Core.DbSchema
             return other != null &&  Joins.SequenceEqual(other.Joins);
          }
 
+         public bool EqualsOrStartsWith(JoinPath other)
+         {
+            var i = 0;
+            return Joins.Count >= other.Joins.Count && other.Joins.All(j => j.Equals(Joins[i++]));
+         }
+
          public string Format(string delimiterLeft, string delimiterRight)
          {
             var sb = new StringBuilder();
@@ -324,6 +331,24 @@ namespace XAdo.Quobs.Core.DbSchema
             return sb.ToString();
          }
       }
+
+      //public class AliasedColumnDescriptor
+      //{
+      //   public AliasedColumnDescriptor(ColumnDescriptor descriptor, string @alias)
+      //   {
+      //      Alias = alias;
+      //      Descriptor = descriptor;
+      //   }
+
+      //   public ColumnDescriptor Descriptor { get; private set; }
+      //   public string Alias { get; private set; }
+
+      //   public string Format(string delimiterLeft, string delimiterRight)
+      //   {
+      //      return Descriptor.Format(delimiterLeft, delimiterRight, Alias);
+      //   }
+      //}
+
 
       public static TableDescriptor GetTableDescriptor(this Type self)
       {

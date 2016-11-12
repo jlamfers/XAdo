@@ -160,12 +160,16 @@ var query = from product in products
       {
          using (var s = Db.Northwind.CreateSession())
          {
-            var @any = s
+            var q = s
                .From<DbProduct>()
                .GroupBy(p => p.ProductModel().Name)
                .Select(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
-               .OrderBy(p => p.AvgPrice)
-               .Any();
+               .OrderBy(p => p.AvgPrice);
+
+            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            Debug.WriteLine(sql);
+
+            var @any = q.Any();
 
 
          }

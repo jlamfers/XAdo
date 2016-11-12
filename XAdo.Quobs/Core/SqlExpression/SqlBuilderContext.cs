@@ -21,6 +21,12 @@ namespace XAdo.Quobs.Core.SqlExpression
       public IDictionary<string, object> Arguments { get; set; }
       public IDictionary<object, object> Items { get; set; }
       public bool ArgumentsAsLiterals { get; set; }
+
+      public virtual void WriteFormattedColumn(MemberExpression exp)
+      {
+         Writer.Write(Formatter.MemberFormatter.FormatColumn(Formatter, exp.Member));
+      }
+
       public Func<ExpressionVisitor, SqlBuilderContext, Expression, Expression> VisitorHook { get; set; }
 
       public override string ToString()

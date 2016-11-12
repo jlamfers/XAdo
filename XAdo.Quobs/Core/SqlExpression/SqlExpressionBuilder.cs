@@ -256,7 +256,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          switch (exp.Expression.NodeType)
          {
             case ExpressionType.Parameter:
-               WriteFormattedColumn(exp.Member);
+               WriteFormattedColumn(exp);
                break;
             default:
                object result;
@@ -266,12 +266,13 @@ namespace XAdo.Quobs.Core.SqlExpression
                }
                else
                {
-                  WriteFormattedColumn(exp.Member);
-                  var node = Visit(exp.Expression);
-                  if (node == null)
-                  {
-                     throw new NotSupportedException(string.Format("The member '{0}' in expression '{1}' is not supported ", exp.Member.Name, exp));
-                  }
+                  // it must be an indirectly parameter referenced member
+                  WriteFormattedColumn(exp);
+                  //var node = Visit(exp.Expression);
+                  //if (node == null)
+                  //{
+                  //   throw new NotSupportedException(string.Format("The member '{0}' in expression '{1}' is not supported ", exp.Member.Name, exp));
+                  //}
                }
                break;
          }
@@ -729,9 +730,9 @@ namespace XAdo.Quobs.Core.SqlExpression
          _context.Arguments[name] = _formatter.NormalizeValue(arg);
       }
 
-      private void WriteFormattedColumn(MemberInfo member)
+      private void WriteFormattedColumn(MemberExpression exp)
       {
-         _writer.Write(_formatter.MemberFormatter.FormatColumn(_formatter, member));
+         _context.WriteFormattedColumn(exp);
       }
 
       private static Action<TextWriter> ParameterizeWriter(Action action, SqlExpressionBuilder sqlWriter)

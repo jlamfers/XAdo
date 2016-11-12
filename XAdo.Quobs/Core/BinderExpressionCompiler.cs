@@ -177,7 +177,7 @@ namespace XAdo.Quobs.Core
          return new CompileResult<T>
          {
             BinderExpression = binderExpression,
-            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter.IdentifierDelimiterLeft,_formatter.IdentifierDelimiterRight),j.JoinType.ToJoinTypeString())).ToList(),
+            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter.IdentifierDelimiterLeft,_formatter.IdentifierDelimiterRight,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
             Columns = _columns.Keys.OrderBy(c => c.Index).ToList(),
             MemberToExpressionMap = _memberMap,
             OrigParameter = _origParameter
@@ -250,9 +250,16 @@ namespace XAdo.Quobs.Core
             return base.VisitMember(node);
          }
 
-         var expression = _formatter.FormatColumn(node.Member.GetColumnDescriptor());
-         var index = AddOrGetColumnIndex(expression,null);
+         var b = new SqlExpressionBuilder();
+         var ctx = new QuobContext(_formatter, _joins);
+         b.BuildSql(ctx, node);
+         var index = AddOrGetColumnIndex(ctx.ToString(), node.Member);
          return GetReaderExpression(node.Member.GetMemberType(), index);
+
+
+         //var expression = _formatter.FormatColumn(node.Member.GetColumnDescriptor());
+         //var index = AddOrGetColumnIndex(expression,null);
+         //return GetReaderExpression(node.Member.GetMemberType(), index);
       }
 
       private int AddOrGetColumnIndex(string sqlExpression,MemberInfo mappedMember)
