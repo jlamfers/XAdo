@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs
@@ -15,7 +14,7 @@ namespace XAdo.Quobs
    {
 
       public Quob(ISqlFormatter formatter, ISqlExecuter executer)
-         : base(formatter, executer, new QueryDescriptor() { TableName = formatter.MemberFormatter.FormatTable(formatter, typeof(T))},null)
+         : base(formatter, executer, new QueryDescriptor { TableName = formatter.MemberFormatter.FormatTable(formatter, typeof(T))},null)
       {
       }
 
