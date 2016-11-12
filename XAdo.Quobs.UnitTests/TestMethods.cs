@@ -31,7 +31,7 @@ namespace XAdo.Quobs.UnitTests
                   Id = p.BusinessEntityID + p.BusinessEntityID,
                   FullName = p.FirstName + " " + (p.LastName ?? "")
                })
-               .OrderBy(p => p.Id)
+               //.OrderBy(p => p.Id)
                .Where(p => p.Id > 10);
 
 

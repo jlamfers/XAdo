@@ -15,14 +15,14 @@ namespace XAdo.Quobs
    {
 
       public Quob(ISqlFormatter formatter, ISqlExecuter executer)
-         : base(formatter, executer, new QueryDescriptor() { TableName = formatter.MemberFormatter.FormatTable(formatter, typeof(T)) })
+         : base(formatter, executer, new QueryDescriptor() { TableName = formatter.MemberFormatter.FormatTable(formatter, typeof(T))},null)
       {
       }
 
       public virtual MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
          var result = PrepareMapExpression(mapExpression);
-         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result);
+         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins);
       }
 
       public virtual Quob<T> Where(Expression<Func<T, bool>> whereClause)
@@ -32,7 +32,7 @@ namespace XAdo.Quobs
       public virtual Quob<T> Having(Expression<Func<T, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter);
+         var context = new QuobContext(Formatter,Joins);
 
          sqlBuilder.BuildSql(context, havingClause);
          Descriptor.AddJoins(context.QuobJoins);
@@ -79,8 +79,13 @@ namespace XAdo.Quobs
          }
          foreach (var expression in expressions)
          {
-            var d = expression.GetMemberInfo().GetColumnDescriptor();
-            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(Formatter.FormatColumn(d), descending));
+            var sqlBuilder = new SqlExpressionBuilder();
+            var context = new QuobContext(Formatter, Joins);
+
+            sqlBuilder.BuildSql(context, expression);
+            Descriptor.AddJoins(context.QuobJoins);
+            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(context.ToString(), descending));
+            return this;
          }
          return this;
       }
@@ -96,8 +101,13 @@ namespace XAdo.Quobs
       {
          foreach (var expression in expressions)
          {
-            var c = expression.GetMemberInfo().GetColumnDescriptor();
-            Descriptor.GroupByColumns.Add(Formatter.FormatColumn(c));
+            var sqlBuilder = new SqlExpressionBuilder();
+            var context = new QuobContext(Formatter, Joins);
+
+            sqlBuilder.BuildSql(context, expression);
+            Descriptor.AddJoins(context.QuobJoins);
+            Descriptor.GroupByColumns.Add(context.ToString());
+            return this;
          }
          return this;
       }

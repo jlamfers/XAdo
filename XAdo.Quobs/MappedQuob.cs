@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
@@ -15,8 +16,8 @@ namespace XAdo.Quobs
       private readonly Func<IDataRecord, T> _binder;
       private readonly BinderExpressionCompiler.CompileResult<T> _binderCompileResult;
 
-      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord,T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult )
-         : base(formatter, executer, descriptor)
+      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins)
+         : base(formatter, executer, descriptor, joins)
       {
          _binder = binder;
          _binderCompileResult = binderCompileResult;
@@ -107,7 +108,7 @@ namespace XAdo.Quobs
 
       protected override object Clone()
       {
-         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult);
+         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins);
       }
    }
 }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core
@@ -20,8 +22,6 @@ namespace XAdo.Quobs.Core
 
       public class SelectColumnDescriptor
       {
-         public SelectColumnDescriptor() { }
-
          public SelectColumnDescriptor(string expression, string alias, MemberInfo member)
          {
             Expression = expression;
@@ -45,8 +45,6 @@ namespace XAdo.Quobs.Core
 
       public class OrderColumnDescriptor
       {
-         public OrderColumnDescriptor() { }
-
          public OrderColumnDescriptor(string expression, bool descending = false)
          {
             Expression = expression;
@@ -340,5 +338,6 @@ namespace XAdo.Quobs.Core
             }
          }
       }
+
    }
 }

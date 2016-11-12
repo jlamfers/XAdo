@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
@@ -11,7 +12,7 @@ namespace XAdo.Quobs.Core
    public abstract class BaseQuob<T> : ICloneable, ISqlBuilder
    {
 
-      protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor)
+      protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
          if (executer == null) throw new ArgumentNullException("executer");
@@ -19,17 +20,19 @@ namespace XAdo.Quobs.Core
          Descriptor = descriptor;
          Formatter = formatter;
          Executer = executer;
+         Joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
       }
 
       protected ISqlFormatter Formatter { get; set; }
       protected ISqlExecuter Executer { get; set; }
       protected QueryDescriptor Descriptor { get; set; }
+      protected List<DbSchemaDescriptor.JoinPath> Joins { get; set; }
 
       protected virtual BaseQuob<T> AddWhereClause(Expression whereClause)
       {
          if (whereClause == null) return this;
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter);
+         var context = new QuobContext(Formatter,Joins);
 
          sqlBuilder.BuildSql(context, whereClause);
          Descriptor.AddJoins(context.QuobJoins);
