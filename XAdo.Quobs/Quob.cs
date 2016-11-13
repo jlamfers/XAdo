@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,32 +11,32 @@ using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs
 {
-   public class Quob<T> : BaseQuob<T>
+
+   public class Quob<T> : BaseQuob<T>, IQuob
    {
 
       public Quob(ISqlFormatter formatter, ISqlExecuter executer)
-         : base(formatter, executer, new QueryDescriptor { TableName = formatter.MemberFormatter.FormatTable(formatter, typeof(T))},null)
+         : base(formatter, executer, new QueryDescriptor { TableName = typeof(T).GetTableDescriptor().Format(formatter.IdentifierDelimiterLeft,formatter.IdentifierDelimiterRight)},null)
       {
       }
 
       public virtual MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
-         var result = PrepareMapExpression(mapExpression);
+         var result = PrepareMapExpression<TMapped>(mapExpression);
          return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins);
       }
+
+      public virtual Quob<T> Distinct()
+      {
+         Descriptor.Distict = true;
+         return this;
+      }
+
 
       public virtual Quob<T> Where(Expression<Func<T, bool>> whereClause)
       {
          if (whereClause == null) return this;
-         var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter, Joins);
-
-         sqlBuilder.BuildSql(context, whereClause);
-         Descriptor.WhereClausePredicates.Add(context.ToString());
-         foreach (var arg in context.Arguments)
-         {
-            Descriptor.Arguments[arg.Key] = arg.Value;
-         }
+         this.CastTo<IQuob>().Where(whereClause);
          return this;
       }
       public virtual Quob<T> Having(Expression<Func<T, bool>> havingClause)
@@ -52,6 +53,7 @@ namespace XAdo.Quobs
          }
          return this;
       }
+
       public virtual Quob<T> Skip(int skip)
       {
          Descriptor.Skip = skip;
@@ -82,20 +84,7 @@ namespace XAdo.Quobs
 
       protected virtual Quob<T> OrderBy(bool keepOrder, bool descending, params Expression<Func<T, object>>[] expressions)
       {
-         if (!keepOrder)
-         {
-            Descriptor.OrderColumns.Clear();
-         }
-         foreach (var expression in expressions)
-         {
-            var sqlBuilder = new SqlExpressionBuilder();
-            var context = new QuobContext(Formatter, Joins);
-
-            sqlBuilder.BuildSql(context, expression);
-            Descriptor.AddJoins(context.QuobJoins);
-            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(context.ToString(), descending));
-            return this;
-         }
+         this.CastTo<IQuob>().OrderBy(keepOrder, descending, expressions.Cast<Expression>().ToArray());
          return this;
       }
 
@@ -125,13 +114,8 @@ namespace XAdo.Quobs
          return this;
       }
 
-      public virtual Quob<T> Distinct()
-      {
-         Descriptor.Distict = true;
-         return this;
-      }
 
-      private BinderExpressionCompiler.CompileResult<TMapped> PrepareMapExpression<TMapped>(Expression<Func<T, TMapped>> mapExpression)
+      private BinderExpressionCompiler.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression)
       {
          var compiler = new BinderExpressionCompiler(Formatter);
          var result = compiler.Compile<TMapped>(mapExpression,Joins);
@@ -184,6 +168,98 @@ namespace XAdo.Quobs
                Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(Formatter.FormatColumn(c), Formatter.FormatIdentifier(c.Member.Name), c.Member));
             }
          }
+      }
+
+      #region IQuob
+
+      IQuob IQuob.Where(Expression expression)
+      {
+         if (expression == null) return this;
+         var sqlBuilder = new SqlExpressionBuilder();
+         var context = new QuobContext(Formatter, Joins);
+
+         sqlBuilder.BuildSql(context, expression);
+         Descriptor.WhereClausePredicates.Add(context.ToString());
+         foreach (var arg in context.Arguments)
+         {
+            Descriptor.Arguments[arg.Key] = arg.Value;
+         }
+         return this;
+      }
+
+      IQuob IQuob.OrderBy(bool keepOrder, bool @descending, params Expression[] expressions)
+      {
+         if (!keepOrder)
+         {
+            Descriptor.OrderColumns.Clear();
+         }
+         foreach (var expression in expressions)
+         {
+            var sqlBuilder = new SqlExpressionBuilder();
+            var context = new QuobContext(Formatter, Joins);
+
+            sqlBuilder.BuildSql(context, expression);
+            Descriptor.AddJoins(context.QuobJoins);
+            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(context.ToString(), descending));
+            return this;
+         }
+         return this;
+      }
+
+      IQuob IQuob.Select(Type type, Expression expression)
+      {
+         //var q = this;
+         //var result = q.PrepareMapExpression<TMapped>((LambdaExpression)expression);
+         //return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins);
+         var t = typeof (MapExpressionHelper<>);
+         t = t.MakeGenericType(typeof(T),type);
+         var helper = t.CreateInstance<IMapExpressionHelper>();
+         return helper.Select(this, expression.CastTo<UnaryExpression>().Operand);
+      }
+
+      private interface IMapExpressionHelper
+      {
+         IQuob Select(IQuob quob, Expression expression);
+      }
+      private class MapExpressionHelper<TMapped> : IMapExpressionHelper
+      {
+         public IQuob Select(IQuob quob, Expression expression)
+         {
+            var q = (Quob<T>)quob;
+            var result = q.PrepareMapExpression<TMapped>((LambdaExpression)expression);
+            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor,result, q.Joins);
+         }
+      }
+
+      IQuob IQuob.Distinct()
+      {
+         return Distinct();
+      }
+
+      IQuob IQuob.Skip(int skip)
+      {
+         return Skip(skip);
+      }
+
+      IQuob IQuob.Take(int take)
+      {
+         return Take(take);
+      }
+
+      IEnumerable IQuob.ToEnumerable()
+      {
+         return ToEnumerable();
+      }
+
+
+      #endregion
+   }
+
+   internal static class Extension
+   {
+      public static T CreateInstance<T>(this Type self)
+      {
+         return Activator.CreateInstance(self).CastTo<T>();
       }
    }
 }

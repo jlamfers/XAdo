@@ -8,10 +8,8 @@ namespace XAdo.Quobs.Core.SqlExpression.Sql
 {
    public abstract class BaseSqlFormatter : ISqlFormatter
    {
-      protected BaseSqlFormatter(IMemberFormatter memberFormatter)
+      protected BaseSqlFormatter()
       {
-         if (memberFormatter == null) throw new ArgumentNullException("memberFormatter");
-         MemberFormatter = memberFormatter;
          IdentifierSeperator = ".";
          StatementSeperator = ";";
          IdentifierDelimiterLeft = "\"";
@@ -20,7 +18,6 @@ namespace XAdo.Quobs.Core.SqlExpression.Sql
 
       }
 
-      public IMemberFormatter MemberFormatter { get; private set; }
       public string IdentifierSeperator { get; protected set; }
       public string StatementSeperator { get; protected set; }
       public string IdentifierDelimiterLeft { get; protected set; }

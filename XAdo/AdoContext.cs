@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data;
 using XAdo.Core.Impl;
@@ -30,7 +31,6 @@ namespace XAdo
    public class AdoContext
    {
       private readonly IAdoClassBinder _binder = new AdoClassBinderImpl();
-      private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
 
       private class ContextInitializer : IAdoContextInitializer
       {
@@ -134,6 +134,12 @@ namespace XAdo
             return this;
          }
 
+         public IAdoContextInitializer SetItem(object key, object value)
+         {
+            _context.Items[key] = value;
+            return this;
+         }
+
          public IAdoContextInitializer Bind(Type serviceType, Func<IAdoClassBinder, object> factory)
          {
             if (factory == null) throw new ArgumentNullException("factory");
@@ -144,6 +150,7 @@ namespace XAdo
 
       public AdoContext(string connectionStringName)
       {
+         Items = new Dictionary<object, object>();
          if (connectionStringName == null) throw new ArgumentNullException("connectionStringName");
          ConnectionStringName = connectionStringName;
          Initialize(null);
@@ -151,6 +158,7 @@ namespace XAdo
 
       public AdoContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null)
       {
+         Items = new Dictionary<object, object>();
          if (initializer == null) throw new ArgumentNullException("initializer");
 
          // allow to use a custom class binder (container)
@@ -205,6 +213,8 @@ namespace XAdo
          }
 
          AdoParamHelper = _binder.Get<IAdoParamHelper>();
+
+         Items = new ReadOnlyDictionary<object, object>(Items);
       }
 
       private void TryBindSingleton<TService, TImpl>() where TImpl : TService
@@ -243,10 +253,7 @@ namespace XAdo
          }
       }
 
-      public virtual IDictionary<object, object> Items
-      {
-         get { return _items; }
-      } 
+      public IDictionary<object, object> Items { get; private set; }
 
       public virtual IAdoSession CreateSession()
       {

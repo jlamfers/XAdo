@@ -47,6 +47,8 @@ namespace XAdo.Quobs.Core
             Descriptor = descriptor;
          }
       }
+
+
       public virtual int Count()
       {
          using (var sw = new StringWriter())
@@ -130,6 +132,8 @@ namespace XAdo.Quobs.Core
          return Descriptor.GetArguments();
       }
       #endregion
+
+
 
    }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core.SqlExpression
@@ -24,7 +25,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       public virtual void WriteFormattedColumn(MemberExpression exp)
       {
-         Writer.Write(Formatter.MemberFormatter.FormatColumn(Formatter, exp.Member));
+         exp.Member.GetColumnDescriptor().Format(Formatter.IdentifierDelimiterLeft, Formatter.IdentifierDelimiterRight);
       }
 
       public Func<ExpressionVisitor, SqlBuilderContext, Expression, Expression> VisitorHook { get; set; }

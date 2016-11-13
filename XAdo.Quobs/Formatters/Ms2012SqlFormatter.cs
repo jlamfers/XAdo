@@ -9,7 +9,7 @@ namespace XAdo.Quobs.Formatters
     {
         private static readonly DateTime MinDate = new DateTime(1753,1,1);
 
-       public Ms2012SqlFormatter(IMemberFormatter memberFormatter) : base(memberFormatter)
+       public Ms2012SqlFormatter()
        {
           IdentifierDelimiterLeft = "[";
           IdentifierDelimiterRight = "]";

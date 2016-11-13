@@ -8,8 +8,6 @@ namespace XAdo.Quobs.Core.SqlExpression.Sql
    public interface ISqlFormatter
    {
 
-      IMemberFormatter MemberFormatter { get; }
-
       Expression VisitorHook(ExpressionVisitor visitor, SqlBuilderContext context, Expression source);
 
       object NormalizeValue(object value);

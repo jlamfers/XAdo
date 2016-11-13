@@ -50,10 +50,14 @@ namespace XAdo.Quobs.UnitTests
             .Take(5)
             .Any());
          Assert.IsFalse(_db.From<DbStateProvince>()
-            .Where(p => p.Name != null)
+            .Where(p => p.Name =="kahdjhg")
             .OrderBy(p => p.Name)
-            .Skip(int.MaxValue-5)
+            .Skip(10000000)
             .Take(5)
+            .Any());
+         Assert.IsFalse(_db.From<DbStateProvince>()
+            .OrderBy(p => p.Name)
+            .Take(0)
             .Any());
       }
       [Test]

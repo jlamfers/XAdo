@@ -41,6 +41,10 @@
   <ItemGroup>
     <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
+    <Compile Include="Core\IQuob.cs" />
+    <Compile Include="Linq\QuobExpressionVisitor.cs" />
+    <Compile Include="Linq\QueryableQuob.cs" />
+    <Compile Include="Linq\QueryProviderQuob.cs" />
     <Compile Include="QuobException.cs" />
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />
@@ -49,7 +53,6 @@
     <Compile Include="Core\ISqlBuilder.cs" />
     <Compile Include="Core\ISqlExecuter.cs" />
     <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
-    <Compile Include="Core\MemberFormatter.cs" />
     <Compile Include="Core\QueryDescriptor.cs" />
     <Compile Include="Core\QuobContext.cs" />
     <Compile Include="Core\DbSchema\Attributes\AutoIncrementAttribute.cs" />

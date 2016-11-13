@@ -4,7 +4,8 @@ using System.Data;
 using System.Linq;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Formatters;
+using XAdo.Quobs.Core.SqlExpression;
+using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs
 {
@@ -37,7 +38,7 @@ namespace XAdo.Quobs
 
          public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, IDictionary<string, object> args)
          {
-            return _session.Query<T>(sql, factory, args, false);
+            return _session.Query(sql, factory, args, false);
          }
 
          public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, IDictionary<string, object> args, out int count)
@@ -52,7 +53,20 @@ namespace XAdo.Quobs
 
       public static Quob<T> From<T>(this IAdoSession self)
       {
-         return new Quob<T>(new Ms2012SqlFormatter(new MemberFormatter()), new SqlExecuter(self));
+         const string key = "quobs.sql.formatter";
+         object formatter;
+
+         if (!self.Context.Items.TryGetValue(key, out formatter))
+         {
+            throw new QuobException("Missing SQL formatter. You need to specify a SQL formatter on your AdoContext initialization (using the initializer parameter), e.g., i => i.SetItem(\""+key+"\",new Ms2012SqlFormatter())");
+         }
+
+         if (!(formatter is ISqlFormatter))
+         {
+            throw new QuobException("Invalid SQL formatter: the SQL formmater must implement interface type " + typeof(ISqlFormatter));
+         }
+
+         return new Quob<T>(formatter.CastTo<ISqlFormatter>(), new SqlExecuter(self));
       }
    }
 }
