@@ -6,6 +6,8 @@ namespace XAdo.Core.Interface
 {
     public partial interface IAdoSession : IDisposable
     {
+       AdoContext Context { get; }
+
         T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null);
         object ExecuteScalar(string sql, object param = null, CommandType? commandType = null);
         IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null);

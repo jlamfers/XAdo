@@ -21,7 +21,7 @@ namespace XAdo.Quobs.Core.SqlExpression
             var args = m.Arguments[1] as NewArrayExpression;
             if (args == null)
             {
-               throw new InvalidOperationException("Expected a NewArrayExpression in expression: " + expression + ", found: " + m.Arguments[1]);
+               throw new QuobException("Expected a NewArrayExpression in expression: " + expression + ", found: " + m.Arguments[1]);
             }
             var comma = "";
             foreach (var e in args.Expressions)

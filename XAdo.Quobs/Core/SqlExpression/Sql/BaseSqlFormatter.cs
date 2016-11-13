@@ -139,60 +139,41 @@ namespace XAdo.Quobs.Core.SqlExpression.Sql
 
          if (orderByClause == null || !orderByClause.Any())
          {
-            throw new InvalidOperationException("For SQL paging at least one order column must be specified.");
+            throw new QuobException("For SQL paging at least one order column must be specified.");
          }
 
          if (skip == null)
          {
-            writer.Write("SELECT TOP({0}) * FROM ({1}) AS __tt ORDER BY {2}", take, sqlSelectWithoutOrder, string.Join(", ",orderByClause.ToArray()));
+            writer.Write("SELECT TOP({0}) * FROM ({1}) AS __pt_outer ORDER BY {2}", take, sqlSelectWithoutOrder, string.Join(", ",orderByClause.ToArray()));
          }
          else
          {
 
             const string format = @"
-WITH __t1 AS (
+WITH __pt_outer AS (
 (
 SELECT *,ROW_NUMBER() OVER (ORDER BY {0}) AS __rowNum
-FROM ({1}) AS __t2
+FROM ({1}) AS __pt_inner
 )
 )
-SELECT {4}
-FROM __t1
-WHERE __rowNum BETWEEN ({2} + 1) AND ({2} + {3})
+SELECT {2}
+FROM __pt_outer
 ";
-            writer.WriteLine(format, string.Join(", ", orderByClause.ToArray()), sqlSelectWithoutOrder, skip, take, String.Join(", ", selectNames.ToArray()));
+
+            writer.WriteLine(format, string.Join(", ", orderByClause.ToArray()), sqlSelectWithoutOrder, String.Join(", ", selectNames.ToArray()));
+
+            if (take == null)
+            {
+               writer.WriteLine("WHERE __rowNum > {0}", skip);
+            }
+            else
+            {
+               writer.WriteLine("WHERE __rowNum > {0} AND __rowNum <= ({0} + {1})", skip, take);
+            }
          }
       }
 
 
    }
 
-   public static class SqlFormatterExtension
-   {
-      public static string FormatIdentifier(this ISqlFormatter self, params string[] identifiers)
-      {
-         using (var sw = new StringWriter())
-         {
-            self.FormatIdentifier(sw, identifiers);
-            return sw.GetStringBuilder().ToString();
-         }
-      }
-      public static ISqlFormatter FormatIdentifier(this ISqlFormatter self, TextWriter w, params string[] identifiers)
-      {
-         string sep = null;
-         foreach (var i in identifiers)
-         {
-            if (i == null) continue;
-            w.Write(sep);
-            var delimited = i.StartsWith(self.IdentifierDelimiterLeft);
-            if (!delimited)
-               w.Write(self.IdentifierDelimiterLeft);
-            w.Write(i);
-            if (!delimited)
-               w.Write(self.IdentifierDelimiterRight);
-            sep = sep ?? self.IdentifierSeperator;
-         }
-         return self;
-      }
-   }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
@@ -24,16 +25,26 @@ namespace XAdo.Quobs
       }
       public virtual MappedQuob<T> Where(Expression<Func<T, bool>> whereClause)
       {
-         var substituter = new ExpressionSubstituter();
-         var unmapped = substituter.Substitute(whereClause, _binderCompileResult.MemberToExpressionMap,_binderCompileResult.OrigParameter);
-         AddWhereClause(unmapped);
+
+         if (whereClause == null) return this;
+         var sqlBuilder = new MappedSqlExpressionBuilder(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m=>m.Value.Sql));
+         var context = new SqlBuilderContext(Formatter);
+
+         sqlBuilder.BuildSql(context, whereClause);
+         Descriptor.WhereClausePredicates.Add(context.ToString());
+         foreach (var arg in context.Arguments)
+         {
+            Descriptor.Arguments[arg.Key] = arg.Value;
+         }
          return this;
       }
+
       public virtual MappedQuob<T> Skip(int skip)
       {
          Descriptor.Skip = skip;
          return this;
       }
+
       public virtual MappedQuob<T> Take(int take)
       {
          Descriptor.Take = take;
@@ -44,7 +55,12 @@ namespace XAdo.Quobs
       {
          Descriptor.Unions.Add(sqlBuilder);
          return this;
-      } 
+      }
+
+      public virtual bool Any(Expression<Func<T, bool>> predicate)
+      {
+         return Clone().Where(predicate).Any();
+      }
 
       public virtual MappedQuob<T> OrderBy(params Expression<Func<T, object>>[] expressions)
       {
@@ -72,7 +88,7 @@ namespace XAdo.Quobs
          foreach (var expression in expressions)
          {
             var m = expression.GetMemberInfo();
-            var mappedColumnInfo = _binderCompileResult.Columns.Single(c => c.MappedMember == m);
+            var mappedColumnInfo = _binderCompileResult.MemberMap[m];
             Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(mappedColumnInfo.Sql, mappedColumnInfo.Alias, descending));
          }
          return this;
@@ -92,7 +108,7 @@ namespace XAdo.Quobs
             w.Write(Formatter.StatementSeperator);
             if (Descriptor.IsPaged())
             {
-               Descriptor.WritePagedQuery(w, Formatter);
+               Descriptor.WritePagedSelect(w, Formatter);
             }
             else
             {
@@ -106,9 +122,14 @@ namespace XAdo.Quobs
          return Executer.ExecuteQuery(GetSql(), _binder, GetArguments());
       }
 
-      protected override object Clone()
+      protected override BaseQuob<T> CloneQuob()
       {
-         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins);
+         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo,x.JoinType)))).ToList());
       }
+
+      public MappedQuob<T> Clone()
+      {
+         return (MappedQuob<T>)CloneQuob();
+      } 
    }
 }

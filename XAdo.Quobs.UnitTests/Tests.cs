@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -46,14 +47,52 @@ namespace XAdo.Quobs.UnitTests
       }
 
       [Test]
-      public void JoinTest()
+      public void MoneyTest2()
       {
-         foreach(var m in typeof(JoinExtension).GetMethods(BindingFlags.Public | BindingFlags.Static))
+
+         using (var s = Db.Northwind.CreateSession())
          {
-            var join1 = m.GetJoinDescriptors(JoinType.Inner).First();
-            //var join2 = m.GetJoinDescriptors2().First();
-            //Assert.AreEqual(join1.Expression,join2.Expression);
+            var q = s
+               .From<DbFamilyPerson>()
+               .Select(p => new
+               {
+                 
+                  p.Name,
+                  Father = p.FatherId != null ? new {p.Father(JoinType.Left).Name} : null,
+                  Mother = p.MotherId != null ? new {p.Mother(JoinType.Left).Name } : null,
+               });
+
+            var sql = q.CastTo<ISqlBuilder>().GetSql();
+
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               //q = s
+               //.From<DbFamilyPerson>()
+               //.Select(p => new
+               //{
+
+               //   p.Name,
+               //   Father = p.FatherId != null ? new { p.Father(JoinType.Left).Name } : null,
+               //   Mother = p.MotherId != null ? new { p.Mother(JoinType.Left).Name } : null,
+               //});
+               //var q3 = q.Clone();
+               var q2 = q.Clone().Where(p => p.Father.Name.Contains("K"));
+               sql = q2.CastTo<ISqlBuilder>().GetSql();
+               
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+
+            Debug.WriteLine(sql);
+            sql = q.CastTo<ISqlBuilder>().GetSql();
+            Debug.WriteLine(sql);
+
+            var list = q.ToList();
+
          }
+
       }
     }
 }

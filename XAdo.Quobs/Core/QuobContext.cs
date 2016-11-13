@@ -73,14 +73,14 @@ namespace XAdo.Quobs.Core
                   {
                      if (join.RightTableAlias == null)
                      {
-                        join.RightTableAlias = "__j" + (++_tableAliasIndex);
+                        join.RightTableAlias = Aliases.Table(++_tableAliasIndex);
                      }
                   }
                   else
                   {
                      if (join.RightTableAlias == null)
                      {
-                        join.RightTableAlias = "__j" + (++_tableAliasIndex);
+                        join.RightTableAlias = Aliases.Table(++_tableAliasIndex);
                      }
                      if (join.LeftTableAlias == null)
                      {

@@ -224,7 +224,7 @@ namespace XAdo.Quobs.Core
       {
          writer.Write("SELECT COUNT(1) FROM (");
          WriteSelect(writer,true);
-         writer.Write(") AS __t");
+         writer.Write(") AS __tt_count");
       }
       public void WriteActualCount(TextWriter writer,ISqlFormatter formatter)
       {
@@ -237,7 +237,17 @@ namespace XAdo.Quobs.Core
          string sqlSelect;
          using (var w = new StringWriter())
          {
+            var selectOrderColumns = !SelectColumns.Any();
+            if (selectOrderColumns)
+            {
+               var index = 0;
+               SelectColumns.AddRange(OrderColumns.Select(c => new SelectColumnDescriptor(c.Expression,Aliases.Column(index++),null)));
+            }
             WriteSelect(w, true);
+            if (selectOrderColumns)
+            {
+               SelectColumns.Clear();
+            }
             sqlSelect = w.GetStringBuilder().ToString();
          }
          formatter.WritePagedQuery(
@@ -249,7 +259,7 @@ namespace XAdo.Quobs.Core
             Take != null ? formatter.FormatParameter(Constants.ParNameTake) : null);
       }
 
-      public void WritePagedQuery(TextWriter writer, ISqlFormatter formatter)
+      public void WritePagedSelect(TextWriter writer, ISqlFormatter formatter)
       {
          string sqlSelect;
          using (var w = new StringWriter())

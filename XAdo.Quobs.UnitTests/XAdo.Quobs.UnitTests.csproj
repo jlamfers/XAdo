@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="QueryTests.cs" />
     <Compile Include="TestMethods.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Db.cs" />

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Formatters
@@ -125,7 +123,7 @@ namespace XAdo.Quobs.Formatters
             if (type == typeof(DateTimeOffset)) return "DATETIMEOFFSET";
             if (type == typeof(TimeSpan)) return "TIME";
             if (type == typeof(byte[])) return "VARBINARY(MAX)";
-            throw new ApplicationException(string.Format("Type {0} not supported.", type));
+            throw new QuobException(string.Format("Type {0} not supported.", type));
         }
 
 
@@ -309,49 +307,6 @@ namespace XAdo.Quobs.Formatters
         {
             FormatDatePart(writer, "ISOWK", date);
         }
-
-        public virtual ISqlFormatter FormatPagedQuery(TextWriter writer, string sqlSelect, IEnumerable<string> selectNames, string orderClause, string parNameSkip, string parNameTake)
-        {
-           if (parNameSkip == null && parNameTake==null)
-           {
-              writer.WriteLine(sqlSelect);
-              if (!string.IsNullOrWhiteSpace(orderClause))
-              {
-                 writer.Write("   ORDER BY ");
-                 writer.WriteLine(orderClause);
-              }
-              return this;
-           }
-
-           if (string.IsNullOrWhiteSpace(orderClause))
-           {
-              throw new InvalidOperationException("For SQL paging at least one order column must be specified.");
-           }
-
-           if (parNameSkip == null)
-           {
-              writer.Write("SELECT TOP({0}) * FROM ({1}) AS __tt ORDER BY {2}", parNameTake, sqlSelect, orderClause);
-           }
-           else
-           {
-
-              const string format = @"
-WITH __t1 AS (
-(
-SELECT *,ROW_NUMBER() OVER (ORDER BY {0}) AS __rowNum
-FROM ({1}) AS __t2
-)
-)
-SELECT {4}
-FROM __t1
-WHERE __rowNum BETWEEN ({2} + 1) AND ({2} + {3})
-";
-              writer.WriteLine(format, orderClause, sqlSelect, parNameSkip, parNameTake, String.Join(", ", selectNames.ToArray()));
-           }
-           return this;
-        }
-
-
 
     }
 }

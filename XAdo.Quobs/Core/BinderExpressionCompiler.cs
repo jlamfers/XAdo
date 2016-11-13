@@ -82,6 +82,22 @@ namespace XAdo.Quobs.Core
          }
       }
 
+      public class MappedMemberInfo
+      {
+         public MappedMemberInfo(MemberInfo member, Expression expression, string sql, string @alias)
+         {
+            Alias = alias;
+            Sql = sql;
+            Expression = expression;
+            Member = member;
+         }
+
+         public MemberInfo Member { get; private set; }
+         public Expression Expression { get; private set; }
+         public string Sql { get; private set; }
+         public string Alias { get; private set; }
+      }
+
       public class ColumnInfo
       {
          private int _hashcode;
@@ -111,7 +127,7 @@ namespace XAdo.Quobs.Core
          public int Index { get; private set; }
          public string Alias
          {
-            get { return "__c_" + Index; }
+            get { return Aliases.Column(Index); }
          }
 
          public MemberInfo MappedMember
@@ -140,7 +156,7 @@ namespace XAdo.Quobs.Core
          public List<ColumnInfo> Columns { get; set; }
          [Obsolete]
          public List<QueryDescriptor.JoinDescriptor> Joins { get; set; }
-         public Dictionary<MemberInfo, Expression> MemberToExpressionMap { get; set; }
+         public Dictionary<MemberInfo, MappedMemberInfo> MemberMap { get; set; }
          public ParameterExpression OrigParameter { get; set; }
          public Expression<Func<IDataRecord, T>> BinderExpression { get; set; }
       }
@@ -154,7 +170,7 @@ namespace XAdo.Quobs.Core
       private List<DbSchemaDescriptor.JoinPath>
          _joins;
 
-      private Dictionary<MemberInfo, Expression>
+      private Dictionary<MemberInfo, MappedMemberInfo>
          _memberMap;
 
       private ParameterExpression
@@ -165,12 +181,12 @@ namespace XAdo.Quobs.Core
          _formatter = formatter;
       }
 
-      public CompileResult<T> Compile<T>(LambdaExpression expression)
+      public CompileResult<T> Compile<T>(LambdaExpression expression,List<DbSchemaDescriptor.JoinPath> joins)
       {
          _parameter = Expression.Parameter(typeof(IDataRecord), "rdr");
          _columns = new Dictionary<ColumnInfo, ColumnInfo>();
-         _joins = new List<DbSchemaDescriptor.JoinPath>();
-         _memberMap = new Dictionary<MemberInfo, Expression>();
+         _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
+         _memberMap = new Dictionary<MemberInfo, MappedMemberInfo>();
          _origParameter = expression.Parameters.Single();
          var body = Visit(expression.Body);
          var binderExpression = Expression.Lambda<Func<IDataRecord, T>>(body, _parameter);
@@ -179,7 +195,7 @@ namespace XAdo.Quobs.Core
             BinderExpression = binderExpression,
             Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter.IdentifierDelimiterLeft,_formatter.IdentifierDelimiterRight,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
             Columns = _columns.Keys.OrderBy(c => c.Index).ToList(),
-            MemberToExpressionMap = _memberMap,
+            MemberMap = _memberMap,
             OrigParameter = _origParameter
          };
       }
@@ -197,7 +213,6 @@ namespace XAdo.Quobs.Core
          {
             for (var i = 0; i < members.Count; i++)
             {
-               _memberMap[members[i]] = node.Arguments[i];
                if (!node.Arguments[i].Type.IsSqlColumnType() || node.Arguments[i].NodeType == ExpressionType.New || node.Arguments[i].NodeType == ExpressionType.Conditional || node.Arguments[i].NodeType==ExpressionType.Parameter)
                {
                   arguments.Add(Visit(node.Arguments[i]));
@@ -207,8 +222,10 @@ namespace XAdo.Quobs.Core
                   var b = new SqlExpressionBuilder();
                   var ctx = new QuobContext(_formatter, _joins);
                   b.BuildSql(ctx, node.Arguments[i]);
-                  var index = AddOrGetColumnIndex(ctx.ToString(),members[i]);
+                  var sql = ctx.ToString();
+                  var index = AddOrGetColumnIndex(sql,members[i]);
                   arguments.Add(GetReaderExpression(members[i].GetMemberType(), index));
+                  _memberMap[members[i]] = new MappedMemberInfo(members[i],node.Arguments[i],sql,Aliases.Column(index));
                }
             }
             return Expression.New(node.Constructor,arguments,node.Members);
@@ -218,7 +235,6 @@ namespace XAdo.Quobs.Core
 
       protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
       {
-         _memberMap[node.Member] = node.Expression;
          var e = node.Expression;
          if (!e.Type.IsSqlColumnType() || e.NodeType == ExpressionType.New || e.NodeType == ExpressionType.Conditional ||e.NodeType == ExpressionType.Parameter)
          {
@@ -227,8 +243,10 @@ namespace XAdo.Quobs.Core
          var b = new SqlExpressionBuilder();
          var ctx = new QuobContext(_formatter, _joins);
          b.BuildSql(ctx, e);
+         var sql = ctx.ToString();
          var index = AddOrGetColumnIndex(ctx.ToString(),node.Member);
          e = GetReaderExpression(node.Member.GetMemberType(), index);
+         _memberMap[node.Member] = new MappedMemberInfo(node.Member, node.Expression, sql, Aliases.Column(index));
          return node.Update(e);
       }
 

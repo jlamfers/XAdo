@@ -13,7 +13,7 @@ namespace XAdo.Core.Impl
 
     public partial class AdoSessionImpl : IAdoSession, IAdoConnectionProvider, IAdoSessionInitializer
     {
-        private readonly IAdoConnectionFactory
+       private readonly IAdoConnectionFactory
             _connectionFactory;
 
         private IDbTransaction
@@ -60,13 +60,15 @@ namespace XAdo.Core.Impl
         }
 
 
-        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager)
+        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager, AdoContext context)
         {
-            if (connectionFactory == null) throw new ArgumentNullException("connectionFactory");
+           if (connectionFactory == null) throw new ArgumentNullException("connectionFactory");
             if (connectionQueryManager == null) throw new ArgumentNullException("connectionQueryManager");
+           if (context == null) throw new ArgumentNullException("context");
 
-            _connectionFactory = connectionFactory;
+           _connectionFactory = connectionFactory;
             _connectionQueryManager = connectionQueryManager;
+            Context = context;
         }
 
         public virtual IAdoSession Initialize(string connectionStringName, int? commandTimeout = null,
@@ -102,6 +104,9 @@ namespace XAdo.Core.Impl
             _providerName = providerName;
             return this;
         }
+
+        public AdoContext Context { get; private set; }
+
 
         public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
         {

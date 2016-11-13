@@ -40,13 +40,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdoSessionExtension.cs" />
+    <Compile Include="Core\Aliases.cs" />
+    <Compile Include="QuobException.cs" />
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />
     <Compile Include="Core\ExpressionExtensions.cs" />
-    <Compile Include="Core\ExpressionSubstituter.cs" />
     <Compile Include="Core\FormatterExtension.cs" />
     <Compile Include="Core\ISqlBuilder.cs" />
     <Compile Include="Core\ISqlExecuter.cs" />
+    <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
     <Compile Include="Core\MemberFormatter.cs" />
     <Compile Include="Core\QueryDescriptor.cs" />
     <Compile Include="Core\QuobContext.cs" />
@@ -83,7 +85,6 @@
     <Compile Include="Core\SqlExpression\Sql\BaseSqlFormatter.cs" />
     <Compile Include="Core\SqlExpression\Sql\CustomSqlExpressionBuilderAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\ICustomSqlExpressionBuilder.cs" />
-    <Compile Include="Core\SqlExpression\Sql\IMemberFormatter.cs" />
     <Compile Include="Core\SqlExpression\Sql\ISqlFormatter.cs" />
     <Compile Include="Formatters\Ms2012SqlFormatter.cs" />
   </ItemGroup>

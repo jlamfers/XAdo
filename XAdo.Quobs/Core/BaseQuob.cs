@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using XAdo.Quobs.Core.DbSchema;
-using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core
@@ -28,31 +26,13 @@ namespace XAdo.Quobs.Core
       protected QueryDescriptor Descriptor { get; set; }
       protected List<DbSchemaDescriptor.JoinPath> Joins { get; set; }
 
-      protected virtual BaseQuob<T> AddWhereClause(Expression whereClause)
+      public virtual bool Any()
       {
-         if (whereClause == null) return this;
-         var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter,Joins);
-
-         sqlBuilder.BuildSql(context, whereClause);
-         Descriptor.AddJoins(context.QuobJoins);
-         Descriptor.WhereClausePredicates.Add(context.ToString());
-         foreach (var arg in context.Arguments)
+         if (Descriptor.IsPaged())
          {
-            Descriptor.Arguments[arg.Key] = arg.Value;
+            return Count() > 0;
          }
-         return this;
-      }
-
-      public virtual bool Any(Expression<Func<T, bool>> whereClause = null)
-      {
          var descriptor = Descriptor;
-         if (whereClause != null)
-         {
-            Descriptor = Descriptor.Clone();
-            AddWhereClause(whereClause);
-         }
-
          try
          {
             using (var sw = new StringWriter())
@@ -114,10 +94,10 @@ namespace XAdo.Quobs.Core
       }
 
       #region ICloneable
-      protected abstract object Clone();
+      protected abstract BaseQuob<T> CloneQuob();
       object ICloneable.Clone()
       {
-         return Clone();
+         return CloneQuob();
       }
       #endregion
 
@@ -136,7 +116,7 @@ namespace XAdo.Quobs.Core
          {
             if (Descriptor.IsPaged())
             {
-               Descriptor.WritePagedQuery(w, Formatter);
+               Descriptor.WritePagedSelect(w, Formatter);
             }
             else
             {

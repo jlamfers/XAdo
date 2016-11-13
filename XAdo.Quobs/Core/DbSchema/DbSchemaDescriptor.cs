@@ -7,7 +7,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using XAdo.Quobs.Core.DbSchema.Attributes;
@@ -332,24 +331,6 @@ namespace XAdo.Quobs.Core.DbSchema
          }
       }
 
-      //public class AliasedColumnDescriptor
-      //{
-      //   public AliasedColumnDescriptor(ColumnDescriptor descriptor, string @alias)
-      //   {
-      //      Alias = alias;
-      //      Descriptor = descriptor;
-      //   }
-
-      //   public ColumnDescriptor Descriptor { get; private set; }
-      //   public string Alias { get; private set; }
-
-      //   public string Format(string delimiterLeft, string delimiterRight)
-      //   {
-      //      return Descriptor.Format(delimiterLeft, delimiterRight, Alias);
-      //   }
-      //}
-
-
       public static TableDescriptor GetTableDescriptor(this Type self)
       {
          return Cache.GetOrAdd(self, t => new TableDescriptor(self)).CastTo<TableDescriptor>();
@@ -388,7 +369,7 @@ namespace XAdo.Quobs.Core.DbSchema
             case MemberTypes.Field:
                return self.CastTo<FieldInfo>().GetColumnDescriptor();
             default:
-               throw new NotSupportedException("type " + self.MemberType + " is not supported.");
+               throw new QuobException("type " + self.MemberType + " is not supported.");
          }
       }
 

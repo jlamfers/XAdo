@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using XAdo.Core;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
 
@@ -30,6 +30,7 @@ namespace XAdo
    public class AdoContext
    {
       private readonly IAdoClassBinder _binder = new AdoClassBinderImpl();
+      private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
 
       private class ContextInitializer : IAdoContextInitializer
       {
@@ -165,6 +166,7 @@ namespace XAdo
 
          // bind any type that has no binding yet. It may have been bound by any custom class binder
          TryBind(b => b);
+         TryBind(b => this);
          TryBindSingleton<IAdoDataBinderFactory, AdoDataBinderFactoryImpl>();
          TryBindSingleton<IAdoCommandFactory, AdoCommandFactoryImpl>();
          TryBindSingleton<IAdoConnectionFactory, AdoConnectionFactoryImpl>();
@@ -240,6 +242,11 @@ namespace XAdo
             _binder.Bind(factory);
          }
       }
+
+      public virtual IDictionary<object, object> Items
+      {
+         get { return _items; }
+      } 
 
       public virtual IAdoSession CreateSession()
       {

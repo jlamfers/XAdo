@@ -85,18 +85,17 @@ namespace XAdo.Quobs.Core.SqlExpression
       #endregion
 
 
-      private SqlBuilderContext _context;
       private TextWriter _writer;
       private ISqlFormatter _formatter;
 
-
+      protected SqlBuilderContext Context { get; private set; }
       public SqlBuilderContext BuildSql(SqlBuilderContext context, Expression expression)
       {
          if (context == null) throw new ArgumentNullException("context");
          if (expression == null) return context;
-         _context = context;
-         _writer = _context.Writer;
-         _formatter = _context.Formatter;
+         Context = context;
+         _writer = Context.Writer;
+         _formatter = Context.Formatter;
          Visit(expression);
          return context;
 
@@ -115,7 +114,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          var customBuilder = exp.Method.GetAnnotation<CustomSqlExpressionBuilderAttribute>();
          if (customBuilder != null)
          {
-            customBuilder.Builder.BuildSql(this,_context, exp);
+            customBuilder.Builder.BuildSql(this,Context, exp);
             return exp;
          }
 
@@ -136,7 +135,7 @@ namespace XAdo.Quobs.Core.SqlExpression
             return Writer(this, exp);
          }
 
-         throw new NotSupportedException(string.Format("The method '{0}' is not supported", exp.Method.Name));
+         throw new QuobException(string.Format("The method '{0}' is not supported", exp.Method.Name));
       }
 
       protected override Expression VisitUnary(UnaryExpression exp)
@@ -164,7 +163,7 @@ namespace XAdo.Quobs.Core.SqlExpression
                break;
 
             default:
-               throw new NotSupportedException(string.Format("The unary operator '{0}' is not supported", exp.NodeType));
+               throw new QuobException(string.Format("The unary operator '{0}' is not supported", exp.NodeType));
          }
          return exp;
       }
@@ -193,7 +192,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          Func<SqlExpressionBuilder, BinaryExpression, Expression> wrtr;
          if (!OperatorWriterMap.TryGetValue(exp.NodeType, out wrtr))
          {
-            throw new NotSupportedException(string.Format("The binary operator '{0}' is not supported", exp.NodeType));
+            throw new QuobException(string.Format("The binary operator '{0}' is not supported", exp.NodeType));
          }
 
          return wrtr(this, exp);
@@ -223,7 +222,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          var customBuilder = exp.Member.GetAnnotation<CustomSqlExpressionBuilderAttribute>();
          if (customBuilder != null)
          {
-            customBuilder.Builder.BuildSql(this, _context, exp);
+            customBuilder.Builder.BuildSql(this, Context, exp);
             return exp;
          }
 
@@ -268,11 +267,6 @@ namespace XAdo.Quobs.Core.SqlExpression
                {
                   // it must be an indirectly parameter referenced member
                   WriteFormattedColumn(exp);
-                  //var node = Visit(exp.Expression);
-                  //if (node == null)
-                  //{
-                  //   throw new NotSupportedException(string.Format("The member '{0}' in expression '{1}' is not supported ", exp.Member.Name, exp));
-                  //}
                }
                break;
          }
@@ -293,7 +287,7 @@ namespace XAdo.Quobs.Core.SqlExpression
                value = Convert.ChangeType(value, type);
             }
          }
-         if (_context.ArgumentsAsLiterals)
+         if (Context.ArgumentsAsLiterals)
          {
             Write(_formatter.FormatValue(_formatter.NormalizeValue(value)));
          }
@@ -306,12 +300,12 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       protected virtual bool HookVisit(Expression exp, out Expression visitResult)
       {
-         if (_context.VisitorHook != null)
+         if (Context.VisitorHook != null)
          {
-            visitResult = _context.VisitorHook(this, _context, exp);
+            visitResult = Context.VisitorHook(this, Context, exp);
             if (visitResult != null) return true;
          }
-         visitResult = _formatter.VisitorHook(this, _context, exp);
+         visitResult = _formatter.VisitorHook(this, Context, exp);
          return visitResult != null;
       }
 
@@ -375,7 +369,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          }
          catch (Exception ex)
          {
-            throw new ApplicationException("You must compare to a constant int value, e.g., -1,0,1", ex);
+            throw new QuobException("You must compare to a constant int value, e.g., -1,0,1", ex);
          }
          return false;
       }
@@ -727,12 +721,12 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       private void SetArgument(string name, object arg)
       {
-         _context.Arguments[name] = _formatter.NormalizeValue(arg);
+         Context.Arguments[name] = _formatter.NormalizeValue(arg);
       }
 
       private void WriteFormattedColumn(MemberExpression exp)
       {
-         _context.WriteFormattedColumn(exp);
+         Context.WriteFormattedColumn(exp);
       }
 
       private static Action<TextWriter> ParameterizeWriter(Action action, SqlExpressionBuilder sqlWriter)
