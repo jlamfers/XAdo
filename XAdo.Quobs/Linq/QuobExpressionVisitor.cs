@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 
 namespace XAdo.Quobs.Linq
 {
-   class QuobExpressionVisitor : ExpressionVisitor
+   internal class QuobExpressionVisitor : ExpressionVisitor
    {
       public IQuob Quob { get; private set; }
 
@@ -75,19 +76,19 @@ namespace XAdo.Quobs.Linq
                break;
 
             case "OrderBy":
-               _stack.Push(q => q.OrderBy(false,false, node.Arguments[1]));
+               _stack.Push(q => Quob = q.OrderBy(false,false, node.Arguments[1]));
                break;
 
             case "OrderByDescending":
-               _stack.Push(q => q.OrderBy(false, true, node.Arguments[1]));
+               _stack.Push(q => Quob = q.OrderBy(false, true, node.Arguments[1]));
                break;
 
             case "ThenBy":
-               _stack.Push(q => q.OrderBy(true, false, node.Arguments[1]));
+               _stack.Push(q => Quob = q.OrderBy(true, false, node.Arguments[1]));
                break;
 
             case "ThenByDescending":
-               _stack.Push(q => q.OrderBy(true, true, node.Arguments[1]));
+               _stack.Push(q => Quob = q.OrderBy(true, true, node.Arguments[1]));
                break;
 
             case "Select":
@@ -97,7 +98,7 @@ namespace XAdo.Quobs.Linq
                   if (lambda.Body.NodeType != ExpressionType.Parameter)
                   {
                      // only call for specific selections, not for the parameter itself (like p => p), which is the default anyway
-                     Quob = q.Select(lambda.Body.Type, node.Arguments[1]);
+                     Quob = q.Select(lambda);
                   }
                   return Quob;
                });

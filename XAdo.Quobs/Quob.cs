@@ -172,6 +172,21 @@ namespace XAdo.Quobs
 
       #region IQuob
 
+      private interface ISelectHelper
+      {
+         IQuob Select(IQuob quob, LambdaExpression expression);
+      }
+      private class SelectHelper<TMapped> : ISelectHelper
+      {
+         public IQuob Select(IQuob quob, LambdaExpression expression)
+         {
+            var q = (Quob<T>)quob;
+            var result = q.PrepareMapExpression<TMapped>(expression);
+            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins);
+         }
+      }
+
+
       IQuob IQuob.Where(Expression expression)
       {
          if (expression == null) return this;
@@ -206,29 +221,19 @@ namespace XAdo.Quobs
          return this;
       }
 
-      IQuob IQuob.Select(Type type, Expression expression)
+      IQuob IQuob.Select(LambdaExpression expression)
       {
-         //var q = this;
-         //var result = q.PrepareMapExpression<TMapped>((LambdaExpression)expression);
-         //return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins);
-         var t = typeof (MapExpressionHelper<>);
-         t = t.MakeGenericType(typeof(T),type);
-         var helper = t.CreateInstance<IMapExpressionHelper>();
-         return helper.Select(this, expression.CastTo<UnaryExpression>().Operand);
+         var t = typeof (SelectHelper<>);
+         t = t.MakeGenericType(typeof(T), expression.Body.Type);
+         var helper = t.CreateInstance<ISelectHelper>();
+         return helper.Select(this, expression);
       }
 
-      private interface IMapExpressionHelper
+      IQuob IQuob.Connect(ISqlExecuter executer)
       {
-         IQuob Select(IQuob quob, Expression expression);
-      }
-      private class MapExpressionHelper<TMapped> : IMapExpressionHelper
-      {
-         public IQuob Select(IQuob quob, Expression expression)
-         {
-            var q = (Quob<T>)quob;
-            var result = q.PrepareMapExpression<TMapped>((LambdaExpression)expression);
-            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor,result, q.Joins);
-         }
+         var clone = Clone();
+         clone.Executer = executer;
+         return clone;
       }
 
       IQuob IQuob.Distinct()
@@ -251,15 +256,6 @@ namespace XAdo.Quobs
          return ToEnumerable();
       }
 
-
       #endregion
-   }
-
-   internal static class Extension
-   {
-      public static T CreateInstance<T>(this Type self)
-      {
-         return Activator.CreateInstance(self).CastTo<T>();
-      }
    }
 }

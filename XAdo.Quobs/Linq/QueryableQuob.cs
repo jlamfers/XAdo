@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core;
 
 namespace XAdo.Quobs.Linq
 {
    public class QueryableQuob<TData> : IOrderedQueryable<TData>
    {
-      public QueryableQuob(Quob<TData> quob)
+      public QueryableQuob(IQuob quob)
       {
-         Provider = new QueryProviderQuob<TData>(quob);
+         Provider = new QueryProviderQuob(quob);
          Expression = Expression.Constant(this);
       }
 

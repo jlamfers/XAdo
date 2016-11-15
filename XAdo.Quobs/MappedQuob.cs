@@ -10,6 +10,7 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs
 {
@@ -144,12 +145,35 @@ namespace XAdo.Quobs
          return this;
       }
 
-      IQuob IQuob.Select(Type type, Expression expression)
+      IQuob IQuob.Select(LambdaExpression expression)
       {
-         //var result = PrepareMapExpression(expression);
-         //return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins);
-         return null;
+         var t = typeof(MapExpressionHelper<>);
+         t = t.MakeGenericType(typeof(T), expression.Body.Type);
+         var helper = t.CreateInstance<IMapExpressionHelper>();
+         return helper.Select(this, expression);
       }
+
+      IQuob IQuob.Connect(ISqlExecuter executer)
+      {
+         var clone = Clone();
+         clone.Executer = executer;
+         return clone;
+      }
+
+      private interface IMapExpressionHelper
+      {
+         IQuob Select(IQuob quob, LambdaExpression expression);
+      }
+      private class MapExpressionHelper<TMapped> : IMapExpressionHelper
+      {
+         public IQuob Select(IQuob quob, LambdaExpression expression)
+         {
+            var q = (MappedQuob<T>)quob;
+            var f = (Func<T, TMapped>)expression.Compile();
+            return new WrappedQuob<TMapped>(q.ToList().Select(f));
+         }
+      }
+
 
       IQuob IQuob.Distinct()
       {

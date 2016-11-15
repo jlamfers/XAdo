@@ -15,15 +15,40 @@ using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.UnitTests
 {
+
+   public class Person
+   {
+      public string NameFirst { get; set; }
+      public string NameLast { get; set; }
+   }
    [TestFixture]
     public class Tests
     {
       [Test]
       public void MoneyTest()
       {
-
+         var mq = default(MappedQuob<Person>);
          using (var s = Db.Northwind.CreateSession())
          {
+            mq = s
+               .From<DbPerson>()
+               .Select(p => new Person{NameFirst=p.FirstName, NameLast=p.LastName})
+               .Where(p => p.NameFirst.Contains("e"));
+            var sql = mq.CastTo<ISqlBuilder>().GetSql();
+            Debug.WriteLine(sql);
+
+            var persons = s.From<DbPerson>().AsQueryable();
+            var qq = from p in persons
+               where p.LastName.StartsWith("A")
+               orderby p.FirstName, p.LastName, p.EmailPromotion
+               select new {p.FirstName, p.LastName, p.EmailPromotion};
+
+            var qlist = qq.ToList();
+               
+
+
+            mq.ToList();
+
             var list = s
                .From<DbPerson>()
                .Select(p => new {Name = p.FirstName + " "+p.LastName})
@@ -37,11 +62,15 @@ namespace XAdo.Quobs.UnitTests
                .OrderByDescending(p => p.Count)
                .AddOrderBy(p => p.LastName);
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
-
+            sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
             var list2 = q.ToList();
+         }
+         using (var s = Db.Northwind.CreateSession())
+         {
+            mq = s.Connect(mq);
+            mq.ToList();
          }
          
       }

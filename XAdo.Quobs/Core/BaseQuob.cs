@@ -133,7 +133,5 @@ namespace XAdo.Quobs.Core
       }
       #endregion
 
-
-
    }
 }

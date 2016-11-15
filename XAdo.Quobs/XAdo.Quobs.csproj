@@ -42,9 +42,11 @@
     <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
     <Compile Include="Core\IQuob.cs" />
+    <Compile Include="Core\Extension.cs" />
     <Compile Include="Linq\QuobExpressionVisitor.cs" />
     <Compile Include="Linq\QueryableQuob.cs" />
     <Compile Include="Linq\QueryProviderQuob.cs" />
+    <Compile Include="Linq\WrappedQuob.cs" />
     <Compile Include="QuobException.cs" />
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />

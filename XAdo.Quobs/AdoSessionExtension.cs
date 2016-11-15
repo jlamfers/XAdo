@@ -6,6 +6,7 @@ using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs
 {
@@ -67,6 +68,17 @@ namespace XAdo.Quobs
          }
 
          return new Quob<T>(formatter.CastTo<ISqlFormatter>(), new SqlExecuter(self));
+      }
+
+      public static T Connect<T>(this IAdoSession self, T quob)
+         where T : IQuob
+      {
+         return (T)quob.Connect(new SqlExecuter(self));
+      }
+
+      public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
+      {
+         return new QueryableQuob<T>((IQuob)self);
       }
    }
 }

@@ -3,10 +3,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.Linq
 {
-   public class QueryProviderQuob<TData> : IQueryProvider
+   internal class QueryProviderQuob : IQueryProvider
    {
       private readonly IQuob _quob;
 
@@ -36,16 +37,16 @@ namespace XAdo.Quobs.Linq
 
       public object Execute(Expression expression)
       {
-         var visitor = new QuobExpressionVisitor(_quob);
-         return visitor.Traverse(expression) ?? visitor.Quob.ToEnumerable();
+         var visitor = new QuobExpressionVisitor(_quob.CastTo<ICloneable>().Clone().CastTo<IQuob>());
+        return visitor.Traverse(expression) ?? visitor.Quob.ToEnumerable();
       }
 
       // Queryable's "single value" standard query operators call this method.
       // It is also called from YepQueryable.GetEnumerator(). 
       public TResult Execute<TResult>(Expression expression)
       {
-         var visitor = new QuobExpressionVisitor(_quob);
-         return (TResult)(visitor.Traverse(expression) ?? visitor.Quob.ToEnumerable());
+         var visitor = new QuobExpressionVisitor(_quob.CastTo<ICloneable>().Clone().CastTo<IQuob>());
+         return  (TResult)(visitor.Traverse(expression) ?? visitor.Quob.ToEnumerable());
       }
 
    }
