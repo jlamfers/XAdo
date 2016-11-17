@@ -34,7 +34,7 @@ namespace XAdo.Quobs.Core
       [Obsolete]
       public IEnumerable<QueryDescriptor.JoinDescriptor> QuobJoins
       {
-         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter.IdentifierDelimiterLeft,Formatter.IdentifierDelimiterRight,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())); }
+         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())); }
       }
 
       public override void WriteFormattedColumn(MemberExpression exp)

@@ -3,9 +3,25 @@ using System.Linq;
 using DbSchema.AdventureWorks;
 using NUnit.Framework;
 using XAdo.Core.Interface;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.UnitTests
 {
+   public static class CustomJoins
+   {
+      static CustomJoins()
+      {
+         //DbSchemaDescriptor.DefineJoin<DbProduct,DbSalesOrderDetail>("myjoin",(l,r) => l.ProductID == r.ProductID && l.Color=="red");
+      }
+      [JoinMethod(RelationshipName = "myjoin")]
+      public static DbSalesOrderDetail RedProducts(this DbProduct product)
+      {
+         return null;
+      }
+   }
    [TestFixture]
    public class QueryTests
    {
@@ -21,6 +37,23 @@ namespace XAdo.Quobs.UnitTests
       public void TearDown()
       {
          _db.Dispose();
+      }
+
+      [Test]
+      public void CustomJoinWorks()
+      {
+         DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
+
+         var q = _db
+            .From<DbProduct>()
+            .Select(p => new {p.Class, p.Color, p.RedProducts().UnitPrice});
+
+         var sql = q.CastTo<ISqlBuilder>().GetSql();
+         Debug.WriteLine(sql);
+
+         var list = q.ToList();
+
+
       }
 
       [Test]

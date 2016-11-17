@@ -171,6 +171,28 @@ namespace XAdo.Quobs.Core.DbSchema
 
       public class JoinInfo
       {
+         private class JoinBuilderContext : SqlBuilderContext
+         {
+            private readonly Type _leftTableType;
+
+            public JoinBuilderContext(ISqlFormatter formatter, Type leftTableType)
+               : base(formatter)
+            {
+               _leftTableType = leftTableType;
+               ArgumentsAsLiterals = true;
+            }
+
+            public override void WriteFormattedColumn(MemberExpression exp)
+            {
+               Writer.Write(exp.Member.ReflectedType == _leftTableType ? "{0}" : "{1}");
+               Writer.Write(".");
+               Writer.Write(Formatter.FormatIdentifier(exp.Member.GetColumnDescriptor().Name));
+            }
+         }
+
+         private ConcurrentDictionary<Type, string>
+            _sqlExpressionCache;
+
          private TableDescriptor 
             _leftTable,
             _rightTable;
@@ -205,6 +227,7 @@ namespace XAdo.Quobs.Core.DbSchema
             Expression = expression;
             _leftTable = leftTable.GetTableDescriptor();
             _rightTable = rightTable.GetTableDescriptor();
+            _sqlExpressionCache = new ConcurrentDictionary<Type, string>();
 
          }
 
@@ -232,8 +255,10 @@ namespace XAdo.Quobs.Core.DbSchema
                };
          }
 
-         public string Format(string delimiterLeft, string delimiterRight, string leftAlias=null, string rightAlias = null)
+         public string Format(ISqlFormatter formatter, string leftAlias=null, string rightAlias = null)
          {
+            string delimiterLeft = formatter.IdentifierDelimiterLeft;
+            string delimiterRight = formatter.IdentifierDelimiterRight;
             using (var sw = new StringWriter())
             {
                sw.Write("JOIN {0} ",_rightTable.Format(delimiterLeft,delimiterRight));
@@ -246,8 +271,8 @@ namespace XAdo.Quobs.Core.DbSchema
                sw.Write(" ON ");
                if (Expression != null)
                {
-                  //sw.Write(Expression, leftAlias ?? _leftTable.Format(delimiterLeft, delimiterRight),
-                  //   rightAlias ?? _rightTable.Format(delimiterLeft, delimiterRight));
+                  var sql = _sqlExpressionCache.GetOrAdd(formatter.GetType(), t => CompileExpression(formatter));
+                  sw.Write(sql, leftAlias ?? _leftTable.Format(delimiterLeft, delimiterRight), rightAlias ?? _rightTable.Format(delimiterLeft, delimiterRight));
                }
                else
                {
@@ -278,6 +303,14 @@ namespace XAdo.Quobs.Core.DbSchema
             var other = obj as JoinInfo;
             return other != null && other.ConstraintName == ConstraintName && other.Reversed == Reversed;
          }
+
+         private string CompileExpression(ISqlFormatter formatter)
+         {
+            var b = new SqlExpressionBuilder();
+            var context = new JoinBuilderContext(formatter, _leftTable.Type);
+            var result = b.BuildSql(context, Expression);
+            return result.ToString();
+         }
       }
       public class JoinDescriptor
       {
@@ -292,16 +325,10 @@ namespace XAdo.Quobs.Core.DbSchema
          public string LeftTableAlias { get; set; }
          public string RightTableAlias { get; set; }
 
-         public string Format(string delimerLeft, string delimiterRight)
+         public string Format(ISqlFormatter formatter)
          {
             return JoinType.ToJoinTypeString() + " " +
-                   JoinInfo.Format(delimerLeft, delimiterRight, LeftTableAlias, RightTableAlias);
-         }
-
-         [Obsolete]
-         public string Expression
-         {
-            get { return JoinInfo.Format("[", "]"); }
+                   JoinInfo.Format(formatter, LeftTableAlias, RightTableAlias);
          }
 
          public override int GetHashCode()
@@ -353,44 +380,21 @@ namespace XAdo.Quobs.Core.DbSchema
             return Joins.Count >= other.Joins.Count && other.Joins.All(j => j.Equals(Joins[i++]));
          }
 
-         public string Format(string delimiterLeft, string delimiterRight)
+         public string Format(ISqlFormatter formatter)
          {
             var sb = new StringBuilder();
             foreach (var j in Joins)
             {
                sb.Append("   ");
-               sb.AppendLine(j.Format(delimiterLeft, delimiterRight));
+               sb.AppendLine(j.Format(formatter));
             }
             return sb.ToString();
          }
       }
 
-      private class JoinBuilderContext : SqlBuilderContext
-      {
-         private readonly Type _leftTableType;
-
-         public JoinBuilderContext(ISqlFormatter formatter, Type leftTableType) : base(formatter)
-         {
-            _leftTableType = leftTableType;
-            ArgumentsAsLiterals = true;
-         }
-
-         public override void WriteFormattedColumn(MemberExpression exp)
-         {
-            Writer.Write(exp.Member.ReflectedType == _leftTableType
-               ? Formatter.FormatIdentifier("{0}")
-               : Formatter.FormatIdentifier("{1}"));
-            Writer.Write(".");
-            Writer.Write(Formatter.FormatIdentifier(exp.Member.GetColumnDescriptor().Name));
-         }
-      }
 
       public static void DefineJoin<TLeft, TRight>(string name, Expression<Func<TLeft, TRight, bool>> joinExpression)
       {
-         //var b = new SqlExpressionBuilder();
-         //var context = new JoinBuilderContext(formatter, typeof (TLeft));
-         //var result = b.BuildSql(context, joinExpression);
-         //var sqlExpression = result.ToString();
          if (!JoinLookup.TryAdd(name, new JoinInfo(name, joinExpression, typeof(TLeft), typeof(TRight))))
          {
             throw new QuobException("Join name already exists");

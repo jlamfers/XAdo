@@ -193,7 +193,7 @@ namespace XAdo.Quobs.Core
          return new CompileResult<T>
          {
             BinderExpression = binderExpression,
-            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter.IdentifierDelimiterLeft,_formatter.IdentifierDelimiterRight,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
+            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
             Columns = _columns.Keys.OrderBy(c => c.Index).ToList(),
             MemberMap = _memberMap,
             OrigParameter = _origParameter
