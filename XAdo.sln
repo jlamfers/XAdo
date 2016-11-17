@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.T4", "XAdo.T4\XAdo.T4.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.Quobs.UnitTests", "XAdo.Quobs.UnitTests\XAdo.Quobs.UnitTests.csproj", "{34315C46-84EF-49DE-8903-A6E173EF17C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.EF", "XAdo.EF\XAdo.EF.csproj", "{F16EA1D1-8AB0-4D04-B43B-F7F02C074182}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{34315C46-84EF-49DE-8903-A6E173EF17C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34315C46-84EF-49DE-8903-A6E173EF17C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34315C46-84EF-49DE-8903-A6E173EF17C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16EA1D1-8AB0-4D04-B43B-F7F02C074182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16EA1D1-8AB0-4D04-B43B-F7F02C074182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16EA1D1-8AB0-4D04-B43B-F7F02C074182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16EA1D1-8AB0-4D04-B43B-F7F02C074182}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

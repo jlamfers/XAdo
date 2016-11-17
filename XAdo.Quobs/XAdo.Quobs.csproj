@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
+    <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
     <Compile Include="Core\IQuob.cs" />
     <Compile Include="Core\Extension.cs" />
     <Compile Include="Linq\QuobExpressionVisitor.cs" />

@@ -10,10 +10,6 @@ namespace XAdo.Quobs.Core.DbSchema.Attributes
       /// </summary>
       public bool Reversed { get; set; }
 
-      public Type LeftTableType { get; set; }
-
-      public Type RightTableType { get; set; }
-
-      public string FKeyName { get; set; }
+      public string RelationshipName { get; set; }
    }
 }

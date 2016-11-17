@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace XAdo.Quobs.Core.DbSchema
 {
    internal static class Extensions
@@ -12,5 +8,6 @@ namespace XAdo.Quobs.Core.DbSchema
          if (self.StartsWith(delimiterLeft)) return self;
          return delimiterLeft + self + delimiterRight;
       }
+
    }
 }

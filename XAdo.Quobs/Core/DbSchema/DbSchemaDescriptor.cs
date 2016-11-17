@@ -6,12 +6,14 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
+using XAdo.Quobs.Core.SqlExpression.Sql;
 
 namespace XAdo.Quobs.Core.DbSchema
 {
@@ -169,37 +171,63 @@ namespace XAdo.Quobs.Core.DbSchema
 
       public class JoinInfo
       {
+         private TableDescriptor 
+            _leftTable,
+            _rightTable;
+
+         private IList<ColumnDescriptor> 
+            _leftColumns,
+            _rightColumns;
+
          private JoinInfo() { }
          public JoinInfo(string constraintName, Type leftTable, Type rightTable)
          {
+            if (constraintName == null) throw new ArgumentNullException("constraintName");
+            if (leftTable == null) throw new ArgumentNullException("leftTable");
+            if (rightTable == null) throw new ArgumentNullException("rightTable");
             ConstraintName = constraintName;
-            LeftTable = leftTable.GetTableDescriptor();
-            RightTable = rightTable.GetTableDescriptor();
-            var references = LeftTable.Columns.Where(c => c.References != null && c.References.Name == constraintName)
+            _leftTable = leftTable.GetTableDescriptor();
+            _rightTable = rightTable.GetTableDescriptor();
+            var references = _leftTable.Columns.Where(c => c.References != null && c.References.Name == constraintName)
                .Select(c => c.References)
                .ToArray();
-            LeftColumns = references.Select(r => r.ForeignKeyColumn).ToList().AsReadOnly();
-            RightColumns = references.Select(r => r.ReferencedColumn).ToList().AsReadOnly();
+            _leftColumns = references.Select(r => r.ForeignKeyColumn).ToList().AsReadOnly();
+            _rightColumns = references.Select(r => r.ReferencedColumn).ToList().AsReadOnly();
          }
+
+         public JoinInfo(string constraintName, Expression expression, Type leftTable, Type rightTable)
+         {
+            if (constraintName == null) throw new ArgumentNullException("constraintName");
+            if (expression == null) throw new ArgumentNullException("expression");
+            if (leftTable == null) throw new ArgumentNullException("leftTable");
+            if (rightTable == null) throw new ArgumentNullException("rightTable");
+            ConstraintName = constraintName;
+            Expression = expression;
+            _leftTable = leftTable.GetTableDescriptor();
+            _rightTable = rightTable.GetTableDescriptor();
+
+         }
+
          public string ConstraintName { get; private set; }
-         public TableDescriptor LeftTable { get; private set; }
-         public TableDescriptor RightTable { get; private set; }
-         public IList<ColumnDescriptor> LeftColumns { get; private set; }
-         public IList<ColumnDescriptor> RightColumns { get; private set; }
+         public Expression Expression { get; private set; }
          public bool Reversed { get; private set; }
 
          public JoinInfo Reverse(bool? reversed = null)
          {
+            if (Expression != null)
+            {
+               throw new NotImplementedException("JoinInfo cannot be reversed when it has been defined by a literal expression");
+            }
             reversed = reversed ?? !Reversed;
             return reversed.Value == Reversed
                ? this
                : new JoinInfo
                {
                   ConstraintName = ConstraintName,
-                  LeftTable = RightTable,
-                  RightTable = LeftTable,
-                  LeftColumns = RightColumns,
-                  RightColumns = LeftColumns,
+                  _leftTable = _rightTable,
+                  _rightTable = _leftTable,
+                  _leftColumns = _rightColumns,
+                  _rightColumns = _leftColumns,
                   Reversed = reversed.Value
                };
          }
@@ -208,7 +236,7 @@ namespace XAdo.Quobs.Core.DbSchema
          {
             using (var sw = new StringWriter())
             {
-               sw.Write("JOIN {0} ",RightTable.Format(delimiterLeft,delimiterRight));
+               sw.Write("JOIN {0} ",_rightTable.Format(delimiterLeft,delimiterRight));
                if (rightAlias != null)
                {
                   sw.Write(" AS ");
@@ -216,14 +244,22 @@ namespace XAdo.Quobs.Core.DbSchema
                   sw.Write(" ");
                }
                sw.Write(" ON ");
-               var and = "";
-               for (var i = 0; i < LeftColumns.Count; i++)
+               if (Expression != null)
                {
-                  sw.Write(and);
-                  sw.Write(LeftColumns[i].Format(delimiterLeft,delimiterRight,leftAlias));
-                  sw.Write(" = ");
-                  sw.Write(RightColumns[i].Format(delimiterLeft, delimiterRight,rightAlias));
-                  and = " AND ";
+                  //sw.Write(Expression, leftAlias ?? _leftTable.Format(delimiterLeft, delimiterRight),
+                  //   rightAlias ?? _rightTable.Format(delimiterLeft, delimiterRight));
+               }
+               else
+               {
+                  var and = "";
+                  for (var i = 0; i < _leftColumns.Count; i++)
+                  {
+                     sw.Write(and);
+                     sw.Write(_leftColumns[i].Format(delimiterLeft, delimiterRight, leftAlias));
+                     sw.Write(" = ");
+                     sw.Write(_rightColumns[i].Format(delimiterLeft, delimiterRight, rightAlias));
+                     and = " AND ";
+                  }
                }
                return sw.GetStringBuilder().ToString();
             }
@@ -252,8 +288,6 @@ namespace XAdo.Quobs.Core.DbSchema
          }
          public JoinInfo JoinInfo { get; private set; }
          public JoinType JoinType { get; private set; }
-         public Type LeftTableType { get { return JoinInfo.LeftTable.Type; } }
-         public Type RightTableType { get { return JoinInfo.RightTable.Type; } }
 
          public string LeftTableAlias { get; set; }
          public string RightTableAlias { get; set; }
@@ -331,6 +365,38 @@ namespace XAdo.Quobs.Core.DbSchema
          }
       }
 
+      private class JoinBuilderContext : SqlBuilderContext
+      {
+         private readonly Type _leftTableType;
+
+         public JoinBuilderContext(ISqlFormatter formatter, Type leftTableType) : base(formatter)
+         {
+            _leftTableType = leftTableType;
+            ArgumentsAsLiterals = true;
+         }
+
+         public override void WriteFormattedColumn(MemberExpression exp)
+         {
+            Writer.Write(exp.Member.ReflectedType == _leftTableType
+               ? Formatter.FormatIdentifier("{0}")
+               : Formatter.FormatIdentifier("{1}"));
+            Writer.Write(".");
+            Writer.Write(Formatter.FormatIdentifier(exp.Member.GetColumnDescriptor().Name));
+         }
+      }
+
+      public static void DefineJoin<TLeft, TRight>(string name, Expression<Func<TLeft, TRight, bool>> joinExpression)
+      {
+         //var b = new SqlExpressionBuilder();
+         //var context = new JoinBuilderContext(formatter, typeof (TLeft));
+         //var result = b.BuildSql(context, joinExpression);
+         //var sqlExpression = result.ToString();
+         if (!JoinLookup.TryAdd(name, new JoinInfo(name, joinExpression, typeof(TLeft), typeof(TRight))))
+         {
+            throw new QuobException("Join name already exists");
+         }
+      }
+
       public static TableDescriptor GetTableDescriptor(this Type self)
       {
          return Cache.GetOrAdd(self, t => new TableDescriptor(self)).CastTo<TableDescriptor>();
@@ -349,8 +415,8 @@ namespace XAdo.Quobs.Core.DbSchema
          if (!atts.Any()) return new JoinDescriptor[0];
          return atts.Select(att =>
          {
-            var joinInfo = JoinLookup.GetOrAdd(att.FKeyName, n =>
-               new JoinInfo(att.FKeyName, att.Reversed ? att.RightTableType : att.LeftTableType, att.Reversed ? att.LeftTableType : att.RightTableType));
+            var joinInfo = JoinLookup.GetOrAdd(att.RelationshipName, n =>
+               new JoinInfo(att.RelationshipName, att.Reversed ? self.ReturnType : self.GetParameters()[0].ParameterType, att.Reversed ? self.GetParameters()[0].ParameterType : self.ReturnType));
 
             if (att.Reversed)
             {

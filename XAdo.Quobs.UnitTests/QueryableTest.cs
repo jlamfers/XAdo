@@ -19,7 +19,7 @@ namespace XAdo.Quobs.UnitTests
 
             var q = from p in persons
                where p.FirstName.Contains("e")
-               //orderby p.FirstName, p.LastName  
+               orderby p.FirstName, p.LastName  
                       select new{p.FirstName,p.LastName, BusinessEntity = new
                       {
                          p.BusinessEntity().BusinessEntityID,
@@ -95,7 +95,23 @@ namespace XAdo.Quobs.UnitTests
             sw.Start();
             for (var i = 0; i < 10; i++)
             {
-               q.Where(p => p.BusinessEntity.BusinessEntityID != null).ToList();
+               //q.Where(p => p.BusinessEntity.BusinessEntityID > 0).ToList();
+               q = from p in persons
+                       where p.FirstName.StartsWith("e")
+                       orderby p.FirstName, p.LastName
+                       select new
+                       {
+                          p.FirstName,
+                          p.LastName,
+                          BusinessEntity = new
+                          {
+                             p.BusinessEntity().BusinessEntityID,
+                             p.BusinessEntity().ModifiedDate,
+                             p.BusinessEntity().rowguid
+                          }
+                       };
+
+               q.ToList();
             }
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -104,7 +120,8 @@ namespace XAdo.Quobs.UnitTests
             sw.Start();
             for (var i = 0; i < 10; i++)
             {
-               q2.Where(p => p.BusinessEntity.BusinessEntityID != null).ToList();
+               //q2.Where(p => p.BusinessEntity.BusinessEntityID > 0).ToList();
+               q2.ToList();
             }
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
