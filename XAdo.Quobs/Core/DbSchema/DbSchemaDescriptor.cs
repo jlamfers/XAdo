@@ -393,12 +393,13 @@ namespace XAdo.Quobs.Core.DbSchema
       }
 
 
-      public static void DefineJoin<TLeft, TRight>(string name, Expression<Func<TLeft, TRight, bool>> joinExpression)
+      public static TRight DefineJoin<TLeft, TRight>(string relationshipName, Expression<Func<TLeft, TRight, bool>> joinExpression)
       {
-         if (!JoinLookup.TryAdd(name, new JoinInfo(name, joinExpression, typeof(TLeft), typeof(TRight))))
+         if (!JoinLookup.TryAdd(relationshipName, new JoinInfo(relationshipName, joinExpression, typeof(TLeft), typeof(TRight))))
          {
             throw new QuobException("Join name already exists");
          }
+         return default(TRight);
       }
 
       public static TableDescriptor GetTableDescriptor(this Type self)
@@ -420,7 +421,12 @@ namespace XAdo.Quobs.Core.DbSchema
          return atts.Select(att =>
          {
             var joinInfo = JoinLookup.GetOrAdd(att.RelationshipName, n =>
-               new JoinInfo(att.RelationshipName, att.Reversed ? self.ReturnType : self.GetParameters()[0].ParameterType, att.Reversed ? self.GetParameters()[0].ParameterType : self.ReturnType));
+            {
+               InvokeJoinMethod(self);
+               return new JoinInfo(att.RelationshipName,
+                  att.Reversed ? self.ReturnType : self.GetParameters()[0].ParameterType,
+                  att.Reversed ? self.GetParameters()[0].ParameterType : self.ReturnType);
+            });
 
             if (att.Reversed)
             {
@@ -430,6 +436,35 @@ namespace XAdo.Quobs.Core.DbSchema
             return new JoinDescriptor(joinInfo, joinType);
          }).ToList();
       }
+
+      /// <summary>
+      /// invocation is needed to execute the method's body, which might register a custom join
+      /// </summary>
+      /// <param name="joinMethod"></param>
+      private static void InvokeJoinMethod(MethodInfo joinMethod)
+      {
+         try
+         {
+            joinMethod.Invoke(null, joinMethod.GetParameters().Length >= 2 ? new object[] { null, JoinType.Inner } : new object[] { null });
+         }
+         catch (NotImplementedException)
+         {
+            // ignore
+         }
+         catch (TargetInvocationException ex)
+         {
+            if (!(ex.InnerException is NotImplementedException))
+            {
+               throw new QuobException(string.Format("Join method '{0}' threw an unexpected exception.", joinMethod), ex.InnerException);
+            }
+         }
+         catch (Exception ex)
+         {
+            throw new QuobException(string.Format("Join method '{0}' has an invalid signature.", joinMethod), ex);
+         }
+         
+      }
+
       public static ColumnDescriptor GetColumnDescriptor(this MemberInfo self)
       {
          switch (self.MemberType)

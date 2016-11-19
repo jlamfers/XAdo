@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using DbSchema.AdventureWorks;
 using NUnit.Framework;
@@ -16,10 +17,16 @@ namespace XAdo.Quobs.UnitTests
       {
          //DbSchemaDescriptor.DefineJoin<DbProduct,DbSalesOrderDetail>("myjoin",(l,r) => l.ProductID == r.ProductID && l.Color=="red");
       }
-      [JoinMethod(RelationshipName = "myjoin")]
+      [JoinMethod("myjoin")]
       public static DbSalesOrderDetail RedProducts(this DbProduct product)
       {
-         return null;
+         return product.RedProducts(JoinType.Inner);
+      }
+
+      [JoinMethod("myjoin")]
+      public static DbSalesOrderDetail RedProducts(this DbProduct product, JoinType joinType)
+      {
+         return DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin",(l, r) => l.ProductID == r.ProductID && l.Color == "red");
       }
    }
    [TestFixture]
@@ -42,11 +49,18 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void CustomJoinWorks()
       {
-         DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
+         //DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
 
          var q = _db
             .From<DbProduct>()
-            .Select(p => new {p.Class, p.Color, p.RedProducts().UnitPrice});
+            .Select(p => new
+            {
+               p.Class, 
+               p.Color, 
+               p.RedProducts(JoinType.Left).UnitPrice, p.RedProducts(JoinType.Left).ProductSpecialOffer().ModifiedDate
+            })
+            .Where(x => x.UnitPrice == null || x.UnitPrice != null || x.ModifiedDate < DateTime.Now);
+         
 
          var sql = q.CastTo<ISqlBuilder>().GetSql();
          Debug.WriteLine(sql);

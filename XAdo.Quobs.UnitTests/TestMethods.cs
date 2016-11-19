@@ -78,6 +78,39 @@ namespace XAdo.Quobs.UnitTests
          }
       }
 
+      [Test]
+      public void MonkeyTest22()
+      {
+         using (var s = Db.Northwind.CreateSession())
+         {
+            var dict = new ConcurrentDictionary<int, object>();
+            var q = s
+               .From<DbBusinessEntityContact>()
+               .Take(100)
+               .Skip(10)
+               .Select(p => new
+               {
+                  p.Person().FirstName,
+                  p.Person().LastName,
+                  BusinessEntity = p
+                     .Person()
+                     .BusinessEntity(JoinType.Left)
+                     .BusinessEntityID
+                     .DefaultIfEmpty(() => new
+                     {
+                        BusinessEntityID = p.Person().BusinessEntity(JoinType.Left).BusinessEntityID.Value,
+                        p.Person().BusinessEntity().ModifiedDate
+                     }),
+               })
+               .OrderBy(p => p.BusinessEntity.ModifiedDate);
+
+
+            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            Debug.WriteLine(sql);
+
+            var list = q.ToList();
+         }
+      }
 
       public class Person
       {

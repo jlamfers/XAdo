@@ -18,65 +18,65 @@ namespace XAdo.Quobs.Core
 
       public static class NullableGetters
       {
-         public static object GetValue(IDataRecord reader, int index)
+         public static object GetNValue(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? null : reader.GetValue(index);
          }
-         public static string GetString(IDataRecord reader, int index)
+         public static string GetNString(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? null : reader.GetString(index);
          }
-         public static Byte? GetByte(IDataRecord reader, int index)
+         public static Byte? GetNByte(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Byte?)null : reader.GetByte(index);
          }
 
-         public static Boolean? GetBoolean(IDataRecord reader, int index)
+         public static Boolean? GetNBoolean(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Boolean?)null : reader.GetBoolean(index);
          }
 
-         public static Char? GetChar(IDataRecord reader, int index)
+         public static Char? GetNChar(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Char?)null : reader.GetChar(index);
          }
 
-         public static Decimal? GetDecimal(IDataRecord reader, int index)
+         public static Decimal? GetNDecimal(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Decimal?)null : reader.GetDecimal(index);
          }
 
-         public static Double? GetDouble(IDataRecord reader, int index)
+         public static Double? GetNDouble(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Double?)null : reader.GetDouble(index);
          }
 
-         public static Single? GetFloat(IDataRecord reader, int index)
+         public static Single? GetNFloat(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Single?)null : reader.GetFloat(index);
          }
 
-         public static Guid? GetGuid(IDataRecord reader, int index)
+         public static Guid? GetNGuid(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Guid?)null : reader.GetGuid(index);
          }
 
-         public static Int16? GetInt16(IDataRecord reader, int index)
+         public static Int16? GetNInt16(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Int16?)null : reader.GetInt16(index);
          }
 
-         public static Int32? GetInt32(IDataRecord reader, int index)
+         public static Int32? GetNInt32(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Int32?)null : reader.GetInt32(index);
          }
 
-         public static Int64? GetInt64(IDataRecord reader, int index)
+         public static Int64? GetNInt64(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (Int64?)null : reader.GetInt64(index);
          }
 
-         public static DateTime? GetDateTime(IDataRecord reader, int index)
+         public static DateTime? GetNDateTime(IDataRecord reader, int index)
          {
             return reader.IsDBNull(index) ? (DateTime?)null : reader.GetDateTime(index);
          }
@@ -327,10 +327,19 @@ namespace XAdo.Quobs.Core
       private static MethodInfo GetGetterMethod(Type type)
       {
          var nonNullableType = Nullable.GetUnderlyingType(type) ?? type;
-         var name = "Get" + (nonNullableType == typeof(Single) ? "Float" : nonNullableType.Name);
+         var name = nonNullableType == typeof(Single) ? "Float" : nonNullableType.Name;
+         if (!type.IsValueType || type.IsNullable())
+         {
+            name = "GetN" + name;
+         }
+         else
+         {
+            name = "Get" + name;
+         }
+
          return !type.IsValueType || type.IsNullable()
-            ? (typeof (NullableGetters).GetMethod(name) ?? typeof (NullableGetters).GetMethod("GetValue"))
-            : (typeof (IDataRecord).GetMethod(name) ?? typeof (NullableGetters).GetMethod("GetValue"));
+            ? (typeof (NullableGetters).GetMethod(name) ?? typeof (NullableGetters).GetMethod("GetNValue"))
+            : (typeof (IDataRecord).GetMethod(name) ?? typeof (NullableGetters).GetMethod("GetNValue"));
       }
    }
 }

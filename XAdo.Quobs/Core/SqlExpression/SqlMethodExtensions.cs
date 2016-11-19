@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Data.SqlTypes;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace XAdo.Quobs.Core.SqlExpression
 {
@@ -188,9 +190,15 @@ namespace XAdo.Quobs.Core.SqlExpression
          throw NotImplemented();
       }
 
+      [SqlCast]
       public static T CastTo<T>(this object self)
       {
          return self == null ? default(T) : (T)self;
+      }
+
+      public static T DefaultIfEmpty<T>(this int? self, Func<T> newExpression)
+      {
+         return self == null ? default(T) : newExpression();
       }
 
 

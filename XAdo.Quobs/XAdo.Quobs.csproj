@@ -44,6 +44,7 @@
     <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
     <Compile Include="Core\IQuob.cs" />
     <Compile Include="Core\Extension.cs" />
+    <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
     <Compile Include="Linq\QuobExpressionVisitor.cs" />
     <Compile Include="Linq\QueryableQuob.cs" />
     <Compile Include="Linq\QueryProviderQuob.cs" />
