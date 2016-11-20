@@ -54,7 +54,7 @@ namespace XAdo.Quobs.Core
       {
          using (var sw = new StringWriter())
          {
-            Descriptor.WriteActualCount(sw, Formatter);
+            Descriptor.WritePagedCount(sw, Formatter);
             var sql = sw.GetStringBuilder().ToString();
             return Executer.ExecuteScalar<int>(sql, Descriptor.GetArguments());
          }

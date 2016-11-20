@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
@@ -137,7 +136,7 @@ namespace XAdo.Quobs.Core
       public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }
 
-      public int? Skip
+      public virtual int? Skip
       {
          get
          {
@@ -146,7 +145,7 @@ namespace XAdo.Quobs.Core
          }
          set { Arguments[Constants.ParNameSkip] = value; }
       }
-      public int? Take
+      public virtual int? Take
       {
          get
          {
@@ -155,12 +154,12 @@ namespace XAdo.Quobs.Core
          }
          set { Arguments[Constants.ParNameTake] = value; }
       }
-      public bool IsPaged()
+      public virtual bool IsPaged()
       {
          return Skip != null || Take != null;
       }
 
-      public void WriteSelect(TextWriter writer, bool ignoreOrder = false)
+      public virtual void WriteSelect(TextWriter writer, bool ignoreOrder = false)
       {
          var self = this;
 
@@ -219,17 +218,17 @@ namespace XAdo.Quobs.Core
             writer.WriteLine("   " + String.Join(",\r\n   ", self.OrderColumns.Select(c => c.ToString()).ToArray()));
          }
       }
-      public void WriteTotalCount(TextWriter writer)
+      public virtual void WriteCount(TextWriter writer)
       {
          writer.Write("SELECT COUNT(1) FROM (");
          WriteSelect(writer,true);
-         writer.Write(") AS __tt_count");
+         writer.Write(") AS __pt_inner");
       }
-      public void WriteActualCount(TextWriter writer,ISqlFormatter formatter)
+      public virtual void WritePagedCount(TextWriter writer,ISqlFormatter formatter)
       {
          if (!IsPaged())
          {
-            WriteTotalCount(writer);
+            WriteCount(writer);
             return;
          }
 
@@ -257,8 +256,7 @@ namespace XAdo.Quobs.Core
             Skip != null ? formatter.FormatParameter(Constants.ParNameSkip) : null,
             Take != null ? formatter.FormatParameter(Constants.ParNameTake) : null);
       }
-
-      public void WritePagedSelect(TextWriter writer, ISqlFormatter formatter)
+      public virtual void WritePagedSelect(TextWriter writer, ISqlFormatter formatter)
       {
          string sqlSelect;
          using (var w = new StringWriter())
@@ -284,7 +282,7 @@ namespace XAdo.Quobs.Core
          }
       }
 
-      public QueryDescriptor Clone(bool reset = false)
+      public virtual QueryDescriptor Clone(bool reset = false)
       {
          var clone = new QueryDescriptor();
          clone.SelectColumns.AddRange(SelectColumns.Select(c => c.Clone()));
@@ -303,7 +301,7 @@ namespace XAdo.Quobs.Core
          return clone;
       }
 
-      public IDictionary<string, object> GetArguments()
+      public virtual IDictionary<string, object> GetArguments()
       {
          var dict = Arguments.ToDictionary(i => i.Key, i => i.Value);
          foreach (var union in Unions)
@@ -316,28 +314,28 @@ namespace XAdo.Quobs.Core
          return dict;
       }
 
-      public QueryDescriptor AddJoins(IEnumerable<JoinDescriptor> joins)
+      public virtual void AddJoins(IEnumerable<JoinDescriptor> joins)
       {
          foreach (var j in joins.Where(j => !Joins.Contains(j)))
          {
             Joins.Add(j);
          }
-         return this;
       }
 
-      public void EnsureSelectColumnsAreAliased()
+      public virtual void EnsureSelectColumnsAreAliased()
       {
          var i = 0;
          foreach (var c in SelectColumns)
          {
             if (c.Alias == null)
             {
-               c.Alias = "_c_" + (i++);
+               c.Alias = "_c_" + i;
             }
+            i++;
          }
       }
 
-      public void EnsureOrderByColumnsAreAliased()
+      public virtual void EnsureOrderByColumnsAreAliased()
       {
          foreach (var c in OrderColumns)
          {

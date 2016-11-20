@@ -49,6 +49,7 @@
     <Compile Include="Dialect\SqlFormatter.cs" />
     <Compile Include="Dialect\Core\StatementFormatter.cs" />
     <Compile Include="Dialect\ISqlDialect.cs" />
+    <Compile Include="Dialect\SqlServer2012Formatter.cs" />
     <Compile Include="Dialect\SqlServerDialect.cs" />
     <Compile Include="Dialect\SqlServerFormatter.cs" />
     <Compile Include="Linq\QuobExpressionVisitor.cs" />
@@ -105,9 +106,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Dialect\Old\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

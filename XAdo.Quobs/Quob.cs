@@ -131,7 +131,7 @@ namespace XAdo.Quobs
          EnsureColumnsSelected();
          using (var w = new StringWriter())
          {
-            Descriptor.WriteTotalCount(w);
+            Descriptor.WriteCount(w);
             w.Write(Formatter.SqlDialect.StatementSeperator);
             if (Descriptor.IsPaged())
             {

@@ -49,7 +49,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Impl\AdoGraphBinderCompilerImpl.cs" />
-    <Compile Include="Core\Interface\IAdoGraphBinderCompilerImpl.cs" />
+    <Compile Include="Core\Interface\IAdoGraphBinderCompiler.cs" />
     <Compile Include="Core\Interface\IAdoParamHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
     <Compile Include="Core\Impl\AdoParameterFactoryWithStringSanitizeImpl.cs" />

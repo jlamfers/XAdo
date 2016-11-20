@@ -7,7 +7,13 @@ namespace XAdo.Quobs.Dialect
 
       private static readonly DateTime MinDate = new DateTime(1753, 1, 1);
 
-      public SqlServerFormatter() : base(new SqlServerDialect())
+      public SqlServerFormatter()
+         : this(new SqlServerDialect())
+      {
+         
+      }
+
+      protected SqlServerFormatter(ISqlDialect dialect) : base(dialect)
       {
       }
 

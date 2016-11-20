@@ -93,8 +93,14 @@ namespace XAdo.Quobs.UnitTests
          Assert.IsTrue(_db.From<DbStateProvince>()
             .Where(p => p.Name != null)
             .OrderBy(p => p.Name)
+            .Distinct()
             .Skip(1)
             .Take(5)
+            .Any());
+         Assert.IsTrue(_db.From<DbStateProvince>()
+            .Where(p => p.Name != null)
+            .OrderBy(p => p.Name)
+            .Distinct()
             .Any());
          Assert.IsFalse(_db.From<DbStateProvince>()
             .Where(p => p.Name =="kahdjhg")

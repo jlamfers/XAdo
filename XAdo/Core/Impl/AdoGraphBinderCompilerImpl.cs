@@ -12,7 +12,7 @@ namespace XAdo.Core.Impl
 {
    // test implementation
 
-   public class AdoGraphBinderCompilerImpl : IAdoGraphBinderCompilerImpl
+   public class AdoGraphBinderCompilerImpl : IAdoGraphBinderCompiler
    {
       private class Key
       {
