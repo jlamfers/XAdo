@@ -8,6 +8,7 @@ using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs
 {
@@ -16,7 +17,7 @@ namespace XAdo.Quobs
    {
 
       public Quob(ISqlFormatter formatter, ISqlExecuter executer)
-         : base(formatter, executer, new QueryDescriptor { TableName = typeof(T).GetTableDescriptor().Format(formatter.IdentifierDelimiterLeft,formatter.IdentifierDelimiterRight)},null)
+         : base(formatter, executer, new QueryDescriptor { TableName = typeof(T).GetTableDescriptor().Format(formatter)},null)
       {
       }
 
@@ -131,7 +132,7 @@ namespace XAdo.Quobs
          using (var w = new StringWriter())
          {
             Descriptor.WriteTotalCount(w);
-            w.Write(Formatter.StatementSeperator);
+            w.Write(Formatter.SqlDialect.StatementSeperator);
             if (Descriptor.IsPaged())
             {
                Descriptor.WritePagedSelect(w, Formatter);
@@ -165,7 +166,7 @@ namespace XAdo.Quobs
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(Formatter.FormatColumn(c), Formatter.FormatIdentifier(c.Member.Name), c.Member));
+               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(c.Format(Formatter),Formatter.FormatIdentifier(c.Member.Name), c.Member));
             }
          }
       }

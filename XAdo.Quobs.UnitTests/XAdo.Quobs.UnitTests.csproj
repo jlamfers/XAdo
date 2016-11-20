@@ -52,6 +52,7 @@
     <Compile Include="EfTests.cs" />
     <Compile Include="QueryableTest.cs" />
     <Compile Include="QueryTests.cs" />
+    <Compile Include="StatementFormatterTest.cs" />
     <Compile Include="TestMethods.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Db.cs" />

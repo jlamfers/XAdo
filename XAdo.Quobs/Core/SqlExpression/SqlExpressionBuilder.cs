@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
@@ -205,7 +206,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          {
             return visitResult;
          }
-         Write(_formatter.FormatValue(exp.Value));
+         _formatter.FormatValue(_writer, exp.Value);
 
          return exp;
       }
@@ -289,11 +290,11 @@ namespace XAdo.Quobs.Core.SqlExpression
          }
          if (Context.ArgumentsAsLiterals)
          {
-            Write(_formatter.FormatValue(_formatter.NormalizeValue(value)));
+            _formatter.FormatValue(_writer,value);
          }
          else
          {
-            Write(_formatter.FormatParameter(name));
+            _formatter.FormatParameter(_writer, name);
             SetArgument(name, value);
          }
       }
@@ -429,11 +430,11 @@ namespace XAdo.Quobs.Core.SqlExpression
          {
             if (sqlOp == "true")
             {
-               _formatter.WriteTrueExpression(_writer);
+               _formatter.WriteTrue(_writer);
             }
             else
             {
-               _formatter.WriteFalseExpression(_writer);
+               _formatter.WriteFalse(_writer);
             }
             return;
          }
@@ -468,7 +469,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       private void WritePercentage()
       {
-         Write(_formatter.FormatValue("%"));
+         _formatter.FormatValue(_writer, "%");
       }
 
       private static bool IsNullConstant(Expression exp)
@@ -500,7 +501,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          w.Write(" LIKE ");
          if (e.Arguments[0].NodeType == ExpressionType.Constant)
          {
-            w.Write(w._formatter.FormatValue("%" + e.Arguments[0].GetExpressionValue() + "%"));
+            w._formatter.FormatValue(w._writer, "%" + e.Arguments[0].GetExpressionValue() + "%");
             return e;
          }
          w._formatter.WriteConcatenate(w._writer, ParameterizeWriter(w.WritePercentage, w),ParameterizeWriter(() => w.Visit(e.Arguments[0]), w), ParameterizeWriter(w.WritePercentage, w));
@@ -513,7 +514,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          w.Write(" LIKE ");
          if (e.Arguments[0].NodeType == ExpressionType.Constant)
          {
-            w.Write(w._formatter.FormatValue(e.Arguments[0].GetExpressionValue() + "%"));
+            w._formatter.FormatValue(w._writer,e.Arguments[0].GetExpressionValue() + "%");
             return e;
          }
          w._formatter.WriteConcatenate(w._writer, ParameterizeWriter(() => w.Visit(e.Arguments[0]), w), ParameterizeWriter(w.WritePercentage, w));
@@ -526,7 +527,8 @@ namespace XAdo.Quobs.Core.SqlExpression
          w.Write(" LIKE ");
          if (e.Arguments[0].NodeType == ExpressionType.Constant)
          {
-            w.Write("%" + w._formatter.FormatValue(e.Arguments[0].GetExpressionValue()));
+            w.Write("%");
+            w._formatter.FormatValue(w._writer,e.Arguments[0].GetExpressionValue());
             return e;
          }
          w._formatter.WriteConcatenate(w._writer, ParameterizeWriter(w.WritePercentage, w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
@@ -652,19 +654,19 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       private static Expression WriteDateTimeToday(SqlExpressionBuilder w, MemberExpression e)
       {
-         w.Write(w._formatter.Today);
+         w.Write(w._formatter.SqlDialect.Today);
          return e;
       }
 
       private static Expression WriteDateTimeUtcNow(SqlExpressionBuilder w, MemberExpression e)
       {
-         w.Write(w._formatter.UtcNow);
+         w.Write(w._formatter.SqlDialect.UtcNow);
          return e;
       }
 
       private static Expression WriteDateTimeNow(SqlExpressionBuilder w, MemberExpression e)
       {
-         w.Write(w._formatter.Now);
+         w.Write(w._formatter.SqlDialect.Now);
          return e;
       }
 

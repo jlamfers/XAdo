@@ -1,5 +1,5 @@
 ﻿using XAdo.Core.Impl;
-using XAdo.Quobs.Formatters;
+using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.UnitTests
 {
@@ -14,7 +14,7 @@ namespace XAdo.Quobs.UnitTests
                 .EnableEmittedDynamicTypes()
                 //.EnablePessimisticDataReader()
                 .SetCustomTypeConverter<int,long>(x => 0L + x)
-                .SetItem("quobs.sql.formatter",new Ms2012SqlFormatter())
+                .SetItem("quobs.sql.formatter",new SqlServerFormatter())
             );
     }
 }

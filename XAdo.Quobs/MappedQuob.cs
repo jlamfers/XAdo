@@ -10,6 +10,7 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs
@@ -86,7 +87,7 @@ namespace XAdo.Quobs
          using (var w = new StringWriter())
          {
             Descriptor.WriteTotalCount(w);
-            w.Write(Formatter.StatementSeperator);
+            w.Write(Formatter.SqlDialect.StatementSeperator);
             if (Descriptor.IsPaged())
             {
                Descriptor.WritePagedSelect(w, Formatter);

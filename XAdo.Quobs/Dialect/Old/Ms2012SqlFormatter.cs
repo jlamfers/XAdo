@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using XAdo.Quobs.Core.SqlExpression.Sql;
 
-namespace XAdo.Quobs.Formatters
+namespace XAdo.Quobs.Dialect
 {
     public class Ms2012SqlFormatter : BaseSqlFormatter
     {

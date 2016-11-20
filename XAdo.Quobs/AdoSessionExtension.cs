@@ -6,6 +6,7 @@ using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs

@@ -14,6 +14,7 @@ using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core.DbSchema
 {
@@ -21,10 +22,10 @@ namespace XAdo.Quobs.Core.DbSchema
    {
       private static int _idInc;
 
-      private static readonly ConcurrentDictionary<MemberInfo,object> Cache = 
-         new ConcurrentDictionary<MemberInfo, object>();
-      private static readonly ConcurrentDictionary<string, JoinInfo> JoinLookup =
-         new ConcurrentDictionary<string, JoinInfo>();
+      private static readonly ConcurrentDictionary<MemberInfo,object> 
+         DescriptorLookup = new ConcurrentDictionary<MemberInfo, object>();
+      private static readonly ConcurrentDictionary<string, JoinInfo> 
+         JoinLookup = new ConcurrentDictionary<string, JoinInfo>();
 
       public class TableDescriptor
       {
@@ -57,7 +58,7 @@ namespace XAdo.Quobs.Core.DbSchema
 
             foreach (var c in Columns)
             {
-               Cache[c.Member] = c;
+               DescriptorLookup[c.Member] = c;
             }
          }
 
@@ -75,21 +76,23 @@ namespace XAdo.Quobs.Core.DbSchema
             return Schema != null ? string.Format("[{0}].[{1}]",Schema, Name) : "["+ Name+"]";
          }
 
-         public string Format(string leftDelimiter, string rightDelimiter, string alias = null)
+         public void Format(TextWriter w, ISqlFormatter formatter, string alias = null)
          {
-            var sb = new StringBuilder();
-            if (!string.IsNullOrWhiteSpace(Schema))
-            {
-               sb.Append(Schema.Delimit(leftDelimiter,rightDelimiter));
-               sb.Append(".");
-            }
-            sb.Append(Name.Delimit(leftDelimiter, rightDelimiter));
+            formatter.FormatIdentifier(w, Schema, Name);
             if (alias != null)
             {
-               sb.Append(" AS ");
-               sb.Append(alias.Delimit(leftDelimiter, rightDelimiter));
+               w.Write(" AS ");
+               formatter.FormatIdentifier(w, alias);
             }
-            return sb.ToString();
+         }
+         public string Format(ISqlFormatter formatter, string alias = null)
+         {
+            using (var sw = new StringWriter())
+            {
+               Format(sw, formatter, alias);
+               return sw.GetStringBuilder().ToString();
+            }
+
          }
 
       }
@@ -131,13 +134,29 @@ namespace XAdo.Quobs.Core.DbSchema
          {
             return Parent + ".[" + Name + "]";
          }
-         public string Format(string leftDelimiter, string rightDelimiter, string tableAlias = null)
+         public void Format(TextWriter w, ISqlFormatter formatter, string tableAlias = null)
          {
-            var sb = new StringBuilder(tableAlias.Delimit(leftDelimiter, rightDelimiter) ?? Parent.Format(leftDelimiter, rightDelimiter));
-            sb.Append(".");
-            sb.Append(Name.Delimit(leftDelimiter, rightDelimiter));
-            return sb.ToString();
+            if (tableAlias != null)
+            {
+               formatter.FormatIdentifier(w,tableAlias);
+            }
+            else
+            {
+               Parent.Format(w, formatter);
+            }
+            w.Write(formatter.SqlDialect.IdentifierSeperator);
+            formatter.FormatIdentifier(w,Name);
          }
+         public string Format(ISqlFormatter formatter, string tableAlias = null)
+         {
+            using (var sw = new StringWriter())
+            {
+               Format(sw, formatter, tableAlias);
+               return sw.GetStringBuilder().ToString();
+            }
+
+         }
+
 
       }
       public class ReferenceDescriptor
@@ -159,7 +178,7 @@ namespace XAdo.Quobs.Core.DbSchema
          public ColumnDescriptor ReferencedColumn
          {
             get {
-               return _referencedColumn ?? (_referencedColumn = (ColumnDescriptor) Cache[_type.GetMember(_memberName).Single()]);
+               return _referencedColumn ?? (_referencedColumn = (ColumnDescriptor) DescriptorLookup[_type.GetMember(_memberName).Single()]);
             }
          }
 
@@ -186,11 +205,11 @@ namespace XAdo.Quobs.Core.DbSchema
             {
                Writer.Write(exp.Member.ReflectedType == _leftTableType ? "{0}" : "{1}");
                Writer.Write(".");
-               Writer.Write(Formatter.FormatIdentifier(exp.Member.GetColumnDescriptor().Name));
+               Formatter.FormatIdentifier(Writer,exp.Member.GetColumnDescriptor().Name);
             }
          }
 
-         private ConcurrentDictionary<Type, string>
+         private readonly ConcurrentDictionary<Type, string>
             _sqlExpressionCache;
 
          private TableDescriptor 
@@ -255,40 +274,44 @@ namespace XAdo.Quobs.Core.DbSchema
                };
          }
 
-         public string Format(ISqlFormatter formatter, string leftAlias=null, string rightAlias = null)
+         public void Format(TextWriter w, ISqlFormatter formatter, string leftAlias = null, string rightAlias = null)
          {
-            string delimiterLeft = formatter.IdentifierDelimiterLeft;
-            string delimiterRight = formatter.IdentifierDelimiterRight;
-            using (var sw = new StringWriter())
+            w.Write("JOIN {0} ", _rightTable.Format(formatter));
+            if (rightAlias != null)
             {
-               sw.Write("JOIN {0} ",_rightTable.Format(delimiterLeft,delimiterRight));
-               if (rightAlias != null)
+               w.Write(" AS ");
+               formatter.FormatIdentifier(w,rightAlias);
+               w.Write(" ");
+            }
+            w.Write(" ON ");
+            if (Expression != null)
+            {
+               var sql = _sqlExpressionCache.GetOrAdd(formatter.GetType(), t => CompileExpression(formatter));
+               w.Write(sql, leftAlias ?? _leftTable.Format(formatter), rightAlias ?? _rightTable.Format(formatter));
+            }
+            else
+            {
+               var and = "";
+               for (var i = 0; i < _leftColumns.Count; i++)
                {
-                  sw.Write(" AS ");
-                  sw.Write(rightAlias.Delimit(delimiterLeft,delimiterRight));
-                  sw.Write(" ");
+                  w.Write(and);
+                  w.Write(_leftColumns[i].Format(formatter, leftAlias));
+                  w.Write(" = ");
+                  w.Write(_rightColumns[i].Format(formatter, rightAlias));
+                  and = " AND ";
                }
-               sw.Write(" ON ");
-               if (Expression != null)
-               {
-                  var sql = _sqlExpressionCache.GetOrAdd(formatter.GetType(), t => CompileExpression(formatter));
-                  sw.Write(sql, leftAlias ?? _leftTable.Format(delimiterLeft, delimiterRight), rightAlias ?? _rightTable.Format(delimiterLeft, delimiterRight));
-               }
-               else
-               {
-                  var and = "";
-                  for (var i = 0; i < _leftColumns.Count; i++)
-                  {
-                     sw.Write(and);
-                     sw.Write(_leftColumns[i].Format(delimiterLeft, delimiterRight, leftAlias));
-                     sw.Write(" = ");
-                     sw.Write(_rightColumns[i].Format(delimiterLeft, delimiterRight, rightAlias));
-                     and = " AND ";
-                  }
-               }
-               return sw.GetStringBuilder().ToString();
             }
          }
+         public string Format(ISqlFormatter formatter, string leftAlias = null, string rightAlias = null)
+         {
+            using (var sw = new StringWriter())
+            {
+               Format(sw, formatter, leftAlias, rightAlias);
+               return sw.GetStringBuilder().ToString();
+            }
+
+         }
+
 
          public override int GetHashCode()
          {
@@ -325,11 +348,22 @@ namespace XAdo.Quobs.Core.DbSchema
          public string LeftTableAlias { get; set; }
          public string RightTableAlias { get; set; }
 
+         public void Format(TextWriter w, ISqlFormatter formatter)
+         {
+            w.Write(JoinType.ToJoinTypeString());
+            w.Write(" ");
+            JoinInfo.Format(w, formatter, LeftTableAlias, RightTableAlias);
+         }
          public string Format(ISqlFormatter formatter)
          {
-            return JoinType.ToJoinTypeString() + " " +
-                   JoinInfo.Format(formatter, LeftTableAlias, RightTableAlias);
+            using (var sw = new StringWriter())
+            {
+               Format(sw, formatter);
+               return sw.GetStringBuilder().ToString();
+            }
+
          }
+
 
          public override int GetHashCode()
          {
@@ -380,16 +414,24 @@ namespace XAdo.Quobs.Core.DbSchema
             return Joins.Count >= other.Joins.Count && other.Joins.All(j => j.Equals(Joins[i++]));
          }
 
-         public string Format(ISqlFormatter formatter)
+         public void Format(TextWriter w, ISqlFormatter formatter)
          {
-            var sb = new StringBuilder();
             foreach (var j in Joins)
             {
-               sb.Append("   ");
-               sb.AppendLine(j.Format(formatter));
+               w.Write("   ");
+               j.Format(w, formatter);
             }
-            return sb.ToString();
          }
+         public string Format(ISqlFormatter formatter)
+         {
+            using (var sw = new StringWriter())
+            {
+               Format(sw, formatter);
+               return sw.GetStringBuilder().ToString();
+            }
+
+         }
+
       }
 
 
@@ -404,15 +446,15 @@ namespace XAdo.Quobs.Core.DbSchema
 
       public static TableDescriptor GetTableDescriptor(this Type self)
       {
-         return Cache.GetOrAdd(self, t => new TableDescriptor(self)).CastTo<TableDescriptor>();
+         return DescriptorLookup.GetOrAdd(self, t => new TableDescriptor(self)).CastTo<TableDescriptor>();
       }
       public static ColumnDescriptor GetColumnDescriptor(this FieldInfo self)
       {
-         return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
+         return DescriptorLookup.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
       public static ColumnDescriptor GetColumnDescriptor(this PropertyInfo self)
       {
-         return Cache.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
+         return DescriptorLookup.GetOrAdd(self, t => self.ReflectedType.GetTableDescriptor().Columns.Single(c => c.Member == self)).CastTo<ColumnDescriptor>();
       }
       public static IList<JoinDescriptor> GetJoinDescriptors(this MethodInfo self, JoinType joinType)
       {

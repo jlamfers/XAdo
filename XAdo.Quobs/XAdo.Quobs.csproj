@@ -45,6 +45,12 @@
     <Compile Include="Core\IQuob.cs" />
     <Compile Include="Core\Extension.cs" />
     <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
+    <Compile Include="Dialect\ISqlFormatter.cs" />
+    <Compile Include="Dialect\SqlFormatter.cs" />
+    <Compile Include="Dialect\Core\StatementFormatter.cs" />
+    <Compile Include="Dialect\ISqlDialect.cs" />
+    <Compile Include="Dialect\SqlServerDialect.cs" />
+    <Compile Include="Dialect\SqlServerFormatter.cs" />
     <Compile Include="Linq\QuobExpressionVisitor.cs" />
     <Compile Include="Linq\QueryableQuob.cs" />
     <Compile Include="Linq\QueryProviderQuob.cs" />
@@ -53,7 +59,6 @@
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />
     <Compile Include="Core\ExpressionExtensions.cs" />
-    <Compile Include="Core\FormatterExtension.cs" />
     <Compile Include="Core\ISqlBuilder.cs" />
     <Compile Include="Core\ISqlExecuter.cs" />
     <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
@@ -73,7 +78,6 @@
     <Compile Include="Core\DbSchema\DbSchemaDescriptor.cs" />
     <Compile Include="Core\DbSchema\DbSchemaReader.cs" />
     <Compile Include="Core\DbSchema\DbTableItem.cs" />
-    <Compile Include="Core\DbSchema\Extensions.cs" />
     <Compile Include="Core\DbSchema\Generator\CSharpGenerator.cs" />
     <Compile Include="MappedQuob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -89,11 +93,8 @@
     <Compile Include="Core\SqlExpression\SqlInAttribute.cs" />
     <Compile Include="Core\SqlExpression\SqlMethodExtensions.cs" />
     <Compile Include="Core\SqlExpression\SqlWeekNumberAttribute.cs" />
-    <Compile Include="Core\SqlExpression\Sql\BaseSqlFormatter.cs" />
     <Compile Include="Core\SqlExpression\Sql\CustomSqlExpressionBuilderAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\ICustomSqlExpressionBuilder.cs" />
-    <Compile Include="Core\SqlExpression\Sql\ISqlFormatter.cs" />
-    <Compile Include="Formatters\Ms2012SqlFormatter.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAdo\XAdo.csproj">
@@ -103,6 +104,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dialect\Old\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

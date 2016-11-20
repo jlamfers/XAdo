@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core.SqlExpression;
 
-namespace XAdo.Quobs.Core.SqlExpression.Sql
+namespace XAdo.Quobs.Dialect
 {
    public interface ISqlFormatter
    {

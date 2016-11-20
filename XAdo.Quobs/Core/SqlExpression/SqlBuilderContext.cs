@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core.SqlExpression
 {
@@ -25,7 +26,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       public virtual void WriteFormattedColumn(MemberExpression exp)
       {
-         exp.Member.GetColumnDescriptor().Format(Formatter.IdentifierDelimiterLeft, Formatter.IdentifierDelimiterRight);
+         exp.Member.GetColumnDescriptor().Format(Writer,Formatter);
       }
 
       public Func<ExpressionVisitor, SqlBuilderContext, Expression, Expression> VisitorHook { get; set; }

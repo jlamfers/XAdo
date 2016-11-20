@@ -93,7 +93,7 @@ namespace XAdo.Quobs.UnitTests
 
             sw = new Stopwatch();
             sw.Start();
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 100; i++)
             {
                //q.Where(p => p.BusinessEntity.BusinessEntityID > 0).ToList();
                q = from p in persons
@@ -118,7 +118,7 @@ namespace XAdo.Quobs.UnitTests
 
             sw = new Stopwatch();
             sw.Start();
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < 100; i++)
             {
                //q2.Where(p => p.BusinessEntity.BusinessEntityID > 0).ToList();
                q2.ToList();

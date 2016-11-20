@@ -6,6 +6,7 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Sql;
+using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
 {
@@ -97,7 +98,7 @@ namespace XAdo.Quobs.Core
          {
             alias = joinPath.Joins.Last().RightTableAlias;
          }
-         Writer.Write(descriptor.Format(Formatter.IdentifierDelimiterLeft, Formatter.IdentifierDelimiterRight,alias));
+         descriptor.Format(Writer,Formatter, alias);
       }
 
    }
