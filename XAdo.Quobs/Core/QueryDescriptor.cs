@@ -20,15 +20,13 @@ namespace XAdo.Quobs.Core
 
       public class SelectColumnDescriptor
       {
-         public SelectColumnDescriptor(string expression, string alias, MemberInfo member)
+         public SelectColumnDescriptor(string expression, string alias)
          {
             Expression = expression;
             Alias = alias;
-            Member = member;
          }
          public string Expression { get; set; }
          public string Alias { get; set; }
-         public MemberInfo Member { get; set; }
 
          public override string ToString()
          {
@@ -37,7 +35,21 @@ namespace XAdo.Quobs.Core
 
          public SelectColumnDescriptor Clone()
          {
-            return new SelectColumnDescriptor(Expression, Alias,Member);
+            return new SelectColumnDescriptor(Expression, Alias);
+         }
+
+         public override int GetHashCode()
+         {
+            unchecked
+            {
+               return Expression.GetHashCode()*127 + (Alias ?? "").GetHashCode();
+            }
+         }
+
+         public override bool Equals(object obj)
+         {
+            var other = obj as SelectColumnDescriptor;
+            return other != null && other.Expression == Expression && other.Alias == Alias;
          }
       }
 
@@ -239,7 +251,7 @@ namespace XAdo.Quobs.Core
             if (selectOrderColumns)
             {
                var index = 0;
-               SelectColumns.AddRange(OrderColumns.Select(c => new SelectColumnDescriptor(c.Expression,Aliases.Column(index++),null)));
+               SelectColumns.AddRange(OrderColumns.Select(c => new SelectColumnDescriptor(c.Expression,Aliases.Column(index++))));
             }
             WriteSelect(w, true);
             if (selectOrderColumns)

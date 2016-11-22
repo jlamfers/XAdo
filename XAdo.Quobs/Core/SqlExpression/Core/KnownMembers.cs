@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 // ReSharper disable StringCompareIsCultureSpecific.1
@@ -66,6 +67,22 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
              FloorDecimal = MemberInfoFinder.GetMethodInfo(() => System.Math.Floor((Decimal)0)),
              CeilingDouble = MemberInfoFinder.GetMethodInfo(() => System.Math.Ceiling((double)0)),
              CeilingDecimal = MemberInfoFinder.GetMethodInfo(() => System.Math.Ceiling((Decimal)0));
+      }
+
+      public static class SqlMethods
+      {
+         public static readonly MethodInfo
+            DefaultIfEmpty = MemberInfoFinder.GetMethodInfo(() => "".DefaultIfEmpty(s => "")).GetGenericMethodDefinition(),
+            DefaultIfEmpty2 = MemberInfoFinder.GetMethodInfo(() => ((object)null).DefaultIfEmpty(() => "")).GetGenericMethodDefinition(),
+            Create = MemberInfoFinder.GetMethodInfo(() => "".Create(s => "")).GetGenericMethodDefinition();
+      }
+
+      public static bool EqualMethods(this MethodInfo self, MethodInfo other)
+      {
+         if (self == other) return true;
+         if (self.Name != other.Name && self.GetParameters().Length != other.GetParameters().Length || (self.IsGenericMethod != other.IsGenericMethod)) return false;
+         if (!self.IsGenericMethod) return false;
+         return self.GetGenericMethodDefinition() == other.GetGenericMethodDefinition();
       }
 
    }

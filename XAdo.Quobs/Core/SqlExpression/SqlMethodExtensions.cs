@@ -196,9 +196,17 @@ namespace XAdo.Quobs.Core.SqlExpression
          return self == null ? default(T) : (T)self;
       }
 
-      public static T DefaultIfEmpty<T>(this int? self, Func<T> newExpression)
+      public static T DefaultIfEmpty<T>(this object self, Func<T> newExpression)
       {
          return self == null ? default(T) : newExpression();
+      }
+      public static TResult DefaultIfEmpty<T, TResult>(this T self, Func<T, TResult> newExpression)
+      {
+         throw NotImplemented();
+      }
+      public static TResult Create<T, TResult>(this T self, Func<T, TResult> newExpression)
+      {
+         throw NotImplemented();
       }
 
 

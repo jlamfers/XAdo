@@ -253,6 +253,12 @@ namespace XAdo.Quobs.Core
 
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
+         Expression substitute;
+         var substituter = new FactoryExpressionSubstituter();
+         if (substituter.TrySubstituteFactoryMethod(node, _origParameter, out substitute))
+         {
+            return Visit(substitute);
+         }
          if (node.IsJoinMethod())
          {
             var joinPath = node.GetJoinPath();
@@ -284,10 +290,12 @@ namespace XAdo.Quobs.Core
       private int AddOrGetColumnIndex(string sqlExpression,MemberInfo mappedMember)
       {
          ColumnInfo currentColumnInfo = null;
+         int? index = null;
          foreach (var c in _columns.Values)
          {
             if (c.Sql == sqlExpression)
             {
+               index = c.Index;
                if (c.MappedMember == null)
                {
                   currentColumnInfo = c;
@@ -304,7 +312,8 @@ namespace XAdo.Quobs.Core
             currentColumnInfo.MappedMember = mappedMember;
             return currentColumnInfo.Index;
          }
-         var columnInfo = new ColumnInfo(sqlExpression, _columns.Count, mappedMember);
+         var newIndex = index ?? (_columns.Count == 0 ? 0 : _columns.Keys.Select(c => c.Index).Max() + 1);
+         var columnInfo = new ColumnInfo(sqlExpression, newIndex, mappedMember);
          ColumnInfo found;
          if(_columns.TryGetValue(columnInfo,out found))
          {

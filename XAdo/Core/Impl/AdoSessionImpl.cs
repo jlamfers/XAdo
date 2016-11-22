@@ -60,7 +60,7 @@ namespace XAdo.Core.Impl
         }
 
 
-        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager, AdoContext context)
+        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager, AdoContext context, IUnitOfWork unitOfWork)
         {
            if (connectionFactory == null) throw new ArgumentNullException("connectionFactory");
             if (connectionQueryManager == null) throw new ArgumentNullException("connectionQueryManager");
@@ -69,6 +69,7 @@ namespace XAdo.Core.Impl
            _connectionFactory = connectionFactory;
             _connectionQueryManager = connectionQueryManager;
             Context = context;
+           UnitOfWork = unitOfWork;
         }
 
         public virtual IAdoSession Initialize(string connectionStringName, int? commandTimeout = null,
@@ -107,8 +108,10 @@ namespace XAdo.Core.Impl
 
         public AdoContext Context { get; private set; }
 
+       public IUnitOfWork UnitOfWork { get; private set; }
 
-        public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
+
+       public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return _connectionQueryManager.ExecuteScalar<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
@@ -261,9 +264,11 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             _autoCommit = false;
+           var hadWork = UnitOfWork.HasWork;
+            UnitOfWork.Flush(this);
             var tr = _tr;
             _tr = null;
-            if (tr == null) return false;
+           if (tr == null) return hadWork;
             try
             {
                 tr.Commit();
@@ -278,9 +283,11 @@ namespace XAdo.Core.Impl
         public virtual bool Rollback()
         {
             _autoCommit = false;
+            var hadWork = UnitOfWork.HasWork;
+           UnitOfWork.Clear();
             var tr = _tr;
             _tr = null;
-            if (tr == null) return false;
+            if (tr == null) return hadWork;
             try
             {
                 tr.Rollback();
@@ -298,7 +305,7 @@ namespace XAdo.Core.Impl
 
         public void Dispose()
         {
-            if (HasTransaction && _autoCommit && Marshal.GetExceptionCode() == 0)
+            if ((HasTransaction || UnitOfWork.HasWork) && _autoCommit && Marshal.GetExceptionCode() == 0)
             {
                 // no exception was thrown
                 try

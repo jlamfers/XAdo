@@ -4,15 +4,15 @@
    {
       public static string Column(int index)
       {
-         return "__c_" + index;
+         return "c" + index;
       }
       public static string Table(int index)
       {
-         return "__t_" + index;
+         return "t" + index;
       }
       public static string TempTable(int index)
       {
-         return "__tt_" + index;
+         return "tt" + index;
       }
    }
 }

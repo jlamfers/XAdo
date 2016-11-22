@@ -264,5 +264,42 @@ var query = from product in products
 
          }
       }
+
+      [Test]
+      public void MonkeyTest9()
+      {
+         using (var s = Db.Northwind.CreateSession())
+         {
+            var dict = new ConcurrentDictionary<int, object>();
+            var q = s
+               .From<DbBusinessEntityContact>()
+               .Take(100)
+               .Skip(10)
+               .Select(p => new 
+               {
+                  FirstName = p.Person(JoinType.Left).FirstName,
+                  LastName = p.Person(JoinType.Left).LastName,
+                  BusinessEntity = p.Person(JoinType.Left).DefaultIfEmpty(person => 
+                     new
+                     {
+                        person.FirstName,
+                        person.LastName,
+                        BE = person.BusinessEntity().Create(c => new
+                        {
+                           c.BusinessEntityID,
+                           c.ModifiedDate
+                        })
+                     }),
+               })
+               .OrderBy(p => p.BusinessEntity.BE.ModifiedDate);
+
+
+            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            Debug.WriteLine(sql);
+
+            var list = q.ToList();
+         }
+      }
+
    }
 }
