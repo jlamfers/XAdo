@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using DbSchema.AdventureWorks;
@@ -270,6 +271,8 @@ var query = from product in products
       {
          using (var s = Db.Northwind.CreateSession())
          {
+            // todo: register command type
+            s.UnitOfWork.Register("delete jan where name=@name and id=@id", new {name = "yep", id = 10});
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
                .From<DbBusinessEntityContact>()
