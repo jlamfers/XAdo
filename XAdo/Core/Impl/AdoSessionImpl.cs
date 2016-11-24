@@ -31,7 +31,9 @@ namespace XAdo.Core.Impl
         private readonly IAdoConnectionQueryManager
             _connectionQueryManager;
 
-        private IDbConnection _cn;
+       private readonly IAdoClassBinder _binder;
+
+       private IDbConnection _cn;
 
         private bool _keepConectionOpen;
         private string _connectionString;
@@ -43,8 +45,12 @@ namespace XAdo.Core.Impl
         private bool
             _autoCommit;
 
+        private bool 
+           _autoCommitUnitOfWork;
 
-        private IDbConnection LazyInitializedConnection
+       private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
+
+       private IDbConnection LazyInitializedConnection
         {
             get
             {
@@ -60,16 +66,17 @@ namespace XAdo.Core.Impl
         }
 
 
-        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager, AdoContext context, IUnitOfWork unitOfWork)
+        public AdoSessionImpl(IAdoConnectionFactory connectionFactory, IAdoConnectionQueryManager connectionQueryManager, AdoContext context, IAdoClassBinder binder)
         {
            if (connectionFactory == null) throw new ArgumentNullException("connectionFactory");
             if (connectionQueryManager == null) throw new ArgumentNullException("connectionQueryManager");
            if (context == null) throw new ArgumentNullException("context");
+           if (binder == null) throw new ArgumentNullException("binder");
 
            _connectionFactory = connectionFactory;
             _connectionQueryManager = connectionQueryManager;
-            Context = context;
-           UnitOfWork = unitOfWork;
+           _binder = binder;
+           Context = context;
         }
 
         public virtual IAdoSession Initialize(string connectionStringName, int? commandTimeout = null,
@@ -109,6 +116,12 @@ namespace XAdo.Core.Impl
         public AdoContext Context { get; private set; }
 
        public IUnitOfWork UnitOfWork { get; private set; }
+
+       public IDictionary<object, object> Items
+       {
+          get { return _items; }
+       }
+
 
 
        public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
@@ -260,13 +273,46 @@ namespace XAdo.Core.Impl
             return this;
         }
 
-        public virtual bool Commit()
+       public IAdoSession BeginUnitOfWork(bool autoCommit = true)
+       {
+          _autoCommitUnitOfWork = autoCommit;
+          if (UnitOfWork != null)
+          {
+             UnitOfWork = _binder.Get<IUnitOfWork>();
+          }
+          return this;
+       }
+       public IAdoSession CommitUnitOfWork()
+       {
+          _autoCommitUnitOfWork = false;
+          var uow = UnitOfWork;
+          UnitOfWork = null;
+          if (uow != null)
+          {
+             uow.Flush(this);
+          }
+          return this;
+       }
+       public IAdoSession RollbackUnitOfWork()
+       {
+          _autoCommitUnitOfWork = false;
+          var uow = UnitOfWork;
+          UnitOfWork = null;
+          if (uow != null)
+          {
+             uow.Clear();
+          }
+          return this;
+       }
+
+
+       public virtual bool Commit()
         {
             EnsureNotDisposed();
             _autoCommit = false;
-           var hadWork = UnitOfWork.HasWork;
-            UnitOfWork.Flush(this);
-            var tr = _tr;
+            var hadWork = UnitOfWork != null && UnitOfWork.HasWork;
+          CommitUnitOfWork();
+          var tr = _tr;
             _tr = null;
            if (tr == null) return hadWork;
             try
@@ -279,12 +325,11 @@ namespace XAdo.Core.Impl
             }
             return true;
         }
-
         public virtual bool Rollback()
         {
             _autoCommit = false;
-            var hadWork = UnitOfWork.HasWork;
-           UnitOfWork.Clear();
+            var hadWork = UnitOfWork != null && UnitOfWork.HasWork;
+           RollbackUnitOfWork();
             var tr = _tr;
             _tr = null;
             if (tr == null) return hadWork;
@@ -303,27 +348,48 @@ namespace XAdo.Core.Impl
 
         #region IDispose
 
-        public void Dispose()
-        {
-            if ((HasTransaction || UnitOfWork.HasWork) && _autoCommit && Marshal.GetExceptionCode() == 0)
-            {
-                // no exception was thrown
-                try
-                {
-                    Commit();
-                }
-                finally
-                {
-                    Dispose(true);
-                }
-            }
-            else
-            {
-                Dispose(true);
-            }
-        }
+       public void Dispose()
+       {
+          var hadException = Marshal.GetExceptionCode() != 0;
+          if (hadException)
+          {
+             Dispose(true);
+             return;
+          }
 
-        protected virtual void Dispose(bool disposing)
+          if (!HasTransaction && _autoCommitUnitOfWork)
+          {
+             try
+             {
+                CommitUnitOfWork();
+             }
+             finally
+             {
+                Dispose(true);
+             }
+             return;
+          }
+
+          if (HasTransaction && _autoCommit)
+          {
+             try
+             {
+                if (_autoCommitUnitOfWork)
+                {
+                   CommitUnitOfWork();
+                }
+                Commit();
+             }
+             finally
+             {
+                Dispose(true);
+             }
+             return;
+          }
+          Dispose(true);
+       }
+
+       protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
             _disposed = true;

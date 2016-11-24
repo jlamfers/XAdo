@@ -8,7 +8,7 @@ namespace XAdo.Core.Interface
     {
        AdoContext Context { get; }
        IUnitOfWork UnitOfWork { get; }
-
+       IDictionary<object, object> Items { get; }
         T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null);
         object ExecuteScalar(string sql, object param = null, CommandType? commandType = null);
         IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null);
@@ -43,9 +43,14 @@ namespace XAdo.Core.Interface
             CommandType? commandType = null);
 
         int Execute(string sql, object param = null, CommandType? commandType = null);
-        bool HasTransaction { get; }
+
         IAdoSession BeginTransaction(bool autoCommit = false);
         bool Commit();
         bool Rollback();
+        bool HasTransaction { get; }
+
+        IAdoSession BeginUnitOfWork(bool autoCommit = true);
+       IAdoSession CommitUnitOfWork();
+       IAdoSession RollbackUnitOfWork();
     }
 }

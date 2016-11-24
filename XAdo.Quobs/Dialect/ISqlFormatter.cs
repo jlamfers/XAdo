@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using Microsoft.SqlServer.Server;
 using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.Dialect
@@ -77,6 +78,14 @@ namespace XAdo.Quobs.Dialect
          {
             self.FormatParameter(w, parameterName);
             return w.GetStringBuilder().ToString();
+         }
+      }
+      public static string FormatValue(this ISqlFormatter self, object value)
+      {
+         using (var sw = new StringWriter())
+         {
+            self.FormatValue(sw, value);
+            return sw.GetStringBuilder().ToString();
          }
       }
    }

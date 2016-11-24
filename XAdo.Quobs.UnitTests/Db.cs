@@ -14,7 +14,7 @@ namespace XAdo.Quobs.UnitTests
                 .EnableEmittedDynamicTypes()
                 //.EnablePessimisticDataReader()
                 .SetCustomTypeConverter<int,long>(x => 0L + x)
-                .SetItem("quobs.sql.formatter",new SqlServer2012Formatter())
+                .SetSqlFormatter(new SqlServer2012Formatter())
             );
     }
 }

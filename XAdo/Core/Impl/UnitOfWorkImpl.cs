@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -80,6 +81,16 @@ namespace XAdo.Core.Impl
       public virtual bool HasWork
       {
          get { return _commands.Count > 0; }
+      }
+
+      public IEnumerator<Tuple<string, IDictionary<string, object>>> GetEnumerator()
+      {
+         return _commands.GetEnumerator();
+      }
+
+      IEnumerator IEnumerable.GetEnumerator()
+      {
+         return GetEnumerator();
       }
    }
 }

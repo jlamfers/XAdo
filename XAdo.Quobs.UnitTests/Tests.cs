@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using DbSchema.AdventureWorks;
 using NUnit.Framework;
+using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
@@ -113,6 +115,52 @@ namespace XAdo.Quobs.UnitTests
 
             var list = q.ToList();
 
+         }
+
+      }
+
+      [Test]
+      public void MonkeyTest3()
+      {
+         using (var s = Db.Northwind.CreateSession())
+         {
+            var source = new {Name = "foo", Id = Guid.NewGuid()};
+            s.UpdateFrom(() => new DbPerson
+            {
+               rowguid =  source.Id, 
+               FirstName = source.Name
+            });
+         }
+
+      }
+
+      [Test]
+      public void MonkeyTest4()
+      {
+         using (var db = Db.Northwind.CreateSession())
+         {
+            var u = db
+               .Update<DbPerson>()
+               .Set(() => new DbPerson {BusinessEntityID = 10, FirstName = "Tim"})
+               .Where(p => p.FirstName.Contains("Timmetje"));
+
+            var sql = u.CastTo<ISqlBuilder>().GetSql();
+
+            Debug.WriteLine(sql);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               u = db
+                  .Update<DbPerson>()
+                  .Set(() => new DbPerson { BusinessEntityID = 10, FirstName = "Tim" })
+                  .Where(p => p.FirstName.Contains("Timmetje"));
+
+               sql = u.CastTo<ISqlBuilder>().GetSql();
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
          }
 
       }

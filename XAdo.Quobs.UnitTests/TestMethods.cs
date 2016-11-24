@@ -272,7 +272,8 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             // todo: register command type
-            s.UnitOfWork.Register("delete jan where name=@name and id=@id", new {name = "yep", id = 10});
+            s.UnitOfWork.Register("delete foo where name=@name and id=@id", new {name = "yep", id = 10});
+
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
                .From<DbBusinessEntityContact>()
