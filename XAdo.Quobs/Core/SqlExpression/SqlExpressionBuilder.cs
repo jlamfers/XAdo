@@ -171,6 +171,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       protected override Expression VisitBinary(BinaryExpression exp)
       {
+
          if (exp.NodeType == ExpressionType.Add)
          {
             if (exp.Left.Type == typeof (string) && exp.Right.Type == typeof (string))

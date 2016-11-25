@@ -18,6 +18,7 @@ namespace XAdo.Core.Interface
         IAdoContextInitializer Bind(Type serviceType, Func<IAdoClassBinder, object> factory);
         IAdoContextInitializer BindSingleton(Type serviceType, Type implementationType);
         IAdoContextInitializer SetItem(object key, object value);
+        IAdoContextInitializer SetUnitOfWorkStatementSeperator(string seperator);
     }
 
     public static partial class Extensions

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using Microsoft.SqlServer.Server;
+using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.Dialect
@@ -49,6 +50,11 @@ namespace XAdo.Quobs.Dialect
       void WriteFloor(TextWriter writer, Action<TextWriter> arg);
       void WriteRound(TextWriter writer, Action<TextWriter> arg, Action<TextWriter> length);
       void WriteCeiling(TextWriter writer, Action<TextWriter> arg);
+      void WriteSelectNewIdentity(TextWriter writer);
+      void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false);
+      void WriteCount(TextWriter writer, QueryDescriptor descriptor);
+      void WritePagedCount(TextWriter writer, QueryDescriptor descriptor);
+      void WritePagedSelect(TextWriter writer, QueryDescriptor descriptor);
 
       /// <summary>
       /// Write a paged select query from the passed arguments

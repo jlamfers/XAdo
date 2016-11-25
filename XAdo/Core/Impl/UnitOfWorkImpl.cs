@@ -34,7 +34,7 @@ namespace XAdo.Core.Impl
          return args.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(args));
       }
 
-      protected virtual string Seperator {get { return ";"; }}
+      internal protected virtual string Seperator { get; set; }
 
       public virtual IUnitOfWork Flush(IAdoSession session)
       {

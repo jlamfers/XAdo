@@ -9,7 +9,6 @@ using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 using XAdo.Quobs.Linq;
 
@@ -20,8 +19,8 @@ namespace XAdo.Quobs
       private readonly Func<IDataRecord, T> _binder;
       private readonly BinderExpressionCompiler.CompileResult<T> _binderCompileResult;
 
-      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins)
-         : base(formatter, executer, descriptor, joins)
+      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
+         : base(formatter, executer, descriptor, joins, argumentsAsLiterals)
       {
          _binder = binder;
          _binderCompileResult = binderCompileResult;
@@ -86,15 +85,15 @@ namespace XAdo.Quobs
       {
          using (var w = new StringWriter())
          {
-            Descriptor.WriteCount(w);
+            Formatter.WriteCount(w, Descriptor);
             w.Write(Formatter.SqlDialect.StatementSeperator);
             if (Descriptor.IsPaged())
             {
-               Descriptor.WritePagedSelect(w, Formatter);
+               Formatter.WritePagedSelect(w, Descriptor);
             }
             else
             {
-               Descriptor.WriteSelect(w);
+               Formatter.WriteSelect(w, Descriptor);
             }
             return Executer.ExecuteQuery(w.GetStringBuilder().ToString(), _binder, GetArguments(), out count);
          }
@@ -106,7 +105,7 @@ namespace XAdo.Quobs
 
       protected override BaseQuob<T> CloneQuob()
       {
-         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo,x.JoinType)))).ToList());
+         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo,x.JoinType)))).ToList(),ArgumentsAsLiterals);
       }
 
       public MappedQuob<T> Clone()
@@ -120,7 +119,7 @@ namespace XAdo.Quobs
       {
          if (expression == null) return this;
          var sqlBuilder = new MappedSqlExpressionBuilder(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
-         var context = new SqlBuilderContext(Formatter);
+         var context = new SqlBuilderContext(Formatter){ArgumentsAsLiterals = ArgumentsAsLiterals};
 
          sqlBuilder.BuildSql(context, expression);
          Descriptor.WhereClausePredicates.Add(context.ToString());

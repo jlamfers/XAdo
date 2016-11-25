@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Dialect.Core;
 
@@ -11,7 +12,8 @@ namespace XAdo.Quobs.Dialect
 {
    public class SqlFormatter : ISqlFormatter
    {
-      protected SqlFormatter(ISqlDialect dialect)
+
+      public SqlFormatter(ISqlDialect dialect)
       {
          SqlDialect = dialect;
       }
@@ -297,6 +299,125 @@ namespace XAdo.Quobs.Dialect
          SqlDialect.Ceiling.Format(writer,arg);
       }
 
+      public virtual void WriteSelectNewIdentity(TextWriter writer)
+      {
+         writer.Write(SqlDialect.SelectLastIdentity);
+      }
+
+      public virtual void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false)
+      {
+
+         var distinct = descriptor.Distict ? "DISTINCT " : "";
+
+         descriptor.EnsureOrderByColumnsAreAliased();
+
+         if (!descriptor.SelectColumns.Any())
+         {
+            writer.WriteLine("SELECT {0}*", distinct);
+         }
+         else
+         {
+            writer.WriteLine("SELECT {0}", distinct);
+            writer.WriteLine("   " +
+                        String.Join(",\r\n   ",
+                           descriptor.SelectColumns.Select(
+                              t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
+         }
+         writer.WriteLine("FROM {0}", descriptor.FromTableName);
+         if (descriptor.Joins.Any())
+         {
+            writer.WriteLine("   " +
+                        String.Join("\r\n   ",
+                           descriptor.Joins.Select(j => j.ToString()).ToArray()));
+         }
+         if (descriptor.WhereClausePredicates.Any())
+         {
+            writer.WriteLine("WHERE");
+            writer.WriteLine("   " +
+                        String.Join("\r\n   AND ",
+                           descriptor.WhereClausePredicates
+                              .Select(s => "(" + s + ")")
+                              .ToArray()));
+         }
+         if (descriptor.GroupByColumns.Any())
+         {
+            writer.WriteLine("GROUP BY");
+            writer.WriteLine("   " + String.Join(",\r\n   ", descriptor.GroupByColumns.ToArray()));
+         }
+         if (descriptor.HavingClausePredicates.Any())
+         {
+            writer.WriteLine("HAVING");
+            writer.WriteLine("   " +
+                        String.Join("\r\n   AND ",
+                           descriptor.HavingClausePredicates.Select(s => "(" + s + ")").ToArray()));
+         }
+         foreach (var union in descriptor.Unions)
+         {
+            writer.WriteLine("UNION");
+            writer.WriteLine(union.GetSql());
+         }
+         if (!ignoreOrder && descriptor.OrderColumns.Any())
+         {
+            writer.WriteLine("ORDER BY");
+            writer.WriteLine("   " + String.Join(",\r\n   ", descriptor.OrderColumns.Select(c => c.ToString()).ToArray()));
+         }
+      }
+      public virtual void WriteCount(TextWriter writer, QueryDescriptor descriptor)
+      {
+         writer.Write("SELECT COUNT(1) FROM (");
+         WriteSelect(writer, descriptor, true);
+         writer.Write(") AS __pt_inner");
+      }
+      public virtual void WritePagedCount(TextWriter writer, QueryDescriptor descriptor)
+      {
+         if (!descriptor.IsPaged())
+         {
+            WriteCount(writer, descriptor);
+            return;
+         }
+
+         string sqlSelect;
+         using (var w = new StringWriter())
+         {
+            var selectOrderColumns = !descriptor.SelectColumns.Any();
+            if (selectOrderColumns)
+            {
+               var index = 0;
+               descriptor.SelectColumns.AddRange(descriptor.OrderColumns.Select(c => new QueryDescriptor.SelectColumnDescriptor(c.Expression, Aliases.Column(index++))));
+            }
+            WriteSelect(w, descriptor, true);
+            if (selectOrderColumns)
+            {
+               descriptor.SelectColumns.Clear();
+            }
+            sqlSelect = w.GetStringBuilder().ToString();
+         }
+         WritePagedQuery(
+            writer,
+            sqlSelect,
+            descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
+            new[] { "COUNT(1)" },
+            descriptor.Skip != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameSkip) : null,
+            descriptor.Take != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameTake) : null);
+      }
+      public virtual void WritePagedSelect(TextWriter writer, QueryDescriptor descriptor)
+      {
+         string sqlSelect;
+         using (var w = new StringWriter())
+         {
+            WriteSelect(w, descriptor, true);
+            sqlSelect = w.GetStringBuilder().ToString();
+         }
+         WritePagedQuery(
+            writer,
+            sqlSelect,
+            descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
+            descriptor.SelectColumns.Select(c => c.Alias),
+            descriptor.Skip != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameSkip) : null,
+            descriptor.Take != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameTake) : null);
+      }
+
+
       /// <summary>
       /// Write a paged select query from the passed arguments
       /// </summary>
@@ -323,7 +444,7 @@ namespace XAdo.Quobs.Dialect
 
          if (skip == null)
          {
-            writer.Write("SELECT TOP({0}) * FROM ({1}) AS __pt_outer ORDER BY {2}", take, sqlSelectWithoutOrder, string.Join(", ",orderByClause.ToArray()));
+            writer.Write("SELECT TOP({0}) * FROM ({1}) AS __pt_outer ORDER BY {2}", take, sqlSelectWithoutOrder, string.Join(", ", orderByClause.ToArray()));
          }
          else
          {
@@ -351,8 +472,6 @@ FROM __pt_outer
             }
          }
       }
-
-
    }
 
 }

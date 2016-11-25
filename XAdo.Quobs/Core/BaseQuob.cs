@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XAdo.Quobs.Core.DbSchema;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
 {
    public abstract class BaseQuob<T> : ICloneable, ISqlBuilder
    {
+      protected readonly bool ArgumentsAsLiterals;
 
-      protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins)
+      protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
          if (executer == null) throw new ArgumentNullException("executer");
@@ -20,6 +20,7 @@ namespace XAdo.Quobs.Core
          Formatter = formatter;
          Executer = executer;
          Joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
+         ArgumentsAsLiterals = argumentsAsLiterals;
       }
 
       protected ISqlFormatter Formatter { get; set; }
@@ -38,7 +39,7 @@ namespace XAdo.Quobs.Core
          {
             using (var sw = new StringWriter())
             {
-               Formatter.WriteExists(sw, w => Descriptor.WriteSelect(w, true));
+               Formatter.WriteExists(sw, w => Formatter.WriteSelect(w, Descriptor, true));
                var sql = sw.GetStringBuilder().ToString();
                return Executer.ExecuteScalar<bool>(sql, Descriptor.GetArguments());
             }
@@ -54,7 +55,7 @@ namespace XAdo.Quobs.Core
       {
          using (var sw = new StringWriter())
          {
-            Descriptor.WritePagedCount(sw, Formatter);
+            Formatter.WritePagedCount(sw, Descriptor);
             var sql = sw.GetStringBuilder().ToString();
             return Executer.ExecuteScalar<int>(sql, Descriptor.GetArguments());
          }
@@ -119,11 +120,11 @@ namespace XAdo.Quobs.Core
          {
             if (Descriptor.IsPaged())
             {
-               Descriptor.WritePagedSelect(w, Formatter);
+               Formatter.WritePagedSelect(w, Descriptor);
             }
             else
             {
-               Descriptor.WriteSelect(w);
+               Formatter.WriteSelect(w, Descriptor);
             }
             return w.GetStringBuilder().ToString();
          }

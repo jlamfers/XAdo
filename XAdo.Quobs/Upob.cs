@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Dialect;
 
@@ -10,21 +12,26 @@ namespace XAdo.Quobs
 {
    public class Upob<T> : ISqlBuilder
    {
+      private static readonly HashSet<string> 
+         KeyColumns = new HashSet<string>(typeof(T).GetTableDescriptor().Columns.Where(c => c.IsPKey).Select(c => c.Name));
+
       private readonly ISqlFormatter _formatter;
       private readonly ISqlExecuter _executer;
       private readonly bool _argumentsAsLiterls;
       private UpdateExpressionCompiler.CompileResult _compileResult;
       private SqlBuilderContext _sqlBuilderContext;
+      private Expression<Func<T>> _expression;
 
-      public Upob(ISqlFormatter formatter, ISqlExecuter executer, bool argumentsAsLiterls)
+      public Upob(ISqlExecuter executer, bool argumentsAsLiterls)
       {
-         _formatter = formatter;
+         _formatter = executer.GetSqlFormatter();
          _executer = executer;
          _argumentsAsLiterls = argumentsAsLiterls;
       }
 
       public virtual Upob<T> Set(Expression<Func<T>> expression)
       {
+         _expression = expression;
          var compiler = new UpdateExpressionCompiler(_formatter);
          _compileResult =  compiler.Compile(expression,_argumentsAsLiterls);
          return this;
@@ -39,16 +46,26 @@ namespace XAdo.Quobs
          _sqlBuilderContext =  sqlBuilder.BuildSql(context, expression);
          return this;
       }
-
-      public virtual bool Execute()
+      public virtual object Apply(bool enforceExecute = false)
       {
-         if (_compileResult == null) return false;
+         if (_compileResult == null) return null;
+
          var sql = GetSql();
          var args = GetArguments();
-         _executer.Execute(sql, args);
+         object result = null;
+
+         if (enforceExecute || !_executer.HasUnitOfWork)
+         {
+            result = _executer.Execute(sql, args);
+         }
+         else
+         {
+            _executer.RegisterWork(sql, args);
+         }
+
          _compileResult = null;
          _sqlBuilderContext = null;
-         return true;
+         return result;
       }
 
       protected virtual string GetSql()
@@ -56,6 +73,14 @@ namespace XAdo.Quobs
          if (_compileResult == null)
          {
             return null;
+         }
+         if (_sqlBuilderContext == null)
+         {
+            var cols = _compileResult.KeyConstraint.Select(k => k.Item1.Name).ToArray();
+            if (cols.Length != KeyColumns.Count || cols.Any(c => !KeyColumns.Contains(c)))
+            {
+               throw new QuobException(string.Format("Missing pkey columns in update: {0}. Add pkey columns or else use where-clause.",_expression));
+            }
          }
          using (var sw = new StringWriter())
          {
@@ -65,6 +90,10 @@ namespace XAdo.Quobs
             var comma = "";
             foreach (var c in _compileResult.Assignments)
             {
+               if (_sqlBuilderContext == null && KeyColumns.Contains(c.Item1.Name))
+               {
+                  continue;
+               }
                sw.WriteLine(comma);
                sw.Write("  ");
                _formatter.FormatIdentifier(sw,c.Item1.Name);

@@ -98,6 +98,7 @@
     <Compile Include="Core\SqlExpression\SqlWeekNumberAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\CustomSqlExpressionBuilderAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\ICustomSqlExpressionBuilder.cs" />
+    <Compile Include="Crob.cs" />
     <Compile Include="Upob.cs" />
   </ItemGroup>
   <ItemGroup>

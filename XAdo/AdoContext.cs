@@ -140,6 +140,12 @@ namespace XAdo
             return this;
          }
 
+         public IAdoContextInitializer SetUnitOfWorkStatementSeperator(string seperator)
+         {
+            _context.StatementSeperator = seperator;
+            return this;
+         }
+
          public IAdoContextInitializer Bind(Type serviceType, Func<IAdoClassBinder, object> factory)
          {
             if (factory == null) throw new ArgumentNullException("factory");
@@ -171,6 +177,7 @@ namespace XAdo
       {
          CommandTimeout = 30;
          AllowUnbindableFetchResults = true;
+         StatementSeperator = ";";
 
          // bind any type that has no binding yet. It may have been bound by any custom class binder
          TryBind(b => b);
@@ -187,7 +194,7 @@ namespace XAdo
          TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();
          TryBindSingleton(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
          TryBindSingleton<IAdoParamHelper, AdoParamHelperImpl>();
-         TryBind<IUnitOfWork,UnitOfWorkImpl>();
+         TryBind<IUnitOfWork>(b => new UnitOfWorkImpl{Seperator = StatementSeperator});
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
 
@@ -289,5 +296,6 @@ namespace XAdo
       public bool AllowUnbindableProperties { get; protected set; }
       public string ConnectionString { get; protected set; }
       public string ProviderName { get; protected set; }
+      public string StatementSeperator { get; protected set; }
    }
 }

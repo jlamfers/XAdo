@@ -13,10 +13,9 @@ namespace XAdo.Quobs.Core
       public static class Constants
       {
          public const string
-            ParNameSkip = "___s_kip",
-            ParNameTake = "___t_ake";
+            ParNameSkip = "__skip_",
+            ParNameTake = "__take_";
       }
-
 
       public class SelectColumnDescriptor
       {
@@ -144,7 +143,7 @@ namespace XAdo.Quobs.Core
       public List<OrderColumnDescriptor> OrderColumns { get; private set; }
       public List<string> GroupByColumns { get; private set; }
       public List<JoinDescriptor> Joins { get; private set; }
-      public string TableName { get; set; }
+      public string FromTableName { get; set; }
       public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }
 
@@ -171,125 +170,11 @@ namespace XAdo.Quobs.Core
          return Skip != null || Take != null;
       }
 
-      public virtual void WriteSelect(TextWriter writer, bool ignoreOrder = false)
-      {
-         var self = this;
-
-         var distinct = self.Distict ? "DISTINCT " : "";
-
-         EnsureOrderByColumnsAreAliased();
-
-         if (!self.SelectColumns.Any())
-         {
-            writer.WriteLine("SELECT {0}*", distinct);
-         }
-         else
-         {
-            writer.WriteLine("SELECT {0}", distinct);
-            writer.WriteLine("   " +
-                        String.Join(",\r\n   ",
-                           self.SelectColumns.Select(
-                              t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
-         }
-         writer.WriteLine("FROM {0}", self.TableName);
-         if (self.Joins.Any())
-         {
-            writer.WriteLine("   " +
-                        String.Join("\r\n   ",
-                           self.Joins.Select(j => j.ToString()).ToArray()));
-         }
-         if (self.WhereClausePredicates.Any())
-         {
-            writer.WriteLine("WHERE");
-            writer.WriteLine("   " +
-                        String.Join("\r\n   AND ",
-                           self.WhereClausePredicates
-                              .Select(s => "(" + s + ")")
-                              .ToArray()));
-         }
-         if (self.GroupByColumns.Any())
-         {
-            writer.WriteLine("GROUP BY");
-            writer.WriteLine("   " + String.Join(",\r\n   ", self.GroupByColumns.ToArray()));
-         }
-         if (self.HavingClausePredicates.Any())
-         {
-            writer.WriteLine("HAVING");
-            writer.WriteLine("   " +
-                        String.Join("\r\n   AND ",
-                           self.HavingClausePredicates.Select(s => "(" + s + ")").ToArray()));
-         }
-         foreach (var union in Unions)
-         {
-            writer.WriteLine("UNION");
-            writer.WriteLine(union.GetSql());
-         }
-         if (!ignoreOrder && self.OrderColumns.Any())
-         {
-            writer.WriteLine("ORDER BY");
-            writer.WriteLine("   " + String.Join(",\r\n   ", self.OrderColumns.Select(c => c.ToString()).ToArray()));
-         }
-      }
-      public virtual void WriteCount(TextWriter writer)
-      {
-         writer.Write("SELECT COUNT(1) FROM (");
-         WriteSelect(writer,true);
-         writer.Write(") AS __pt_inner");
-      }
-      public virtual void WritePagedCount(TextWriter writer,ISqlFormatter formatter)
-      {
-         if (!IsPaged())
-         {
-            WriteCount(writer);
-            return;
-         }
-
-         string sqlSelect;
-         using (var w = new StringWriter())
-         {
-            var selectOrderColumns = !SelectColumns.Any();
-            if (selectOrderColumns)
-            {
-               var index = 0;
-               SelectColumns.AddRange(OrderColumns.Select(c => new SelectColumnDescriptor(c.Expression,Aliases.Column(index++))));
-            }
-            WriteSelect(w, true);
-            if (selectOrderColumns)
-            {
-               SelectColumns.Clear();
-            }
-            sqlSelect = w.GetStringBuilder().ToString();
-         }
-         formatter.WritePagedQuery(
-            writer,
-            sqlSelect,
-            OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
-            new []{"COUNT(1)"},
-            Skip != null ? formatter.FormatParameter(Constants.ParNameSkip) : null,
-            Take != null ? formatter.FormatParameter(Constants.ParNameTake) : null);
-      }
-      public virtual void WritePagedSelect(TextWriter writer, ISqlFormatter formatter)
-      {
-         string sqlSelect;
-         using (var w = new StringWriter())
-         {
-            WriteSelect(w, true);
-            sqlSelect = w.GetStringBuilder().ToString();
-         }
-         formatter.WritePagedQuery(
-            writer,
-            sqlSelect,
-            OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
-            SelectColumns.Select(c => c.Alias),
-            Skip != null ? formatter.FormatParameter(Constants.ParNameSkip) : null,
-            Take != null ? formatter.FormatParameter(Constants.ParNameTake) : null);
-      }
-
       public override string ToString()
       {
          using (var w = new StringWriter())
          {
-            WriteSelect(w);
+            new SqlFormatter(new SqlServerDialect()).WriteSelect(w,this);
             return w.GetStringBuilder().ToString();
          }
       }
@@ -302,7 +187,7 @@ namespace XAdo.Quobs.Core
          clone.OrderColumns.AddRange(OrderColumns.Select(c => c.Clone()));
          clone.GroupByColumns.AddRange(GroupByColumns);
          clone.Joins.AddRange(Joins.Select(c => c.Clone()));
-         clone.TableName = TableName;
+         clone.FromTableName = FromTableName;
          clone.Distict = Distict;
          clone.Unions = Unions.ToList();
          if (!reset)
@@ -357,6 +242,5 @@ namespace XAdo.Quobs.Core
             }
          }
       }
-
    }
 }

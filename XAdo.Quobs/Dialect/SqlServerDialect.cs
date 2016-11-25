@@ -53,6 +53,8 @@ namespace XAdo.Quobs.Dialect
       public virtual string DateTimeGetDayOfYear { get { return "DATEPART(DAYOFYEAR,{0})"; } }
       public virtual string DateTimeGetWeekNumber { get { return "DATEPART(ISOWK,{0})"; } }
 
+      public virtual string SelectLastIdentity { get { return "SELECT SCOPE_IDENTITY()"; } }
+
       public virtual IDictionary<Type, string> TypeMap
       {
          get

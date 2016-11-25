@@ -45,6 +45,7 @@ namespace XAdo.Quobs.Dialect
       string DateTimeGetWeekDay { get; }
       string DateTimeGetDayOfYear { get; }
       string DateTimeGetWeekNumber { get; }
+      string SelectLastIdentity { get; }
       IDictionary<Type, string> TypeMap { get; }
    }
 }

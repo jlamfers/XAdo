@@ -6,7 +6,6 @@ using System.Linq.Expressions;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 using XAdo.Quobs.Linq;
 
@@ -56,64 +55,43 @@ namespace XAdo.Quobs
             return result.Read<T>(false);
          }
 
-         public void Execute(string sql, IDictionary<string, object> args)
+         public int Execute(string sql, IDictionary<string, object> args)
          {
-            _session.Execute(sql, args);
+            return _session.Execute(sql, args);
+         }
+
+         public bool HasUnitOfWork
+         {
+            get { return _session.UnitOfWork != null; }
+         }
+
+         public bool RegisterWork(string sql, IDictionary<string, object> args)
+         {
+            if (_session.UnitOfWork != null)
+            {
+               _session.UnitOfWork.Register(sql, args);
+               return true;
+            }
+            return false;
+         }
+
+         public ISqlFormatter GetSqlFormatter()
+         {
+            return _session.GetSqlFormatter();
          }
       }
 
-      public static Quob<T> From<T>(this IAdoSession self)
+      public static Quob<T> From<T>(this IAdoSession self, bool argumentsAsLiterals = false)
       {
-         const string key = "quobs.sql.formatter";
-         object formatter;
-
-         if (!self.Context.Items.TryGetValue(key, out formatter))
-         {
-            throw new QuobException(
-               "Missing SQL formatter. You need to specify a SQL formatter on your AdoContext initialization (using the initializer parameter), e.g., i => i.SetItem(\"" +
-               key + "\",new MySqlFormatter())");
-         }
-
-         if (!(formatter is ISqlFormatter))
-         {
-            throw new QuobException("Invalid SQL formatter: the SQL formmater must implement interface type " +
-                                    typeof (ISqlFormatter));
-         }
-
-         return new Quob<T>(formatter.CastTo<ISqlFormatter>(), new SqlExecuter(self));
+         return new Quob<T>(new SqlExecuter(self), argumentsAsLiterals);
       }
       public static Upob<T> Update<T>(this IAdoSession self, bool argumentsAsLiterals = false)
       {
-         const string key = "quobs.sql.formatter";
-         object formatter;
-
-         if (!self.Context.Items.TryGetValue(key, out formatter))
-         {
-            throw new QuobException(
-               "Missing SQL formatter. You need to specify a SQL formatter on your AdoContext initialization (using the initializer parameter), e.g., i => i.SetItem(\"" +
-               key + "\",new MySqlFormatter())");
-         }
-
-         if (!(formatter is ISqlFormatter))
-         {
-            throw new QuobException("Invalid SQL formatter: the SQL formmater must implement interface type " +
-                                    typeof(ISqlFormatter));
-         }
-
-         return new Upob<T>(formatter.CastTo<ISqlFormatter>(), new SqlExecuter(self), argumentsAsLiterals);
+         return new Upob<T>(new SqlExecuter(self), argumentsAsLiterals);
       }
-
-      public static int UpdateFrom<T>(this IAdoSession self, Expression<Func<T>> expression)
+      public static Crob<T> Create<T>(this IAdoSession self, bool argumentsAsLiterals = false)
       {
-         return -1;
-      }
-      public static object InsertFrom<T>(this IAdoSession self, Expression<Func<T>> expression)
-      {
-         return -1;
-      }
-      public static object DeleteFrom<T>(this IAdoSession self, Expression<Func<T>> expression)
-      {
-         return -1;
+         return new Crob<T>(new SqlExecuter(self), argumentsAsLiterals);
       }
 
       public static T Connect<T>(this IAdoSession self, T quob)
@@ -129,12 +107,35 @@ namespace XAdo.Quobs
 
       public static IAdoContextInitializer SetSqlFormatter(this IAdoContextInitializer self, ISqlFormatter formatter)
       {
+         if (self == null) throw new ArgumentNullException("self");
+         if (formatter == null) throw new ArgumentNullException("formatter");
          self.SetItem("quobs.sql.formatter", formatter);
+         self.SetUnitOfWorkStatementSeperator(formatter.SqlDialect.StatementSeperator);
          return self;
       }
-      public static ISqlFormatter GetSqlFormatter(this AdoContext self)
+      public static ISqlFormatter GetSqlFormatter(this AdoContext self, bool throwException = true)
       {
-         return self.Items["quobs.sql.formatter"].CastTo<ISqlFormatter>();
+         const string key = "quobs.sql.formatter";
+         object formatter;
+
+         if (!self.Items.TryGetValue(key, out formatter))
+         {
+            if (!throwException)
+            {
+               return null;
+            }
+            throw new QuobException(
+               "Missing SQL formatter. You need to specify a SQL formatter on your AdoContext initialization (using the initializer parameter), e.g., i => i.SetItem(\"" +
+               key + "\",new MySqlFormatter())");
+         }
+
+         if (!(formatter is ISqlFormatter))
+         {
+            throw new QuobException("Invalid SQL formatter: the SQL formmater must implement interface type " +
+                                    typeof(ISqlFormatter));
+         }
+
+         return formatter.CastTo<ISqlFormatter>();
       }
       public static ISqlFormatter GetSqlFormatter(this IAdoSession self)
       {

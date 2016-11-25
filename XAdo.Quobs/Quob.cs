@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs
@@ -15,16 +14,15 @@ namespace XAdo.Quobs
 
    public class Quob<T> : BaseQuob<T>, IQuob
    {
-
-      public Quob(ISqlFormatter formatter, ISqlExecuter executer)
-         : base(formatter, executer, new QueryDescriptor { TableName = typeof(T).GetTableDescriptor().Format(formatter)},null)
+      public Quob(ISqlExecuter executer, bool argumentsAsLiterals)
+         : base(executer.GetSqlFormatter(), executer, new QueryDescriptor { FromTableName = typeof(T).GetTableDescriptor().Format(executer.GetSqlFormatter()) }, null, argumentsAsLiterals)
       {
       }
 
       public virtual MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
          var result = PrepareMapExpression<TMapped>(mapExpression);
-         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins);
+         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins,ArgumentsAsLiterals);
       }
 
       public virtual Quob<T> Distinct()
@@ -43,7 +41,7 @@ namespace XAdo.Quobs
       public virtual Quob<T> Having(Expression<Func<T, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter,Joins);
+         var context = new QuobContext(Formatter,Joins){ArgumentsAsLiterals = ArgumentsAsLiterals};
 
          sqlBuilder.BuildSql(context, havingClause);
          Descriptor.AddJoins(context.QuobJoins);
@@ -131,15 +129,15 @@ namespace XAdo.Quobs
          EnsureColumnsSelected();
          using (var w = new StringWriter())
          {
-            Descriptor.WriteCount(w);
+            Formatter.WriteCount(w, Descriptor);
             w.Write(Formatter.SqlDialect.StatementSeperator);
             if (Descriptor.IsPaged())
             {
-               Descriptor.WritePagedSelect(w, Formatter);
+               Formatter.WritePagedSelect(w, Descriptor);
             }
             else
             {
-               Descriptor.WriteSelect(w);
+               Formatter.WriteSelect(w, Descriptor);
             }
             return Executer.ExecuteQuery<T>(w.GetStringBuilder().ToString(), GetArguments(), out count);
          }
@@ -152,7 +150,7 @@ namespace XAdo.Quobs
 
       protected override BaseQuob<T> CloneQuob()
       {
-         return new Quob<T>(Formatter, Executer) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
+         return new Quob<T>(Executer, ArgumentsAsLiterals) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
       }
 
       public Quob<T> Clone()
@@ -183,7 +181,7 @@ namespace XAdo.Quobs
          {
             var q = (Quob<T>)quob;
             var result = q.PrepareMapExpression<TMapped>(expression);
-            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins);
+            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins,q.ArgumentsAsLiterals);
          }
       }
 

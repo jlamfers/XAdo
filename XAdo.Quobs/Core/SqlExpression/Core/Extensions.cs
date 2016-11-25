@@ -84,8 +84,16 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
                result = memberExpr.Member.GetValue(obj);
                return true;
             default:
-               result = null;
-               return false;
+               try
+               {
+                  result = Expression.Lambda(expression).Compile().DynamicInvoke();
+                  return true;
+               }
+               catch
+               {
+                  result = null;
+                  return false;
+               }
          }
          
       }

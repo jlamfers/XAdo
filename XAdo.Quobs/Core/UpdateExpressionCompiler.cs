@@ -11,8 +11,6 @@ namespace XAdo.Quobs.Core
 {
    public class UpdateExpressionCompiler : ExpressionVisitor
    {
-      private const string TableAlias = "t0";
-
       private static ConcurrentDictionary<Type,int>
          _keys = new ConcurrentDictionary<Type, int>();
 

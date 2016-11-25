@@ -276,7 +276,7 @@ namespace XAdo.Core.Impl
        public IAdoSession BeginUnitOfWork(bool autoCommit = true)
        {
           _autoCommitUnitOfWork = autoCommit;
-          if (UnitOfWork != null)
+          if (UnitOfWork == null)
           {
              UnitOfWork = _binder.Get<IUnitOfWork>();
           }

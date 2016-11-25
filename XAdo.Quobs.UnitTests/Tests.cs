@@ -119,32 +119,20 @@ namespace XAdo.Quobs.UnitTests
 
       }
 
-      [Test]
-      public void MonkeyTest3()
-      {
-         using (var s = Db.Northwind.CreateSession())
-         {
-            var source = new {Name = "foo", Id = Guid.NewGuid()};
-            s.UpdateFrom(() => new DbPerson
-            {
-               rowguid =  source.Id, 
-               FirstName = source.Name
-            });
-         }
-
-      }
 
       [Test]
       public void MonkeyTest4()
       {
-         using (var db = Db.Northwind.CreateSession())
+         using (var db = Db.Northwind.CreateSession().BeginUnitOfWork())
          {
             var u = db
                .Update<DbPerson>()
-               .Set(() => new DbPerson {BusinessEntityID = 10, FirstName = "Tim"})
-               .Where(p => p.FirstName.Contains("Timmetje"));
+               .Set(() => new DbPerson {BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep"});
 
+            
             var sql = u.CastTo<ISqlBuilder>().GetSql();
+
+            var result = u.Apply();
 
             Debug.WriteLine(sql);
 
@@ -154,7 +142,7 @@ namespace XAdo.Quobs.UnitTests
             {
                u = db
                   .Update<DbPerson>()
-                  .Set(() => new DbPerson { BusinessEntityID = 10, FirstName = "Tim" })
+                  .Set(() => new DbPerson { BusinessEntityID = 989898989, FirstName = "Tim" })
                   .Where(p => p.FirstName.Contains("Timmetje"));
 
                sql = u.CastTo<ISqlBuilder>().GetSql();
@@ -163,6 +151,38 @@ namespace XAdo.Quobs.UnitTests
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
 
+      }
+
+      [Test]
+      public void MultiInsertTest()
+      {
+         using (var db = Db.Northwind.CreateSession().BeginUnitOfWork())
+         {
+            db.Execute("delete FamilyPerson");
+            for (var i = 0; i < 1000; i++)
+            {
+               var i1 = i;
+               db
+                  .Create<DbFamilyPerson>(true)
+                  .Add(() => new DbFamilyPerson {Id=i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
+                  .Apply();
+            }
+            db.UnitOfWork.Flush(db);
+            var sw = new Stopwatch();
+            db.Execute("delete FamilyPerson");
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               var i1 = i;
+               db
+                  .Create<DbFamilyPerson>(true)
+                  .Add(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .Apply();
+            }
+            db.UnitOfWork.Flush(db);
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
       }
     }
 }
