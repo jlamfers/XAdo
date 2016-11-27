@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
 {
-   public class UpdateExpressionCompiler : ExpressionVisitor
+   public class SetExpressionCompiler : ExpressionVisitor
    {
       private static ConcurrentDictionary<Type,int>
          _keys = new ConcurrentDictionary<Type, int>();
@@ -40,7 +42,7 @@ namespace XAdo.Quobs.Core
          public string TableName { get; private set; }
       }
 
-      public UpdateExpressionCompiler(ISqlFormatter formatter)
+      public SetExpressionCompiler(ISqlFormatter formatter)
       {
          _formatter = formatter;
          
@@ -93,14 +95,25 @@ namespace XAdo.Quobs.Core
 
       private string AddArgument(MemberInfo member, Expression expression)
       {
-         var value = expression.GetExpressionValue();
-         if (_argumentsAsLiterals)
+         object value;
+         if (expression.TryEvaluate(out value))
          {
-            return _formatter.FormatValue(value);
+            if (_argumentsAsLiterals)
+            {
+               return _formatter.FormatValue(value);
+            }
+            var name = member.Name + "_" + _key + "_";
+            _arguments.Add(name, value);
+            return _formatter.FormatParameter(name);
          }
-         var name = member.Name + "_" + _key + "_";
-         _arguments.Add(name,value);
-         return _formatter.FormatParameter(name);
+         var b = new SqlExpressionBuilder();
+         var c = new SqlBuilderContext(_formatter)
+         {
+            Arguments = _arguments,
+            ArgumentsAsLiterals = _argumentsAsLiterals
+         };
+         var r = b.BuildSql(c, expression);
+         return r.ToString();
       }
    }
 }

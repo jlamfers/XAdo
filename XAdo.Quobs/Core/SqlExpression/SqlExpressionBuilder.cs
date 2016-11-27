@@ -94,12 +94,22 @@ namespace XAdo.Quobs.Core.SqlExpression
       {
          if (context == null) throw new ArgumentNullException("context");
          if (expression == null) return context;
+         var lambda = expression as LambdaExpression;
+         if (lambda != null && lambda.Body.NodeType == ExpressionType.Constant && lambda.Body.Type == typeof (Boolean))
+         {
+            expression = NormalizeSqlConstantBooleanCompare((ConstantExpression)lambda.Body);
+         }
          Context = context;
          _writer = Context.Writer;
          _formatter = Context.Formatter;
          Visit(expression);
          return context;
 
+      }
+
+      private Expression NormalizeSqlConstantBooleanCompare(ConstantExpression expression)
+      {
+         return Expression.Equal(Expression.Constant(1), Expression.Constant((bool)expression.Value ? 1 : 0));
       }
 
       #region ExpressionVisitor Overrides
@@ -171,6 +181,19 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       protected override Expression VisitBinary(BinaryExpression exp)
       {
+         if (exp.NodeType == ExpressionType.AndAlso || exp.NodeType == ExpressionType.OrElse)
+         {
+            if (exp.Left.NodeType == ExpressionType.Constant || exp.Right.NodeType == ExpressionType.Constant)
+            {
+               var left = exp.Left.NodeType == ExpressionType.Constant
+                  ? NormalizeSqlConstantBooleanCompare(exp.Left.CastTo<ConstantExpression>())
+                  : exp.Left;
+               var right = exp.Right.NodeType == ExpressionType.Constant
+                  ? NormalizeSqlConstantBooleanCompare(exp.Right.CastTo<ConstantExpression>())
+                  : exp.Right;
+               return VisitBinary(Expression.MakeBinary(exp.NodeType, left, right));
+            }
+         }
 
          if (exp.NodeType == ExpressionType.Add)
          {

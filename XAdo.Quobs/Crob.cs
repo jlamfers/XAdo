@@ -17,19 +17,24 @@ namespace XAdo.Quobs
 
       private readonly ISqlFormatter _formatter;
       private readonly ISqlExecuter _executer;
-      private readonly bool _argumentsAsLiterls;
-      private UpdateExpressionCompiler.CompileResult _compileResult;
+      private bool _argumentsAsLiterls;
+      private SetExpressionCompiler.CompileResult _compileResult;
 
-      public Crob(ISqlExecuter executer, bool argumentsAsLiterls)
+      public Crob(ISqlExecuter executer)
       {
          _formatter = executer.GetSqlFormatter();
          _executer = executer;
-         _argumentsAsLiterls = argumentsAsLiterls;
       }
 
-      public virtual Crob<T> Add(Expression<Func<T>> expression)
+      public virtual Crob<T> ArgumentsAsLiterals()
       {
-         var compiler = new UpdateExpressionCompiler(_formatter);
+         _argumentsAsLiterls = true;
+         return this;
+      }
+
+      public virtual Crob<T> Set(Expression<Func<T>> expression)
+      {
+         var compiler = new SetExpressionCompiler(_formatter);
          _compileResult =  compiler.Compile(expression,_argumentsAsLiterls);
          return this;
       }

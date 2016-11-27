@@ -25,6 +25,13 @@ namespace XAdo.Quobs
          _binder = binder;
          _binderCompileResult = binderCompileResult;
       }
+
+      public virtual MappedQuob<T> ArgumentsAsLiterals()
+      {
+         _argumentsAsLiterals = true;
+         return this;
+      } 
+
       public virtual MappedQuob<T> Where(Expression<Func<T, bool>> whereClause)
       {
          this.CastTo<IQuob>().Where(whereClause);
@@ -105,7 +112,7 @@ namespace XAdo.Quobs
 
       protected override BaseQuob<T> CloneQuob()
       {
-         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo,x.JoinType)))).ToList(),ArgumentsAsLiterals);
+         return new MappedQuob<T>(Formatter, Executer, _binder, Descriptor.Clone(), _binderCompileResult, Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo,x.JoinType)))).ToList(),_argumentsAsLiterals);
       }
 
       public MappedQuob<T> Clone()
@@ -119,7 +126,7 @@ namespace XAdo.Quobs
       {
          if (expression == null) return this;
          var sqlBuilder = new MappedSqlExpressionBuilder(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
-         var context = new SqlBuilderContext(Formatter){ArgumentsAsLiterals = ArgumentsAsLiterals};
+         var context = new SqlBuilderContext(Formatter){ArgumentsAsLiterals = _argumentsAsLiterals};
 
          sqlBuilder.BuildSql(context, expression);
          Descriptor.WhereClausePredicates.Add(context.ToString());

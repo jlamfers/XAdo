@@ -158,27 +158,37 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Northwind.CreateSession().BeginUnitOfWork())
          {
-            db.Execute("delete FamilyPerson");
+            db.Delete<DbFamilyPerson>()
+               .Where(p => true)
+               .Apply();
+
             for (var i = 0; i < 1000; i++)
             {
                var i1 = i;
                db
-                  .Create<DbFamilyPerson>(true)
-                  .Add(() => new DbFamilyPerson {Id=i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
+                  .Create<DbFamilyPerson>()
+                  .ArgumentsAsLiterals()
+                  .Set(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1+0, MotherId = i1-0 })
                   .Apply();
             }
+
+            db.Delete<DbFamilyPerson>()
+              .Where(p => true)
+              .Apply();
+
             db.UnitOfWork.Flush(db);
             var sw = new Stopwatch();
-            db.Execute("delete FamilyPerson");
             sw.Start();
             for (var i = 0; i < 1000; i++)
             {
                var i1 = i;
                db
-                  .Create<DbFamilyPerson>(true)
-                  .Add(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .Create<DbFamilyPerson>()
+                  .ArgumentsAsLiterals()
+                  .Set(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
                   .Apply();
             }
+            //Debug.WriteLine(sw.ElapsedMilliseconds);
             db.UnitOfWork.Flush(db);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);

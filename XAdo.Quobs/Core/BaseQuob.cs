@@ -9,7 +9,7 @@ namespace XAdo.Quobs.Core
 {
    public abstract class BaseQuob<T> : ICloneable, ISqlBuilder
    {
-      protected readonly bool ArgumentsAsLiterals;
+      protected bool _argumentsAsLiterals;
 
       protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
       {
@@ -20,7 +20,7 @@ namespace XAdo.Quobs.Core
          Formatter = formatter;
          Executer = executer;
          Joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
-         ArgumentsAsLiterals = argumentsAsLiterals;
+         _argumentsAsLiterals = argumentsAsLiterals;
       }
 
       protected ISqlFormatter Formatter { get; set; }
@@ -49,7 +49,6 @@ namespace XAdo.Quobs.Core
             Descriptor = descriptor;
          }
       }
-
 
       public virtual int Count()
       {

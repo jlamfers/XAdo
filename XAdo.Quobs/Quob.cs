@@ -22,7 +22,7 @@ namespace XAdo.Quobs
       public virtual MappedQuob<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
          var result = PrepareMapExpression<TMapped>(mapExpression);
-         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins,ArgumentsAsLiterals);
+         return new MappedQuob<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins,_argumentsAsLiterals);
       }
 
       public virtual Quob<T> Distinct()
@@ -30,6 +30,12 @@ namespace XAdo.Quobs
          Descriptor.Distict = true;
          return this;
       }
+
+      public virtual Quob<T> ArgumentsAsLiterals()
+      {
+         _argumentsAsLiterals = true;
+         return this;
+      } 
 
 
       public virtual Quob<T> Where(Expression<Func<T, bool>> whereClause)
@@ -41,7 +47,7 @@ namespace XAdo.Quobs
       public virtual Quob<T> Having(Expression<Func<T, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter,Joins){ArgumentsAsLiterals = ArgumentsAsLiterals};
+         var context = new QuobContext(Formatter,Joins){ArgumentsAsLiterals = _argumentsAsLiterals};
 
          sqlBuilder.BuildSql(context, havingClause);
          Descriptor.AddJoins(context.QuobJoins);
@@ -150,7 +156,7 @@ namespace XAdo.Quobs
 
       protected override BaseQuob<T> CloneQuob()
       {
-         return new Quob<T>(Executer, ArgumentsAsLiterals) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
+         return new Quob<T>(Executer, _argumentsAsLiterals) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
       }
 
       public Quob<T> Clone()
@@ -181,7 +187,7 @@ namespace XAdo.Quobs
          {
             var q = (Quob<T>)quob;
             var result = q.PrepareMapExpression<TMapped>(expression);
-            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins,q.ArgumentsAsLiterals);
+            return new MappedQuob<TMapped>(q.Formatter, q.Executer, result.BinderExpression.Compile(), q.Descriptor, result, q.Joins,q._argumentsAsLiterals);
          }
       }
 

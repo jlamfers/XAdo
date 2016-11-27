@@ -81,17 +81,21 @@ namespace XAdo.Quobs
          }
       }
 
-      public static Quob<T> From<T>(this IAdoSession self, bool argumentsAsLiterals = false)
+      public static Quob<T> From<T>(this IAdoSession self)
       {
-         return new Quob<T>(new SqlExecuter(self), argumentsAsLiterals);
+         return new Quob<T>(new SqlExecuter(self), false);
       }
-      public static Upob<T> Update<T>(this IAdoSession self, bool argumentsAsLiterals = false)
+      public static Upob<T> Update<T>(this IAdoSession self)
       {
-         return new Upob<T>(new SqlExecuter(self), argumentsAsLiterals);
+         return new Upob<T>(new SqlExecuter(self));
       }
-      public static Crob<T> Create<T>(this IAdoSession self, bool argumentsAsLiterals = false)
+      public static Crob<T> Create<T>(this IAdoSession self)
       {
-         return new Crob<T>(new SqlExecuter(self), argumentsAsLiterals);
+         return new Crob<T>(new SqlExecuter(self));
+      }
+      public static Deob<T> Delete<T>(this IAdoSession self)
+      {
+         return new Deob<T>(new SqlExecuter(self));
       }
 
       public static T Connect<T>(this IAdoSession self, T quob)
