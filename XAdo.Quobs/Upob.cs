@@ -60,13 +60,13 @@ namespace XAdo.Quobs
          var args = GetArguments();
          var result = -1L;
 
-         if (!_executer.HasUnitOfWork)
+         if (!_executer.HasSqlQueue)
          {
             result = _executer.Execute(sql, args);
          }
          else
          {
-            _executer.RegisterWork(sql, args);
+            _executer.EnqueueSql(sql, args);
          }
 
          CompileResult = null;

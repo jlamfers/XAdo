@@ -59,16 +59,16 @@ namespace XAdo.Quobs
             return _session.Execute(sql, args);
          }
 
-         public bool HasUnitOfWork
+         public bool HasSqlQueue
          {
-            get { return _session.SqlCommand != null; }
+            get { return _session.HasSqlQueue; }
          }
 
-         public bool RegisterWork(string sql, IDictionary<string, object> args)
+         public bool EnqueueSql(string sql, IDictionary<string, object> args)
          {
-            if (_session.SqlCommand != null)
+            if (_session.HasSqlQueue)
             {
-               _session.SqlCommand.Register(sql, args);
+               _session.EnqueueSql(sql, args);
                return true;
             }
             return false;

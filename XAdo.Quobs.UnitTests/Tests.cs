@@ -123,8 +123,10 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MonkeyTest4()
       {
-         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
+         using (var db = Db.Northwind.CreateSession())
          {
+            var trq = db.BeginSqlQueue();
+
             var u = db
                .Update<DbPerson>()
                .From(() => new DbPerson {BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep"});
@@ -156,8 +158,11 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MultiInsertTest()
       {
-         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
+         using (var db = Db.Northwind.CreateSession())
          {
+
+            var trq = db.BeginSqlQueue();
+
             db.Delete<DbFamilyPerson>()
                .Where(p => true)
                .Apply();
@@ -176,7 +181,7 @@ namespace XAdo.Quobs.UnitTests
               .Where(p => true)
               .Apply();
 
-            db.SqlCommand.Flush();
+            db.FlushSql();
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
@@ -190,7 +195,7 @@ namespace XAdo.Quobs.UnitTests
                   .Apply();
             }
             //Debug.WriteLine(sw.ElapsedMilliseconds);
-            db.SqlCommand.Flush();
+            db.FlushSql();
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
@@ -199,8 +204,10 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MultiInsertTest2()
       {
-         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
+         using (var db = Db.Northwind.CreateSession())
          {
+            var trq = db.BeginSqlQueue();
+
             db.Delete<DbFamilyPerson>()
                .Where(p => true)
                .Apply();
@@ -219,10 +226,7 @@ namespace XAdo.Quobs.UnitTests
               .Where(p => true)
               .Apply();
 
-            db.SqlCommand.Flush();
-
-            db.BeginSqlCommand();
-            
+            db.FlushSql();
 
             
             var sw = new Stopwatch();
@@ -237,7 +241,7 @@ namespace XAdo.Quobs.UnitTests
                   .From(() => new DbFamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
                   .Apply();
             }
-            db.SqlCommand.Flush();
+            db.FlushSql();
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);

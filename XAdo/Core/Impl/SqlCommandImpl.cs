@@ -7,31 +7,23 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-   public class SqlCommandImpl : ISqlCommand
+   public class SqlCommandImpl : ISqlCommandQueue
    {
-      private IAdoSession _session;
 
       private readonly List<Tuple<string,IDictionary<string,object>>>
          _commands = new List<Tuple<string, IDictionary<string, object>>>();
 
-      public ISqlCommand Attach(IAdoSession session)
-      {
-         if (session == null) throw new ArgumentNullException("session");
-         _session = session;
-         return this;
-      }
 
-
-      public virtual ISqlCommand Register(string sql,  IDictionary<string, object> args = null)
+      public virtual ISqlCommandQueue Enqueue(string sql,  IDictionary<string, object> args = null)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          _commands.Add(Tuple.Create(sql,args));
          return this;
       }
 
-      public ISqlCommand Register(string sql, object args)
+      public ISqlCommandQueue Enqueue(string sql, object args)
       {
-         return Register(sql, ToDictionary(args));
+         return Enqueue(sql, ToDictionary(args));
       }
 
       private static IDictionary<string, object> ToDictionary(object args)
@@ -44,8 +36,10 @@ namespace XAdo.Core.Impl
 
       internal protected virtual string Seperator { get; set; }
 
-      public virtual ISqlCommand Flush()
+      public virtual ISqlCommandQueue Flush(IAdoSession session)
       {
+         if (session == null) throw new ArgumentNullException("session");
+
          if (!_commands.Any())
          {
             return this;
@@ -77,24 +71,24 @@ namespace XAdo.Core.Impl
          }
          if (list.Count == 1)
          {
-            _session.Execute(list[0].Item1.ToString(), list[0].Item2);
+            session.Execute(list[0].Item1.ToString(), list[0].Item2);
          }
          else
          {
-            if (!_session.HasTransaction)
+            if (!session.HasTransaction)
             {
-               _session.BeginTransaction();
+               var tr = session.BeginTransaction();
                try
                {
                   foreach (var items in list)
                   {
-                     _session.Execute(items.Item1.ToString(), items.Item2);
+                     session.Execute(items.Item1.ToString(), items.Item2);
                   }
-                  _session.Commit();
+                  tr.Commit();
                }
                catch
                {
-                  _session.Rollback();
+                  tr.Rollback();
                   throw;
                }
             }
@@ -104,15 +98,15 @@ namespace XAdo.Core.Impl
          return this;
       }
 
-      public virtual ISqlCommand Clear()
+      public virtual ISqlCommandQueue Clear()
       {
          _commands.Clear();
          return this;
       }
 
-      public virtual bool HasWork
+      public virtual int Count
       {
-         get { return _commands.Count > 0; }
+         get { return _commands.Count; }
       }
 
       public IEnumerator<Tuple<string, IDictionary<string, object>>> GetEnumerator()

@@ -46,7 +46,11 @@ namespace XAdo.Core.Impl
             _autoCommit;
 
         private bool 
-           _autoCommitSqlCommand;
+           _autoCommitSqlQueue;
+
+        private ISqlCommandQueue 
+           _sqlQueue;
+
 
        private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
 
@@ -115,7 +119,6 @@ namespace XAdo.Core.Impl
 
         public AdoContext Context { get; private set; }
 
-       public ISqlCommand SqlCommand { get; private set; }
 
        public IDictionary<object, object> Items
        {
@@ -262,56 +265,95 @@ namespace XAdo.Core.Impl
                 return _tr != null;
             }
         }
+        public virtual bool HasSqlQueue
+        {
+           get
+           {
+              EnsureNotDisposed();
+              return _sqlQueue != null;
+           }
+        }
 
-        public virtual IAdoSession BeginTransaction(bool autoCommit = false)
+       public IAdoSession EnqueueSql(string sql, object args)
+       {
+          EnsureNotDisposed();
+          EnsureSqlQueue();
+          var dict = args as IDictionary<string, object>;
+          if (dict != null)
+          {
+             _sqlQueue.Enqueue(sql, dict);
+          }
+          else
+          {
+             _sqlQueue.Enqueue(sql, args);
+          }
+          return this;
+       }
+
+       public bool FlushSql()
+       {
+          EnsureNotDisposed();
+          if (_sqlQueue != null && _sqlQueue.Count > 0)
+          {
+             _sqlQueue.Flush(this);
+             return true;
+          }
+          return false;
+       }
+
+       public virtual IAtomic BeginTransaction(bool autoCommit = false)
         {
             EnsureNotDisposed();
             EnsureNoTransaction();
             EnsureConnectionIsOpen();
             _autoCommit = autoCommit;
             _tr = LazyInitializedConnection.BeginTransaction();
-            return this;
+            return new Atomic(Commit, Rollback);
         }
+       public virtual IAtomic BeginSqlQueue(bool autoCommit = true)
+       {
+          EnsureNotDisposed();
+          EnsureNoSqlQueue();
+          _autoCommitSqlQueue = autoCommit;
+          if (_sqlQueue == null)
+          {
+             _sqlQueue = _binder.Get<ISqlCommandQueue>();
+          }
+          return new Atomic(CommitSqlQueue,RollbackSqlQueue);
+       }
 
-       public IAdoSession BeginSqlCommand(bool autoCommit = true)
+       protected virtual bool CommitSqlQueue()
        {
-          _autoCommitSqlCommand = autoCommit;
-          if (SqlCommand == null)
+          EnsureNotDisposed();
+          _autoCommitSqlQueue = false;
+          var sqlqueue = _sqlQueue;
+          _sqlQueue = null;
+          if (sqlqueue != null && sqlqueue.Count > 0)
           {
-             SqlCommand = _binder.Get<ISqlCommand>().Attach(this);
+             sqlqueue.Flush(this);
+             return true;
           }
-          return this;
+          return false;
        }
-       public IAdoSession CommitSqlCommand()
+       protected virtual bool RollbackSqlQueue()
        {
-          _autoCommitSqlCommand = false;
-          var sqlcmd = SqlCommand;
-          SqlCommand = null;
-          if (sqlcmd != null)
-          {
-             sqlcmd.Flush();
-          }
-          return this;
-       }
-       public IAdoSession RollbackSqlCommand()
-       {
-          _autoCommitSqlCommand = false;
-          var sqlcmd = SqlCommand;
-          SqlCommand = null;
-          if (sqlcmd != null)
+          _autoCommitSqlQueue = false;
+          var sqlcmd = _sqlQueue;
+          _sqlQueue = null;
+          if (sqlcmd != null && sqlcmd.Count > 0)
           {
              sqlcmd.Clear();
+             return true;
           }
-          return this;
+          return false;
        }
 
-
-       public virtual bool Commit()
+       protected virtual bool Commit()
         {
             EnsureNotDisposed();
             _autoCommit = false;
-            var hadWork = SqlCommand != null && SqlCommand.HasWork;
-          CommitSqlCommand();
+            var hadWork = _sqlQueue != null && _sqlQueue.Count > 0;
+          CommitSqlQueue();
           var tr = _tr;
             _tr = null;
            if (tr == null) return hadWork;
@@ -325,11 +367,11 @@ namespace XAdo.Core.Impl
             }
             return true;
         }
-        public virtual bool Rollback()
+       protected virtual bool Rollback()
         {
             _autoCommit = false;
-            var hadWork = SqlCommand != null && SqlCommand.HasWork;
-           RollbackSqlCommand();
+            var hadWork = _sqlQueue != null && _sqlQueue.Count > 0;
+            RollbackSqlQueue();
             var tr = _tr;
             _tr = null;
             if (tr == null) return hadWork;
@@ -357,11 +399,11 @@ namespace XAdo.Core.Impl
              return;
           }
 
-          if (!HasTransaction && _autoCommitSqlCommand)
+          if (!HasTransaction && _autoCommitSqlQueue)
           {
              try
              {
-                CommitSqlCommand();
+                CommitSqlQueue();
              }
              finally
              {
@@ -374,9 +416,9 @@ namespace XAdo.Core.Impl
           {
              try
              {
-                if (_autoCommitSqlCommand)
+                if (_autoCommitSqlQueue)
                 {
-                   CommitSqlCommand();
+                   CommitSqlQueue();
                 }
                 Commit();
              }
@@ -452,6 +494,20 @@ namespace XAdo.Core.Impl
             {
                 throw new AdoException("Transaction cannot be started more than once");
             }
+        }
+        private void EnsureNoSqlQueue()
+        {
+           if (_sqlQueue != null)
+           {
+              throw new AdoException("SQL queue cannot be started more than once");
+           }
+        }
+        private void EnsureSqlQueue()
+        {
+           if (_sqlQueue == null)
+           {
+              throw new AdoException("No SQL queue available. Commands cannot be enqueued");
+           }
         }
 
         private void EnsureConnectionIsOpen()

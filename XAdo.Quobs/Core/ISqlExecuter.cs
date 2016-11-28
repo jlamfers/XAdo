@@ -14,8 +14,8 @@ namespace XAdo.Quobs.Core
       IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, out int count);
       IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> binder, IDictionary<string, object> args, out int count);
       int Execute(string sql, IDictionary<string, object> args);
-      bool HasUnitOfWork { get; }
-      bool RegisterWork(string sql, IDictionary<string,object> args);
+      bool HasSqlQueue { get; }
+      bool EnqueueSql(string sql, IDictionary<string,object> args);
       ISqlFormatter GetSqlFormatter();
    }
 }

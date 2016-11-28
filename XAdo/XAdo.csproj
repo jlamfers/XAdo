@@ -43,6 +43,7 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Atomic.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\GetterSetterUtil.cs">
@@ -54,6 +55,7 @@
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
     <Compile Include="Core\Impl\AdoParameterFactoryWithStringSanitizeImpl.cs" />
     <Compile Include="Core\Impl\GetterFactory.cs" />
+    <Compile Include="Core\Interface\IAtomic.cs" />
     <Compile Include="Core\Interface\IGetterFactory.cs" />
     <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
     <Compile Include="Core\Interface\IAdoRow.cs" />
@@ -120,7 +122,7 @@
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\Interface\ISqlCommand.cs" />
+    <Compile Include="Core\Interface\ISqlCommandQueue.cs" />
     <Compile Include="Core\Impl\SqlCommandImpl.cs" />
   </ItemGroup>
   <ItemGroup />

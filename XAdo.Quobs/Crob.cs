@@ -44,19 +44,19 @@ namespace XAdo.Quobs
       {
          if (_compileResult == null) return -1L;
 
-         _hasIdentityReturn = _hasDbGeneratedIdentity && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasUnitOfWork;
+         _hasIdentityReturn = _hasDbGeneratedIdentity && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasSqlQueue;
 
          var sql = GetSql();
          var args = GetArguments();
          long result = -1L;
 
-         if (!_executer.HasUnitOfWork)
+         if (!_executer.HasSqlQueue)
          {
             result = _hasIdentityReturn ? _executer.ExecuteScalar<long>(sql, args) : _executer.Execute(sql, args);
          }
          else
          {
-            _executer.RegisterWork(sql, args);
+            _executer.EnqueueSql(sql, args);
          }
 
          _compileResult = null;
