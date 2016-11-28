@@ -16,9 +16,10 @@ namespace XAdo.Quobs.UnitTests
       public string NameFirst { get; set; }
       public string NameLast { get; set; }
    }
+
    [TestFixture]
-    public class Tests
-    {
+   public class Tests
+   {
       [Test]
       public void MoneyTest()
       {
@@ -27,7 +28,7 @@ namespace XAdo.Quobs.UnitTests
          {
             mq = s
                .From<DbPerson>()
-               .Select(p => new Person{NameFirst=p.FirstName, NameLast=p.LastName})
+               .Select(p => new Person {NameFirst = p.FirstName, NameLast = p.LastName})
                .Where(p => p.NameFirst.Contains("e"));
             var sql = mq.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
@@ -39,20 +40,20 @@ namespace XAdo.Quobs.UnitTests
                select new {p.FirstName, p.LastName, p.EmailPromotion};
 
             var qlist = qq.ToList();
-               
+
 
 
             mq.ToList();
 
             var list = s
                .From<DbPerson>()
-               .Select(p => new {Name = p.FirstName + " "+p.LastName})
+               .Select(p => new {Name = p.FirstName + " " + p.LastName})
                .ToList();
 
             var q = s
                .From<DbPerson>()
                .GroupBy(p => p.LastName)
-               .Having(p => p.LastName.Count().Between(100,150))
+               .Having(p => p.LastName.Count().Between(100, 150))
                .Select(p => new {p.LastName, Count = p.LastName.Count()})
                .OrderByDescending(p => p.Count)
                .AddOrderBy(p => p.LastName);
@@ -67,7 +68,7 @@ namespace XAdo.Quobs.UnitTests
             mq = s.From(mq);
             mq.ToList();
          }
-         
+
       }
 
       [Test]
@@ -80,10 +81,10 @@ namespace XAdo.Quobs.UnitTests
                .From<DbFamilyPerson>()
                .Select(p => new
                {
-                 
+
                   p.Name,
                   Father = p.FatherId != null ? new {p.Father(JoinType.Left).Name} : null,
-                  Mother = p.MotherId != null ? new {p.Mother(JoinType.Left).Name } : null,
+                  Mother = p.MotherId != null ? new {p.Mother(JoinType.Left).Name} : null,
                });
 
             var sql = q.CastTo<ISqlBuilder>().GetSql();
@@ -104,7 +105,7 @@ namespace XAdo.Quobs.UnitTests
                //var q3 = q.Clone();
                var q2 = q.Clone().Where(p => p.Father.Name.Contains("K"));
                sql = q2.CastTo<ISqlBuilder>().GetSql();
-               
+
             }
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -131,7 +132,7 @@ namespace XAdo.Quobs.UnitTests
                .Update<DbPerson>()
                .From(() => new DbPerson {BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep"});
 
-            
+
             var sql = u.CastTo<ISqlBuilder>().GetSql();
 
             var result = u.Apply();
@@ -144,7 +145,7 @@ namespace XAdo.Quobs.UnitTests
             {
                u = db
                   .Update<DbPerson>()
-                  .From(() => new DbPerson { BusinessEntityID = 989898989, FirstName = "Tim" })
+                  .From(() => new DbPerson {BusinessEntityID = 989898989, FirstName = "Tim"})
                   .Where(p => p.FirstName.Contains("Timmetje"));
 
                sql = u.CastTo<ISqlBuilder>().GetSql();
@@ -173,13 +174,13 @@ namespace XAdo.Quobs.UnitTests
                db
                   .Insert<DbFamilyPerson>()
                   .WithArgumentsAsLiterals()
-                  .From(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .From(() => new DbFamilyPerson {Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
                   .Apply();
             }
 
             db.Delete<DbFamilyPerson>()
-              .Where(p => true)
-              .Apply();
+               .Where(p => true)
+               .Apply();
 
             db.FlushSql();
             var sw = new Stopwatch();
@@ -191,7 +192,7 @@ namespace XAdo.Quobs.UnitTests
                db
                   .Insert<DbFamilyPerson>()
                   .WithArgumentsAsLiterals()
-                  .From(() => new DbFamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .From(() => new DbFamilyPerson {Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1})
                   .Apply();
             }
             //Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -206,6 +207,7 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Northwind.CreateSession())
          {
+            var tr = db.BeginTransaction(true);
             var trq = db.BeginSqlQueue();
 
             db.Delete<DbFamilyPerson>()
@@ -218,17 +220,17 @@ namespace XAdo.Quobs.UnitTests
                db
                   .Insert<DbFamilyPerson>()
                   .WithArgumentsAsLiterals()
-                  .From(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .From(() => new DbFamilyPerson {Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
                   .Apply();
             }
 
             db.Delete<DbFamilyPerson>()
-              .Where(p => true)
-              .Apply();
+               .Where(p => true)
+               .Apply();
 
             db.FlushSql();
 
-            
+
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
@@ -238,14 +240,24 @@ namespace XAdo.Quobs.UnitTests
                db
                   .Insert<DbFamilyPerson>()
                   .WithArgumentsAsLiterals()
-                  .From(() => new DbFamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .From(() => new DbFamilyPerson {Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1})
                   .Apply();
             }
-            db.FlushSql();
+            //tr.Commit();
+            //db.FlushSql();
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
       }
-    }
+
+      [Test]
+      public void TestEmptyTransaction()
+      {
+         using (var db = Db.Northwind.CreateSession())
+         {
+            var tr = db.BeginTransaction(true);
+         }
+      }
+   }
 }

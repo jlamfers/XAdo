@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using XAdo.Core.Interface;
 
@@ -10,14 +11,15 @@ namespace XAdo.Core.Impl
 {
     // An ADO session hides connection (and transaction) management, and keeps a connection and its transaction together
     // if needed: the interface IAdoConnectionProvider exposes the inner connection and transaction
+   //  both connection and transaction are created on first need (lazy)
 
     public partial class AdoSessionImpl : IAdoSession, IAdoConnectionProvider, IAdoSessionInitializer
     {
        private readonly IAdoConnectionFactory
             _connectionFactory;
 
-        private IDbTransaction
-            _tr;
+       private Lazy<IDbConnection> _cn;
+       private Lazy<IDbTransaction> _tr;
 
         private int?
             _commandTimeout;
@@ -33,7 +35,6 @@ namespace XAdo.Core.Impl
 
        private readonly IAdoClassBinder _binder;
 
-       private IDbConnection _cn;
 
         private bool _keepConectionOpen;
         private string _connectionString;
@@ -54,9 +55,10 @@ namespace XAdo.Core.Impl
 
        private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
 
-       private IDbConnection LazyInitializedConnection
+       private Lazy<IDbConnection> LazyConnection
         {
-            get
+           [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+           get
             {
                 if (_cn != null) return _cn;
 
@@ -65,7 +67,14 @@ namespace XAdo.Core.Impl
                     throw new AdoException("AdoSession has not been initialized yet.");
                 }
 
-                return _cn = _connectionFactory.CreateConnection(_connectionString, _providerName, _keepConectionOpen);
+                _cn = new Lazy<IDbConnection>(() => _connectionFactory.CreateConnection(_connectionString, _providerName, _keepConectionOpen));
+
+               if (_tr != null)
+               {
+                  _tr.Value.GetType();
+               }
+
+               return _cn;
             }
         }
 
@@ -130,14 +139,14 @@ namespace XAdo.Core.Impl
        public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            return _connectionQueryManager.ExecuteScalar<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
+            return _connectionQueryManager.ExecuteScalar<T>(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType);
         }
 
         public virtual object ExecuteScalar(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            return _connectionQueryManager.ExecuteScalar(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
+            return _connectionQueryManager.ExecuteScalar(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType);
         }
 
@@ -145,7 +154,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query<T>(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query<T>(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -153,7 +162,7 @@ namespace XAdo.Core.Impl
         public virtual IEnumerable<T> Query<T>(string sql, Func<IDataRecord, T> factory, object param = null, bool buffered = true, CommandType? commandType = null)
        {
           EnsureNotDisposed();
-          var enumerable = _connectionQueryManager.Query<T>(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout, commandType);
+          var enumerable = _connectionQueryManager.Query<T>(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
           return buffered ? enumerable.ToList() : enumerable;
        }
 
@@ -161,7 +170,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -169,7 +178,7 @@ namespace XAdo.Core.Impl
         public virtual AdoMultiResultReader QueryMultiple(string sql, object param = null,CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            return _connectionQueryManager.QueryMultiple(LazyInitializedConnection, sql, param, _tr, _commandTimeout,
+            return _connectionQueryManager.QueryMultiple(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
 
         }
@@ -178,14 +187,14 @@ namespace XAdo.Core.Impl
           CommandType? commandType = null)
        {
           EnsureNotDisposed();
-          return _connectionQueryManager.QueryMultiple(LazyInitializedConnection, sql, factories, param, _tr, _commandTimeout, commandType);
+          return _connectionQueryManager.QueryMultiple(LazyConnection.Value, sql, factories, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
        }
 
        public virtual IEnumerable<TResult> Query<T1, T2, TResult>(string sql, Func<T1, T2, TResult> factory,
             object param = null, bool buffered = true, CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -194,7 +203,7 @@ namespace XAdo.Core.Impl
             object param = null, bool buffered = true, CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -204,7 +213,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -214,7 +223,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -224,7 +233,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -234,7 +243,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -244,7 +253,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            var enumerable = _connectionQueryManager.Query(LazyInitializedConnection, sql, factory, param, _tr, _commandTimeout,
+            var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
         }
@@ -252,7 +261,7 @@ namespace XAdo.Core.Impl
         public virtual int Execute(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
-            return _connectionQueryManager.Execute(LazyInitializedConnection, sql, param, _tr, _commandTimeout, commandType);
+            return _connectionQueryManager.Execute(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
         }
 
         #region Transaction
@@ -305,9 +314,8 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             EnsureNoTransaction();
-            EnsureConnectionIsOpen();
             _autoCommit = autoCommit;
-            _tr = LazyInitializedConnection.BeginTransaction();
+            _tr = new Lazy<IDbTransaction>(() => EnsureConnectionIsOpen(LazyConnection.Value).BeginTransaction());
             return new Atomic(Commit, Rollback);
         }
        public virtual IAtomic BeginSqlQueue(bool autoCommit = true)
@@ -356,14 +364,14 @@ namespace XAdo.Core.Impl
           CommitSqlQueue();
           var tr = _tr;
             _tr = null;
-           if (tr == null) return hadWork;
+           if (tr == null || !tr.IsValueCreated) return hadWork;
             try
             {
-                tr.Commit();
+                tr.Value.Commit();
             }
             finally
             {
-                tr.Dispose();
+                tr.Value.Dispose();
             }
             return true;
         }
@@ -374,14 +382,14 @@ namespace XAdo.Core.Impl
             RollbackSqlQueue();
             var tr = _tr;
             _tr = null;
-            if (tr == null) return hadWork;
+            if (tr == null || !tr.IsValueCreated) return hadWork;
             try
             {
-                tr.Rollback();
+                tr.Value.Rollback();
             }
             finally
             {
-                tr.Dispose();
+                tr.Value.Dispose();
             }
             return true;
         }
@@ -444,20 +452,20 @@ namespace XAdo.Core.Impl
             _tr = null;
             try
             {
-                if (tr != null)
+                if (tr != null && tr.IsValueCreated)
                 {
-                    tr.Rollback();
+                    tr.Value.Rollback();
                 }
             }
             finally
             {
-                if (tr != null)
+                if (tr != null && tr.IsValueCreated)
                 {
-                    tr.Dispose();
+                    tr.Value.Dispose();
                 }
-                if (cn != null)
+                if (cn != null && cn.IsValueCreated)
                 {
-                    cn.Dispose();
+                    cn.Value.Dispose();
                 }
             }
         }
@@ -468,12 +476,12 @@ namespace XAdo.Core.Impl
 
         public virtual IDbConnection Connection
         {
-            get { return _cn; }
+            get { return _cn.Value; }
         }
 
         public virtual IDbTransaction Transaction
         {
-            get { return _tr; }
+            get { return _tr != null ? _tr.Value : null; }
         }
 
         #endregion
@@ -510,13 +518,14 @@ namespace XAdo.Core.Impl
            }
         }
 
-        private void EnsureConnectionIsOpen()
+        private IDbConnection EnsureConnectionIsOpen(IDbConnection cn)
         {
-            if (LazyInitializedConnection.State != ConnectionState.Open)
-            {
-                LazyInitializedConnection.Close();
-                LazyInitializedConnection.Open();
-            }
+           if (cn.State != ConnectionState.Open)
+           {
+              cn.Close();
+              cn.Open();
+           }
+           return cn;
         }
 
         #endregion
