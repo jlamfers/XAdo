@@ -28,14 +28,14 @@ namespace XAdo.Quobs
          _executer = executer;
       }
 
-      public virtual Upob<T> ArgumentsAsLiterals()
+      public virtual Upob<T> WithArgumentsAsLiterals()
       {
          _argumentsAsLiterls = true;
          return this;
       }
 
 
-      public virtual Upob<T> Set(Expression<Func<T>> expression)
+      public virtual Upob<T> From(Expression<Func<T>> expression)
       {
          Expression = expression;
          var compiler = new SetExpressionCompiler(Formatter);
@@ -52,15 +52,15 @@ namespace XAdo.Quobs
          SqlBuilderContext =  sqlBuilder.BuildSql(context, expression);
          return this;
       }
-      public virtual object Apply(bool enforceExecute = false)
+      public virtual long Apply()
       {
-         if (!HasSql()) return null;
+         if (!HasSql()) return -1L;
 
          var sql = GetSql();
          var args = GetArguments();
-         object result = null;
+         var result = -1L;
 
-         if (enforceExecute || !_executer.HasUnitOfWork)
+         if (!_executer.HasUnitOfWork)
          {
             result = _executer.Execute(sql, args);
          }

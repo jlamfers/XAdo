@@ -64,5 +64,41 @@ namespace XAdo.Quobs.UnitTests
          }
 
       }
+
+      [Test]
+      public void MonkeyTest2()
+      {
+         using (var ctx = new AW())
+         {
+            ctx.Configuration.AutoDetectChangesEnabled = false;
+            ctx.Configuration.ValidateOnSaveEnabled = false;
+            int id = ctx.FamilyPersons.Max(p => p.Id) + 1;
+            var sw = new Stopwatch();
+            ctx.FamilyPersons.Add(new FamilyPerson
+            {
+               Id = id + 1,
+               Name = (id + 1).ToString(),
+               FatherId = id + 1,
+               MotherId = id + 1
+            });
+            ctx.SaveChanges();
+            id++;
+            sw.Start();
+            for (var i = 1; i <= 1000; i++)
+            {
+               var p = new FamilyPerson
+               {
+                  Id = id + i,
+                  Name = (id + i).ToString(),
+                  FatherId = id + i,
+                  MotherId = id + i
+               };
+               ctx.FamilyPersons.Add(p);
+               ctx.SaveChanges();
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
    }
 }

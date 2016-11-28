@@ -26,13 +26,13 @@ namespace XAdo.Quobs
          _executer = executer;
       }
 
-      public virtual Crob<T> ArgumentsAsLiterals()
+      public virtual Crob<T> WithArgumentsAsLiterals()
       {
          _argumentsAsLiterls = true;
          return this;
       }
 
-      public virtual Crob<T> Set(Expression<Func<T>> expression)
+      public virtual Crob<T> From(Expression<Func<T>> expression)
       {
          var compiler = new SetExpressionCompiler(_formatter);
          _compileResult =  compiler.Compile(expression,_argumentsAsLiterls);
@@ -40,19 +40,19 @@ namespace XAdo.Quobs
       }
 
       private bool _hasIdentityReturn;
-      public virtual object Apply(bool enforceExecute = false)
+      public virtual long Apply()
       {
-         if (_compileResult == null) return null;
+         if (_compileResult == null) return -1L;
 
-         _hasIdentityReturn = _hasDbGeneratedIdentity && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && (enforceExecute || !_executer.HasUnitOfWork);
+         _hasIdentityReturn = _hasDbGeneratedIdentity && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasUnitOfWork;
 
          var sql = GetSql();
          var args = GetArguments();
-         object result = null;
+         long result = -1L;
 
-         if (enforceExecute || !_executer.HasUnitOfWork)
+         if (!_executer.HasUnitOfWork)
          {
-            result = _hasIdentityReturn ? _executer.ExecuteScalar<object>(sql, args) : _executer.Execute(sql, args);
+            result = _hasIdentityReturn ? _executer.ExecuteScalar<long>(sql, args) : _executer.Execute(sql, args);
          }
          else
          {

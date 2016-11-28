@@ -46,7 +46,7 @@ namespace XAdo.Core.Impl
             _autoCommit;
 
         private bool 
-           _autoCommitUnitOfWork;
+           _autoCommitSqlCommand;
 
        private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
 
@@ -115,7 +115,7 @@ namespace XAdo.Core.Impl
 
         public AdoContext Context { get; private set; }
 
-       public IUnitOfWork UnitOfWork { get; private set; }
+       public ISqlCommand SqlCommand { get; private set; }
 
        public IDictionary<object, object> Items
        {
@@ -273,34 +273,34 @@ namespace XAdo.Core.Impl
             return this;
         }
 
-       public IAdoSession BeginUnitOfWork(bool autoCommit = true)
+       public IAdoSession BeginSqlCommand(bool autoCommit = true)
        {
-          _autoCommitUnitOfWork = autoCommit;
-          if (UnitOfWork == null)
+          _autoCommitSqlCommand = autoCommit;
+          if (SqlCommand == null)
           {
-             UnitOfWork = _binder.Get<IUnitOfWork>();
+             SqlCommand = _binder.Get<ISqlCommand>().Attach(this);
           }
           return this;
        }
-       public IAdoSession CommitUnitOfWork()
+       public IAdoSession CommitSqlCommand()
        {
-          _autoCommitUnitOfWork = false;
-          var uow = UnitOfWork;
-          UnitOfWork = null;
-          if (uow != null)
+          _autoCommitSqlCommand = false;
+          var sqlcmd = SqlCommand;
+          SqlCommand = null;
+          if (sqlcmd != null)
           {
-             uow.Flush(this);
+             sqlcmd.Flush();
           }
           return this;
        }
-       public IAdoSession RollbackUnitOfWork()
+       public IAdoSession RollbackSqlCommand()
        {
-          _autoCommitUnitOfWork = false;
-          var uow = UnitOfWork;
-          UnitOfWork = null;
-          if (uow != null)
+          _autoCommitSqlCommand = false;
+          var sqlcmd = SqlCommand;
+          SqlCommand = null;
+          if (sqlcmd != null)
           {
-             uow.Clear();
+             sqlcmd.Clear();
           }
           return this;
        }
@@ -310,8 +310,8 @@ namespace XAdo.Core.Impl
         {
             EnsureNotDisposed();
             _autoCommit = false;
-            var hadWork = UnitOfWork != null && UnitOfWork.HasWork;
-          CommitUnitOfWork();
+            var hadWork = SqlCommand != null && SqlCommand.HasWork;
+          CommitSqlCommand();
           var tr = _tr;
             _tr = null;
            if (tr == null) return hadWork;
@@ -328,8 +328,8 @@ namespace XAdo.Core.Impl
         public virtual bool Rollback()
         {
             _autoCommit = false;
-            var hadWork = UnitOfWork != null && UnitOfWork.HasWork;
-           RollbackUnitOfWork();
+            var hadWork = SqlCommand != null && SqlCommand.HasWork;
+           RollbackSqlCommand();
             var tr = _tr;
             _tr = null;
             if (tr == null) return hadWork;
@@ -357,11 +357,11 @@ namespace XAdo.Core.Impl
              return;
           }
 
-          if (!HasTransaction && _autoCommitUnitOfWork)
+          if (!HasTransaction && _autoCommitSqlCommand)
           {
              try
              {
-                CommitUnitOfWork();
+                CommitSqlCommand();
              }
              finally
              {
@@ -374,9 +374,9 @@ namespace XAdo.Core.Impl
           {
              try
              {
-                if (_autoCommitUnitOfWork)
+                if (_autoCommitSqlCommand)
                 {
-                   CommitUnitOfWork();
+                   CommitSqlCommand();
                 }
                 Commit();
              }

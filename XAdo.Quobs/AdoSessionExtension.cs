@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Linq.Expressions;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
@@ -62,14 +61,14 @@ namespace XAdo.Quobs
 
          public bool HasUnitOfWork
          {
-            get { return _session.UnitOfWork != null; }
+            get { return _session.SqlCommand != null; }
          }
 
          public bool RegisterWork(string sql, IDictionary<string, object> args)
          {
-            if (_session.UnitOfWork != null)
+            if (_session.SqlCommand != null)
             {
-               _session.UnitOfWork.Register(sql, args);
+               _session.SqlCommand.Register(sql, args);
                return true;
             }
             return false;
@@ -85,11 +84,15 @@ namespace XAdo.Quobs
       {
          return new Quob<T>(new SqlExecuter(self), false);
       }
+      public static T From<T>(this IAdoSession self, T quob) where T : IQuob
+      {
+         return (T)quob.Connect(new SqlExecuter(self));
+      }
       public static Upob<T> Update<T>(this IAdoSession self)
       {
          return new Upob<T>(new SqlExecuter(self));
       }
-      public static Crob<T> Create<T>(this IAdoSession self)
+      public static Crob<T> Insert<T>(this IAdoSession self)
       {
          return new Crob<T>(new SqlExecuter(self));
       }
@@ -98,11 +101,6 @@ namespace XAdo.Quobs
          return new Deob<T>(new SqlExecuter(self));
       }
 
-      public static T Connect<T>(this IAdoSession self, T quob)
-         where T : IQuob
-      {
-         return (T) quob.Connect(new SqlExecuter(self));
-      }
 
       public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
       {

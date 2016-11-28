@@ -194,7 +194,7 @@ namespace XAdo
          TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();
          TryBindSingleton(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
          TryBindSingleton<IAdoParamHelper, AdoParamHelperImpl>();
-         TryBind<IUnitOfWork>(b => new UnitOfWorkImpl{Seperator = StatementSeperator});
+         TryBind<ISqlCommand>(b => new SqlCommandImpl{Seperator = StatementSeperator});
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
 

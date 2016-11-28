@@ -64,7 +64,7 @@ namespace XAdo.Quobs.UnitTests
          }
          using (var s = Db.Northwind.CreateSession())
          {
-            mq = s.Connect(mq);
+            mq = s.From(mq);
             mq.ToList();
          }
          
@@ -123,11 +123,11 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MonkeyTest4()
       {
-         using (var db = Db.Northwind.CreateSession().BeginUnitOfWork())
+         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
          {
             var u = db
                .Update<DbPerson>()
-               .Set(() => new DbPerson {BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep"});
+               .From(() => new DbPerson {BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep"});
 
             
             var sql = u.CastTo<ISqlBuilder>().GetSql();
@@ -142,7 +142,7 @@ namespace XAdo.Quobs.UnitTests
             {
                u = db
                   .Update<DbPerson>()
-                  .Set(() => new DbPerson { BusinessEntityID = 989898989, FirstName = "Tim" })
+                  .From(() => new DbPerson { BusinessEntityID = 989898989, FirstName = "Tim" })
                   .Where(p => p.FirstName.Contains("Timmetje"));
 
                sql = u.CastTo<ISqlBuilder>().GetSql();
@@ -156,7 +156,7 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MultiInsertTest()
       {
-         using (var db = Db.Northwind.CreateSession().BeginUnitOfWork())
+         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
          {
             db.Delete<DbFamilyPerson>()
                .Where(p => true)
@@ -166,9 +166,9 @@ namespace XAdo.Quobs.UnitTests
             {
                var i1 = i;
                db
-                  .Create<DbFamilyPerson>()
-                  .ArgumentsAsLiterals()
-                  .Set(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1+0, MotherId = i1-0 })
+                  .Insert<DbFamilyPerson>()
+                  .WithArgumentsAsLiterals()
+                  .From(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
                   .Apply();
             }
 
@@ -176,20 +176,69 @@ namespace XAdo.Quobs.UnitTests
               .Where(p => true)
               .Apply();
 
-            db.UnitOfWork.Flush(db);
+            db.SqlCommand.Flush();
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
             {
+               var n = i.ToString();
                var i1 = i;
                db
-                  .Create<DbFamilyPerson>()
-                  .ArgumentsAsLiterals()
-                  .Set(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .Insert<DbFamilyPerson>()
+                  .WithArgumentsAsLiterals()
+                  .From(() => new DbFamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
                   .Apply();
             }
             //Debug.WriteLine(sw.ElapsedMilliseconds);
-            db.UnitOfWork.Flush(db);
+            db.SqlCommand.Flush();
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
+      [Test]
+      public void MultiInsertTest2()
+      {
+         using (var db = Db.Northwind.CreateSession().BeginSqlCommand())
+         {
+            db.Delete<DbFamilyPerson>()
+               .Where(p => true)
+               .Apply();
+
+            for (var i = 0; i < 1000; i++)
+            {
+               var i1 = i;
+               db
+                  .Insert<DbFamilyPerson>()
+                  .WithArgumentsAsLiterals()
+                  .From(() => new DbFamilyPerson { Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .Apply();
+            }
+
+            db.Delete<DbFamilyPerson>()
+              .Where(p => true)
+              .Apply();
+
+            db.SqlCommand.Flush();
+
+            db.BeginSqlCommand();
+            
+
+            
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               var n = i.ToString();
+               var i1 = i;
+               db
+                  .Insert<DbFamilyPerson>()
+                  .WithArgumentsAsLiterals()
+                  .From(() => new DbFamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
+                  .Apply();
+            }
+            db.SqlCommand.Flush();
+            //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }

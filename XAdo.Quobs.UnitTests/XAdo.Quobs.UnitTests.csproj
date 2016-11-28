@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EfTests.cs" />
     <Compile Include="QueryableTest.cs" />
     <Compile Include="QueryTests.cs" />
     <Compile Include="StatementFormatterTest.cs" />
@@ -58,6 +59,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\XAdo.EF\XAdo.EF.csproj">
+      <Project>{f16ea1d1-8ab0-4d04-b43b-f7f02c074182}</Project>
+      <Name>XAdo.EF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XAdo.Quobs\XAdo.Quobs.csproj">
       <Project>{b1d11f2b-bec5-426d-9705-ee9af4cdc3f5}</Project>
       <Name>XAdo.Quobs</Name>
@@ -74,6 +79,9 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -120,8 +120,8 @@
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\Interface\IUnitOfWork.cs" />
-    <Compile Include="Core\Impl\UnitOfWorkImpl.cs" />
+    <Compile Include="Core\Interface\ISqlCommand.cs" />
+    <Compile Include="Core\Impl\SqlCommandImpl.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

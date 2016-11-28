@@ -1,27 +1,35 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-   public class UnitOfWorkImpl : IUnitOfWork
+   public class SqlCommandImpl : ISqlCommand
    {
+      private IAdoSession _session;
+
       private readonly List<Tuple<string,IDictionary<string,object>>>
          _commands = new List<Tuple<string, IDictionary<string, object>>>();
 
+      public ISqlCommand Attach(IAdoSession session)
+      {
+         if (session == null) throw new ArgumentNullException("session");
+         _session = session;
+         return this;
+      }
 
-      public virtual IUnitOfWork Register(string sql,  IDictionary<string, object> args = null)
+
+      public virtual ISqlCommand Register(string sql,  IDictionary<string, object> args = null)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          _commands.Add(Tuple.Create(sql,args));
          return this;
       }
 
-      public IUnitOfWork Register(string sql, object args)
+      public ISqlCommand Register(string sql, object args)
       {
          return Register(sql, ToDictionary(args));
       }
@@ -36,11 +44,16 @@ namespace XAdo.Core.Impl
 
       internal protected virtual string Seperator { get; set; }
 
-      public virtual IUnitOfWork Flush(IAdoSession session)
+      public virtual ISqlCommand Flush()
       {
-         
+         if (!_commands.Any())
+         {
+            return this;
+         }
+         var list = new List<Tuple<StringBuilder, Dictionary<string, object>>>();
          var sb = new StringBuilder();
          var args = new Dictionary<string, object>();
+         list.Add(Tuple.Create(sb,args));
          foreach (var cmd in _commands)
          {
             if (cmd.Item2 == null || cmd.Item2.Count == 0)
@@ -51,9 +64,9 @@ namespace XAdo.Core.Impl
             }
             if (cmd.Item2.Keys.Any(args.ContainsKey))
             {
-               session.Execute(sb.ToString(), args);
-               sb.Clear();
-               args.Clear();
+               sb = new StringBuilder();
+               args = new Dictionary<string, object>();
+               list.Add(Tuple.Create(sb, args));
             }
             foreach (var kv in cmd.Item2)
             {
@@ -62,17 +75,36 @@ namespace XAdo.Core.Impl
             sb.AppendLine(cmd.Item1);
             sb.AppendLine(Seperator);
          }
-         if (sb.Length > 0)
+         if (list.Count == 1)
          {
-            session.Execute(sb.ToString(), args, CommandType.Text);
+            _session.Execute(list[0].Item1.ToString(), list[0].Item2);
          }
-         sb.Clear();
-         args.Clear();
+         else
+         {
+            if (!_session.HasTransaction)
+            {
+               _session.BeginTransaction();
+               try
+               {
+                  foreach (var items in list)
+                  {
+                     _session.Execute(items.Item1.ToString(), items.Item2);
+                  }
+                  _session.Commit();
+               }
+               catch
+               {
+                  _session.Rollback();
+                  throw;
+               }
+            }
+            
+         }
          _commands.Clear();
          return this;
       }
 
-      public virtual IUnitOfWork Clear()
+      public virtual ISqlCommand Clear()
       {
          _commands.Clear();
          return this;

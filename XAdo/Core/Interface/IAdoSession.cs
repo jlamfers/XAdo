@@ -7,7 +7,7 @@ namespace XAdo.Core.Interface
     public partial interface IAdoSession : IDisposable
     {
        AdoContext Context { get; }
-       IUnitOfWork UnitOfWork { get; }
+       ISqlCommand SqlCommand { get; }
        IDictionary<object, object> Items { get; }
         T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null);
         object ExecuteScalar(string sql, object param = null, CommandType? commandType = null);
@@ -49,8 +49,8 @@ namespace XAdo.Core.Interface
         bool Rollback();
         bool HasTransaction { get; }
 
-        IAdoSession BeginUnitOfWork(bool autoCommit = true);
-       IAdoSession CommitUnitOfWork();
-       IAdoSession RollbackUnitOfWork();
+        IAdoSession BeginSqlCommand(bool autoCommit = true);
+       IAdoSession CommitSqlCommand();
+       IAdoSession RollbackSqlCommand();
     }
 }
