@@ -229,6 +229,8 @@ namespace XAdo.Quobs.UnitTests
                .Apply();
 
             db.FlushSql();
+            //tr.Commit();
+            //tr = db.BeginTransaction();
 
 
             var sw = new Stopwatch();
@@ -243,7 +245,7 @@ namespace XAdo.Quobs.UnitTests
                   .From(() => new DbFamilyPerson {Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1})
                   .Apply();
             }
-            //tr.Commit();
+            tr.Commit();
             //db.FlushSql();
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
@@ -251,6 +253,64 @@ namespace XAdo.Quobs.UnitTests
          }
       }
 
+      [Test]
+      public void MultiInsertTest3()
+      {
+         using (var db = Db.Northwind.CreateSession())
+         {
+            var tr = db.BeginTransaction(true);
+            var trq = db.BeginSqlQueue();
+
+            db.Delete<DbFamilyPerson>()
+               .Where(p => true)
+               .Apply();
+
+            for (var i = 0; i < 1000; i++)
+            {
+               var i1 = i;
+               db
+                  .Insert(new DbFamilyPerson
+                  {
+                     Id = i,
+                     Name = i1.ToString(),
+                     FatherId = i1,
+                     MotherId = i1
+                  });
+            }
+
+            db.Delete<DbFamilyPerson>()
+               .Where(p => true)
+               .Apply();
+
+            db.FlushSql();
+            //tr.Commit();
+
+            
+
+
+            var sw = new Stopwatch();
+            sw.Start();
+            //tr = db.BeginTransaction();
+            for (var i = 0; i < 1000; i++)
+            {
+               var n = i.ToString();
+               var i1 = i;
+               db
+                  .Insert(new DbFamilyPerson
+                  {
+                     Id = i,
+                     Name = i1.ToString(),
+                     FatherId = i1,
+                     MotherId = i1
+                  });
+            }
+            tr.Commit();
+            //db.FlushSql();
+            //Debug.WriteLine(sw.ElapsedMilliseconds);
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
       [Test]
       public void TestEmptyTransaction()
       {

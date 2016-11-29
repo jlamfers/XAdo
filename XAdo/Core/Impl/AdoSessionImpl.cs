@@ -9,7 +9,7 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    // An ADO session hides connection (and transaction) management, and keeps a connection and its transaction together
+    // An ADO session hides connection (and transaction, and sql queue) management, and keeps a connection and its transaction together
     // if needed: the interface IAdoConnectionProvider exposes the inner connection and transaction
    //  both connection and transaction are created on first need (lazy)
 
@@ -57,7 +57,7 @@ namespace XAdo.Core.Impl
 
        private Lazy<IDbConnection> LazyConnection
         {
-           [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+           [MethodImpl(MethodImplOptions.NoOptimization)]
            get
             {
                 if (_cn != null) return _cn;
@@ -150,8 +150,7 @@ namespace XAdo.Core.Impl
                 commandType);
         }
 
-        public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true,
-            CommandType? commandType = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             var enumerable = _connectionQueryManager.Query<T>(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
@@ -287,15 +286,7 @@ namespace XAdo.Core.Impl
        {
           EnsureNotDisposed();
           EnsureSqlQueue();
-          var dict = args as IDictionary<string, object>;
-          if (dict != null)
-          {
-             _sqlQueue.Enqueue(sql, dict);
-          }
-          else
-          {
-             _sqlQueue.Enqueue(sql, args);
-          }
+          _sqlQueue.Enqueue(sql, args);
           return this;
        }
 
@@ -476,12 +467,7 @@ namespace XAdo.Core.Impl
 
         public virtual IDbConnection Connection
         {
-            get { return _cn.Value; }
-        }
-
-        public virtual IDbTransaction Transaction
-        {
-            get { return _tr != null ? _tr.Value : null; }
+            get { return LazyConnection.Value; }
         }
 
         #endregion

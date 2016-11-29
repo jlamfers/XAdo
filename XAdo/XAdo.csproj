@@ -50,6 +50,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Impl\AdoGraphBinderCompilerImpl.cs" />
+    <Compile Include="Core\Impl\SqlCommandImpl.Async.cs" />
     <Compile Include="Core\Interface\IAdoGraphBinderCompiler.cs" />
     <Compile Include="Core\Interface\IAdoParamHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Core\Impl\AdoTypeConverterFactoryImpl.cs" />
     <Compile Include="Core\Impl\GetterDelegate.cs" />
     <Compile Include="Core\Impl\NullableGetters.cs" />
+    <Compile Include="Core\Interface\ISqlCommandQueue.Async.cs" />
     <Compile Include="Core\TVoid.cs" />
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />

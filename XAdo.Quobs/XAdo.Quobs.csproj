@@ -50,6 +50,7 @@
     <Compile Include="Crob.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DbEntityPersister.cs" />
     <Compile Include="Dialect\ISqlFormatter.cs" />
     <Compile Include="Dialect\SqlFormatter.cs" />
     <Compile Include="Dialect\Core\StatementFormatter.cs" />

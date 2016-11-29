@@ -21,31 +21,30 @@ namespace XAdo.Quobs
             _session = session;
          }
 
-         public T ExecuteScalar<T>(string sql, IDictionary<string, object> args)
+         public T ExecuteScalar<T>(string sql, object args)
          {
             return _session.ExecuteScalar<T>(sql, args);
          }
 
-         public IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args)
+         public IEnumerable<T> ExecuteQuery<T>(string sql, object args)
          {
             return _session.Query<T>(sql, args, false);
          }
 
-         public IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, out int count)
+         public IEnumerable<T> ExecuteQuery<T>(string sql, object args, out int count)
          {
             var reader = _session.QueryMultiple(sql, args);
             count = reader.Read<int>().Single();
             return reader.Read<T>(false);
          }
 
-         public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory,
-            IDictionary<string, object> args)
+         public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory, object args)
          {
             return _session.Query(sql, factory, args, false);
          }
 
          public IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> factory,
-            IDictionary<string, object> args, out int count)
+            object args, out int count)
          {
             var countBinder = new Func<IDataRecord, int>(r => r.GetInt32(0));
             var factories = new Delegate[] {countBinder, factory};
@@ -54,7 +53,7 @@ namespace XAdo.Quobs
             return result.Read<T>(false);
          }
 
-         public int Execute(string sql, IDictionary<string, object> args)
+         public int Execute(string sql, object args)
          {
             return _session.Execute(sql, args);
          }
@@ -64,8 +63,10 @@ namespace XAdo.Quobs
             get { return _session.HasSqlQueue; }
          }
 
-         public bool EnqueueSql(string sql, IDictionary<string, object> args)
+         public bool EnqueueSql(string sql, object args)
          {
+            if (sql == null) throw new ArgumentNullException("sql");
+
             if (_session.HasSqlQueue)
             {
                _session.EnqueueSql(sql, args);
@@ -86,7 +87,7 @@ namespace XAdo.Quobs
       }
       public static T From<T>(this IAdoSession self, T quob) where T : IQuob
       {
-         return (T)quob.Connect(new SqlExecuter(self));
+         return (T)quob.Attach(new SqlExecuter(self));
       }
       public static Upob<T> Update<T>(this IAdoSession self)
       {
@@ -101,6 +102,21 @@ namespace XAdo.Quobs
          return new Deob<T>(new SqlExecuter(self));
       }
 
+      public static int? Update<T>(this IAdoSession self, T entity)
+         where T: class
+      {
+         return new DbEntityPersister<T>(new SqlExecuter(self)).Update(entity);
+      }
+      public static long? Insert<T>(this IAdoSession self, T entity)
+         where T : class
+      {
+         return new DbEntityPersister<T>(new SqlExecuter(self)).Insert(entity);
+      }
+      public static long? Delete<T>(this IAdoSession self, T entity)
+         where T : class
+      {
+         return new DbEntityPersister<T>(new SqlExecuter(self)).Delete(entity);
+      }
 
       public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
       {

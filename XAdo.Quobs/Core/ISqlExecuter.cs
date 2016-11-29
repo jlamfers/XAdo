@@ -7,15 +7,15 @@ namespace XAdo.Quobs.Core
 {
    public interface ISqlExecuter
    {
-      T ExecuteScalar<T>(string sql, IDictionary<string, object> args);
-      IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args);
-      IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord,T> binder, IDictionary<string, object> args);
+      T ExecuteScalar<T>(string sql, object args);
+      IEnumerable<T> ExecuteQuery<T>(string sql, object args);
+      IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord,T> binder, object args);
 
-      IEnumerable<T> ExecuteQuery<T>(string sql, IDictionary<string, object> args, out int count);
-      IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> binder, IDictionary<string, object> args, out int count);
-      int Execute(string sql, IDictionary<string, object> args);
+      IEnumerable<T> ExecuteQuery<T>(string sql, object args, out int count);
+      IEnumerable<T> ExecuteQuery<T>(string sql, Func<IDataRecord, T> binder, object args, out int count);
+      int Execute(string sql, object args);
       bool HasSqlQueue { get; }
-      bool EnqueueSql(string sql, IDictionary<string,object> args);
+      bool EnqueueSql(string sql,object args);
       ISqlFormatter GetSqlFormatter();
    }
 }

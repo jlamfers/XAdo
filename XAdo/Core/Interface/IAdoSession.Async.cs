@@ -39,5 +39,7 @@ namespace XAdo.Core.Interface
             Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> factory, object param = null, CommandType? commandType = null);
 
         Task<int> ExecuteAsync(string sql, object param = null, CommandType? commandType = null);
+
+        Task<bool> FlushSqlAsync();
     }
 }

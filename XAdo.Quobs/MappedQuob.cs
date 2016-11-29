@@ -160,7 +160,7 @@ namespace XAdo.Quobs
          return helper.Select(this, expression);
       }
 
-      IQuob IQuob.Connect(ISqlExecuter executer)
+      IQuob IQuob.Attach(ISqlExecuter executer)
       {
          var clone = Clone();
          clone.Executer = executer;

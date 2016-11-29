@@ -96,7 +96,7 @@ namespace XAdo.Quobs.Linq
          return helper.Select(this, expression);
       }
 
-      public IQuob Connect(ISqlExecuter executer)
+      public IQuob Attach(ISqlExecuter executer)
       {
          throw new NotImplementedException();
       }
