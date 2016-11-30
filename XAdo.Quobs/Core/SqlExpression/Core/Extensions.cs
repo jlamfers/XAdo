@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -44,13 +45,6 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
          throw new ArgumentException("Invalid node in expression: " + expression);
       }
 
-      //public static object EvalCallExpression(this MethodCallExpression callExpression)
-      //{
-      //   var arguments = callExpression.Arguments.Select(GetExpressionValue).ToArray();
-      //   var target = callExpression.Object != null ? GetExpressionValue(callExpression.Object) : null;
-      //   return callExpression.Method.Invoke(target, arguments);
-      //}
-
       public static bool TryEvaluate(this Expression expression, out object result)
       {
          switch (expression.NodeType)
@@ -86,15 +80,6 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
             default:
                result = null;
                return false;
-               //try
-               //{
-               //   result = Expression.Lambda(expression).Compile().DynamicInvoke();
-               //   return true;
-               //}
-               //catch
-               //{
-               //   return false;
-               //}
          }
          
       }
@@ -123,6 +108,41 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
          return true;
 
       }
+
+      public static bool TryGetParameter(this Expression self, out ParameterExpression p)
+      {
+         p = null;
+         if (self == null)
+         {
+            return false;
+         }
+         if (self is ParameterExpression)
+         {
+            p = self.CastTo<ParameterExpression>();
+            return true;
+         }
+         switch (self.NodeType)
+         {
+            case ExpressionType.Convert:
+            case ExpressionType.Quote:
+               return TryGetParameter(((UnaryExpression)self).Operand, out p);
+            case ExpressionType.Call:
+               var exp = self.CastTo<MethodCallExpression>();
+               return TryGetParameter(exp.Object ?? exp.Arguments.FirstOrDefault(), out p);
+            case ExpressionType.MemberAccess:
+               var m = self.CastTo<MemberExpression>();
+               return TryGetParameter(m.Expression, out p);
+            default:
+               return false;
+         }
+      }
+
+      public static Type GetParameterType(this Expression self)
+      {
+         ParameterExpression p;
+         return self.TryGetParameter(out p) ? p.Type : null;
+      }
+
       #endregion
 
       #region Members

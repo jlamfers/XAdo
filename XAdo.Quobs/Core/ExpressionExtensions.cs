@@ -3,7 +3,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
-using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 
 namespace XAdo.Quobs.Core

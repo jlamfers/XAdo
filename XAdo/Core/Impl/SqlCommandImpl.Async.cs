@@ -12,7 +12,7 @@ namespace XAdo.Core.Impl
       {
          if (session == null) throw new ArgumentNullException("session");
 
-         List<Tuple<string, IDictionary<string, object>>> commands;
+         List<Tuple<string, object>> commands;
          lock (_commands)
          {
             if (!_commands.Any())

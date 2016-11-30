@@ -229,8 +229,9 @@ namespace XAdo.Quobs.UnitTests
                .Apply();
 
             db.FlushSql();
-            //tr.Commit();
-            //tr = db.BeginTransaction();
+            tr.Commit();
+            tr = db.BeginTransaction();
+            trq = db.BeginSqlQueue();
 
 
             var sw = new Stopwatch();
@@ -246,7 +247,7 @@ namespace XAdo.Quobs.UnitTests
                   .Apply();
             }
             tr.Commit();
-            //db.FlushSql();
+            db.FlushSql();
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -259,7 +260,7 @@ namespace XAdo.Quobs.UnitTests
          using (var db = Db.Northwind.CreateSession())
          {
             var tr = db.BeginTransaction(true);
-            var trq = db.BeginSqlQueue();
+            //var trq = db.BeginSqlQueue();
 
             db.Delete<DbFamilyPerson>()
                .Where(p => true)
@@ -282,7 +283,7 @@ namespace XAdo.Quobs.UnitTests
                .Where(p => true)
                .Apply();
 
-            db.FlushSql();
+            //db.FlushSql();
             //tr.Commit();
 
             

@@ -219,6 +219,16 @@ namespace XAdo
             // add default int to decimal converter
             contextInitializer.SetCustomTypeConverter<int, decimal>(x => 0M + x);
          }
+         if (!contextInitializer.CanCustomConvert(typeof(decimal), typeof(long)))
+         {
+            // add default int to decimal converter
+            contextInitializer.SetCustomTypeConverter<decimal, long>(x => (long)x);
+         }
+         if (!contextInitializer.CanCustomConvert(typeof(decimal), typeof(int)))
+         {
+            // add default int to decimal converter
+            contextInitializer.SetCustomTypeConverter<decimal, int>(x => (int)x);
+         }
 
          AdoParamHelper = _binder.Get<IAdoParamHelper>();
 

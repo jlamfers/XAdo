@@ -16,5 +16,11 @@ namespace XAdo.Quobs.UnitTests
                 .SetCustomTypeConverter<int,long>(x => 0L + x)
                 .SetSqlFormatter(new SqlServer2012Formatter())
             );
+
+        public static readonly AdoContext
+            Users = new AdoContext(i => i
+                .SetConnectionString(@"data source=.\SqlExpress;initial catalog=Users;integrated security=SSPI", "System.Data.SqlClient")
+                .SetSqlFormatter(new SqlServer2012Formatter())
+            );
     }
 }

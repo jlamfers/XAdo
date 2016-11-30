@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,8 +19,10 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
       private string _prefix;
       private Regex _excludedTables;
 
-      public virtual string Generate(string connectionString, string providerInvariantName, string @namespace,string prefix = "Db", Regex excludedTables = null)
+      public virtual string Generate(string connectionString, string providerInvariantName, string @namespace,string prefix = null, Regex excludedTables = null)
       {
+         prefix = prefix ?? "Db";
+         
          using (var writer = new StringWriter())
          {
             Generate(writer, connectionString, providerInvariantName, @namespace, prefix, excludedTables);
@@ -61,11 +64,21 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
          w.WriteLine("namespace " + _namespace);
          w.WriteLine("{");
          w.Indent++;
-         w.WriteLine("public abstract partial class DbBaseTable {}");
+         w.WriteLine("public abstract partial class DbBaseTable : IDbTable {}");
          w.WriteLine();
 
-         foreach (var t in schema.Tables.Where(t => _excludedTables == null || !_excludedTables.IsMatch(t.Name)))
+         foreach (var t in schema.Tables)
          {
+            if (_excludedTables != null)
+            {
+               var fullname = (t.Owner != null ? t.Owner + "." : "") + t.Name;
+               //Debug.WriteLine(fullname);
+               if (_excludedTables.IsMatch(fullname))
+               {
+                  continue;
+               }
+            }
+
             WriteTableAttributes(w, t);
             WriteTable(w, t);
          }

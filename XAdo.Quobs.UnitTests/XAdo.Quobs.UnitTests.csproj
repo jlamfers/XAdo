@@ -57,6 +57,9 @@
     <Compile Include="Tests.cs" />
     <Compile Include="Db.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserTest.cs" />
+    <Compile Include="_nopush\Db.cs" />
+    <Compile Include="_nopush\UdbTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAdo.EF\XAdo.EF.csproj">

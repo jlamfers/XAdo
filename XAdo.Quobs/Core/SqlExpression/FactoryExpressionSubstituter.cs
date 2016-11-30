@@ -49,7 +49,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       protected override Expression VisitMember(MemberExpression node)
       {
-         if (_registerFirstMember && FirstMember == null && node.Expression != null && node.Expression.Type == _joinClassType)
+         if (_registerFirstMember && FirstMember == null && node.Expression != null && node.Expression.GetParameterType() == _joinClassType)
          {
             FirstMember = Expression.MakeMemberAccess(Visit(node.Expression),node.Member);
          }

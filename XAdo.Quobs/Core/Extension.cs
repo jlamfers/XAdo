@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Reflection;
 using XAdo.Quobs.Core.SqlExpression;
 
@@ -17,16 +18,35 @@ namespace XAdo.Quobs.Core
          if (self == null) throw new ArgumentNullException("self");
          if (self.MemberType == MemberTypes.Property)
          {
-            ((PropertyInfo)self).SetValue(instance,value);
+            var pi = (PropertyInfo) self;
+            pi.SetValue(instance,SanitizeType(value,pi.PropertyType));
          }
          else if (self.MemberType == MemberTypes.Field)
          {
-            ((FieldInfo) self).SetValue(instance, value);
+            var fi = (FieldInfo)self;
+            fi.SetValue(instance, SanitizeType(value, fi.FieldType));
          }
          else
          {
             throw new InvalidOperationException("Invalid member type: "+self);
          }
+      }
+
+      private static object SanitizeType(object value, Type type)
+      {
+         if (value == null)
+         {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
+         }
+         type = Nullable.GetUnderlyingType(type) ?? type;
+         if (type.IsAssignableFrom(value.GetType())) return value;
+         TypeConverter typeConverter = TypeDescriptor.GetConverter(type);
+         if (typeConverter.CanConvertFrom(value.GetType()))
+         {
+            return typeConverter.ConvertFrom(value);
+         }
+         value = typeConverter.ConvertFromInvariantString(string.Format(CultureInfo.InvariantCulture, "{0}", value));
+         return value;
       }
    }
 }
