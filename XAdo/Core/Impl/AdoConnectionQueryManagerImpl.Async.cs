@@ -205,7 +205,9 @@ namespace XAdo.Core.Impl
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                    while (await reader.NextResultAsync())
+                   {
                       result.Add(factory(reader));
+                   }
                 }
              }
              if (!wasopen)

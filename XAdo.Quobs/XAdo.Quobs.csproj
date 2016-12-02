@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
+    <Compile Include="Core\Class1.cs" />
     <Compile Include="Core\DbSchema\Attributes\IDbTable.cs" />
     <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
     <Compile Include="Core\IQuob.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="Core\SqlExpression\FactoryExpressionSubstituter.cs" />
     <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
     <Compile Include="Core\SetExpressionCompiler.cs" />
+    <Compile Include="Core\SqlExpression\SqlIgnoreAttribute.cs" />
     <Compile Include="Crob.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -82,7 +82,50 @@ namespace XAdo.Quobs.Core
       public virtual IDictionary<TKey, TValue> ToDictionary<TKey, TValue>(Func<T, TKey> keySelector, Func<T, TValue> elementSelector)
       {
          return GetEnumerable().ToDictionary(keySelector, elementSelector);
-      } 
+      }
+      public virtual IDictionary<TKey, List<TValue>> ToGroupedList<TKey, TValue>(Func<T, TKey> groupKeySelector, Func<T, TValue> listElementSelector)
+      {
+         var dictionary = new Dictionary<TKey, List<TValue>>();
+         var current = default(TKey);
+         List<TValue> list = null;
+         foreach (var row in GetEnumerable())
+         {
+            var key = groupKeySelector(row);
+            if (!Equals(current, key))
+            {
+               if (list != null)
+               {
+                  try
+                  {
+                     dictionary.Add(current, list);
+                  }
+                  catch (ArgumentException ex)
+                  {
+                     throw new InvalidOperationException("You need to order by key first, before calling ToGroupedList", ex);
+                  }
+               }
+               list = new List<TValue>();
+               current = key;
+            }
+            var v = listElementSelector(row);
+            if (v != null)
+            {
+               list.Add(v);
+            }
+         }
+         if (list != null)
+         {
+            try
+            {
+               dictionary.Add(current, list);
+            }
+            catch (ArgumentException ex)
+            {
+               throw new InvalidOperationException("You need to order by key first, before calling ToGroupedList", ex);
+            }
+         }
+         return dictionary;
+      }
 
       protected abstract IEnumerable<T> GetEnumerable(out int count);
       protected abstract IEnumerable<T> GetEnumerable();

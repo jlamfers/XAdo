@@ -88,6 +88,13 @@ namespace XAdo.Quobs.Dialect
       }
       public virtual void WriteTypeCast(TextWriter writer, Type type, Action<TextWriter> value)
       {
+         type = Nullable.GetUnderlyingType(type) ?? type;
+         string sqlType;
+         if (!SqlDialect.TypeMap.TryGetValue(type, out sqlType))
+         {
+            value(writer);
+            return;
+         }
          SqlDialect.TypeCast.Format(writer, value, w => FormatType(w,type));
       }
       public virtual void FormatType(TextWriter writer, Type type)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlTypes;
 using System.Globalization;
 using System.Linq;
@@ -209,6 +211,11 @@ namespace XAdo.Quobs.Core.SqlExpression
          throw NotImplemented();
       }
 
+      [SqlIgnore]
+      public static CString ToCString(this string self)
+      {
+         return new CString(self);
+      }
 
       private static Exception NotImplemented()
       {

@@ -21,7 +21,8 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
              Equals = MemberInfoFinder.GetMethodInfo<string>(s => s.Equals("")),
              EqualsStatic = MemberInfoFinder.GetMethodInfo(() => string.Equals("", "")),
              ToUpper = MemberInfoFinder.GetMethodInfo<string>(s => s.ToUpper()),
-             ToLower = MemberInfoFinder.GetMethodInfo<string>(s => s.ToLower());
+             ToLower = MemberInfoFinder.GetMethodInfo<string>(s => s.ToLower()),
+             ToCString = MemberInfoFinder.GetMethodInfo<string>(s => s.ToCString());
 
          public static readonly PropertyInfo
              Length = MemberInfoFinder.GetPropertyInfo<string>(s => s.Length);

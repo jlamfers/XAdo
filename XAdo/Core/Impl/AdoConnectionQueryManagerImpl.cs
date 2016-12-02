@@ -220,6 +220,43 @@ namespace XAdo.Core.Impl
                using (var reader = cmd.ExecuteReader())
                {
                   while (reader.Read())
+                  {
+                     yield return factory(reader);
+                  }
+               }
+            }
+            if (wasopen) yield break;
+            skipClose = true;
+            cn.Close();
+         }
+         finally
+         {
+            if (!wasopen && !skipClose)
+            {
+               cn.Close();
+            }
+         }
+      }
+
+      public virtual IEnumerable<T> Query<T>(IDbConnection cn, string sql, Func<IDataReader, T> factory, object param = null, IDbTransaction tr = null,
+         int? commandTimeout = null, CommandType? commandType = null)
+      {
+         if (cn == null) throw new ArgumentNullException("cn");
+         if (sql == null) throw new ArgumentNullException("sql");
+
+         var wasopen = cn.State == ConnectionState.Open;
+         var skipClose = false;
+         if (!wasopen)
+         {
+            EnsureOpen(cn);
+         }
+         try
+         {
+            using (var cmd = CreateCommand(cn, sql, param, tr, commandTimeout, commandType))
+            {
+               using (var reader = cmd.ExecuteReader())
+               {
+                  while (reader.Read())
                      yield return factory(reader);
                }
             }
@@ -235,6 +272,7 @@ namespace XAdo.Core.Impl
             }
          }
       }
+
 
       public virtual AdoMultiResultReader QueryMultiple(IDbConnection cn, string sql, object param = null,
           IDbTransaction tr = null, int? commandTimeout = null, CommandType? commandType = null,
@@ -437,8 +475,7 @@ namespace XAdo.Core.Impl
       #region Private
 
       private IDbCommand
-          CreateCommand(IDbConnection cn, string sql, object param, IDbTransaction tr,
-          int? commandTimeout, CommandType? commandType)
+          CreateCommand(IDbConnection cn, string sql, object param, IDbTransaction tr,int? commandTimeout, CommandType? commandType)
       {
          return _commandFactory.CreateCommand(cn, sql, param, tr, commandTimeout, commandType);
       }
