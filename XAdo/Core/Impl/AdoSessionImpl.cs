@@ -137,13 +137,14 @@ namespace XAdo.Core.Impl
 
 
        public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
-        {
-            EnsureNotDisposed();
-            return _connectionQueryManager.ExecuteScalar<T>(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
-                commandType);
-        }
+       {
+          EnsureNotDisposed();
+          return _connectionQueryManager.ExecuteScalar<T>(LazyConnection.Value, sql, param,
+             _tr != null ? _tr.Value : null, _commandTimeout,
+             commandType);
+       }
 
-        public virtual object ExecuteScalar(string sql, object param = null, CommandType? commandType = null)
+       public virtual object ExecuteScalar(string sql, object param = null, CommandType? commandType = null)
         {
             EnsureNotDisposed();
             return _connectionQueryManager.ExecuteScalar(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,

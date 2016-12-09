@@ -1,10 +1,8 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CSharp;
 using XAdo.Quobs.Core.DbSchema.Attributes;
@@ -16,27 +14,27 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
       private static readonly CodeDomProvider _codeDomProvider = new CSharpCodeProvider();
 
       private string _namespace;
-      private string _prefix;
+      private string _classNamePrefix;
       private Regex _excludedTables;
 
-      public virtual string Generate(string connectionString, string providerInvariantName, string @namespace,string prefix = null, Regex excludedTables = null)
+      public virtual string Generate(string connectionString, string providerInvariantName, string @namespace,string classNamePrefix = null, Regex excludedTables = null)
       {
-         prefix = prefix ?? "Db";
+         _classNamePrefix = classNamePrefix;
          
          using (var writer = new StringWriter())
          {
-            Generate(writer, connectionString, providerInvariantName, @namespace, prefix, excludedTables);
+            Generate(writer, connectionString, providerInvariantName, @namespace, classNamePrefix, excludedTables);
             return writer.GetStringBuilder().ToString();
          }
       }
 
-      public virtual void Generate(TextWriter writer, string connectionString, string providerInvariantName, string @namespace,string prefix = "Db", Regex excludedTables = null)
+      public virtual void Generate(TextWriter writer, string connectionString, string providerInvariantName, string @namespace,string classNamePrefix = null, Regex excludedTables = null)
       {
          if (connectionString == null) throw new ArgumentNullException("connectionString");
          if (providerInvariantName == null) throw new ArgumentNullException("providerInvariantName");
          if (@namespace == null) throw new ArgumentNullException("namespace");
          _namespace = @namespace;
-         _prefix = prefix;
+         _classNamePrefix = classNamePrefix;
          _excludedTables = excludedTables;
          var schema = new DbSchemaReader().Read(connectionString, providerInvariantName);
          Generate(writer,schema);
@@ -91,7 +89,7 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
 
       protected virtual void WriteTable(IndentedTextWriter w, DbTableItem t)
       {
-         w.WriteLine("public partial class {0}{1} : DbBaseTable", _prefix, NormalizeName(t.Name));
+         w.WriteLine("public partial class {0} : DbBaseTable", TableToClassName(t));
          w.WriteLine("{");
          w.Indent++;
          foreach (var c in t.Columns)
@@ -110,7 +108,7 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
          w.WriteLine("[Table(\"{0}\"{1}){2}]", t.Name, schema, view);
          if (t.FKeyTables.Any())
          {
-            w.WriteLine("[ReferencedBy(new []{{{0}}})]",string.Join(", ",t.FKeyTables.Select(x => string.Format("typeof({0}{1})",_prefix, NormalizeName(x.Name))).ToArray()));
+            w.WriteLine("[ReferencedBy(new []{{{0}}})]",string.Join(", ",t.FKeyTables.Select(x => string.Format("typeof({0})",TableToClassName(x))).ToArray()));
          }
       }
 
@@ -158,10 +156,20 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
          }
          if (c.References != null)
          {
-            w.WriteLine("[References( Type=typeof({0}{1}), MemberName=\"{2}\", ColumnName=\"{3}\", FKeyName=\"{4}\")]",_prefix, NormalizeName(c.References.Table.Name),NormalizePropertyName(c.References),c.References.Name,c.FKey.FKeyConstraintName);
+            w.WriteLine("[References( Type=typeof({0}), MemberName=\"{1}\", ColumnName=\"{2}\", FKeyName=\"{3}\")]",TableToClassName(c.References.Table),NormalizePropertyName(c.References),c.References.Name,c.FKey.FKeyConstraintName);
          }
 
       }
+
+      protected virtual string TableToClassName(DbTableItem item)
+      {
+         if (!string.IsNullOrEmpty(item.Owner) && item.Owner != "dbo")
+         {
+            return NormalizeName(string.Format("{0}{1}_{2}", _classNamePrefix, item.Owner, item.Name));
+         }
+         return NormalizeName(string.Format("{0}{1}", _classNamePrefix, item.Name));
+      }
+
 
       protected virtual string NormalizeName(string dbname)
       {
@@ -176,7 +184,7 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
       protected virtual string NormalizePropertyName(DbColumnItem c)
       {
          var normalized = NormalizeName(c.Name);
-         if (normalized == (_prefix ??"")+ NormalizeName(c.TableName))
+         if (normalized == TableToClassName(c.Table))
          {
             normalized = "_" + normalized;
          }
@@ -216,9 +224,9 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
                
 
                w.WriteLine("[JoinMethod(RelationshipName=\"{0}\")]", fkeys[i].FKey.FKeyConstraintName);
-               w.WriteLine("public static {0}{1} {2}(this {3}{4} self, JoinType join){{return null;}}",_prefix,NormalizeName(cols[0].References.TableName),name,_prefix,NormalizeName(cols[0].TableName));
+               w.WriteLine("public static {0} {1}(this {2} self, JoinType join){{return null;}}",TableToClassName(cols[0].References.Table),name,TableToClassName(cols[0].Table));
                w.WriteLine("[JoinMethod(RelationshipName=\"{0}\")]", fkeys[i].FKey.FKeyConstraintName);
-               w.WriteLine("public static {0}{1} {2}(this {3}{4} self){{return null;}}", _prefix, NormalizeName(cols[0].References.TableName), name, _prefix, NormalizeName(cols[0].TableName));
+               w.WriteLine("public static {0} {1}(this {2} self){{return null;}}",  TableToClassName(cols[0].References.Table), name, TableToClassName(cols[0].Table));
 
             }
          }
@@ -264,11 +272,9 @@ namespace XAdo.Quobs.Core.DbSchema.Generator
 
 
                   w.WriteLine("[JoinMethod(RelationshipName=\"{0}\", Reversed=true)]", fkeys[i].FKey.FKeyConstraintName);
-                  w.WriteLine("public static {0}{1} {2}(this {3}{4} self, JoinType join){{return null;}}", _prefix,
-                     NormalizeName(cols[0].TableName), name, _prefix, NormalizeName(cols[0].References.TableName));
+                  w.WriteLine("public static {0} {1}(this {2} self, JoinType join){{return null;}}", TableToClassName(cols[0].Table), name, TableToClassName(cols[0].References.Table));
                   w.WriteLine("[JoinMethod(RelationshipName=\"{0}\", Reversed = true)]", fkeys[i].FKey.FKeyConstraintName);
-                  w.WriteLine("public static {0}{1} {2}(this {3}{4} self){{return null;}}", _prefix,
-                     NormalizeName(cols[0].TableName), name, _prefix, NormalizeName(cols[0].References.TableName));
+                  w.WriteLine("public static {0} {1}(this {2} self){{return null;}}",TableToClassName(cols[0].Table), name, TableToClassName(cols[0].References.Table));
 
                }
             }

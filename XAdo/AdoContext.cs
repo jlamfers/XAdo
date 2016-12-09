@@ -214,20 +214,15 @@ namespace XAdo
             // add default int to float converter
             contextInitializer.SetCustomTypeConverter<int, float>(x => 0F + x);
          }
+         if (!contextInitializer.CanCustomConvert(typeof(int), typeof(double)))
+         {
+            // add default int to double converter
+            contextInitializer.SetCustomTypeConverter<int, double>(x => 0D + x);
+         }
          if (!contextInitializer.CanCustomConvert(typeof(int), typeof(decimal)))
          {
             // add default int to decimal converter
             contextInitializer.SetCustomTypeConverter<int, decimal>(x => 0M + x);
-         }
-         if (!contextInitializer.CanCustomConvert(typeof(decimal), typeof(long)))
-         {
-            // add default int to decimal converter
-            contextInitializer.SetCustomTypeConverter<decimal, long>(x => (long)x);
-         }
-         if (!contextInitializer.CanCustomConvert(typeof(decimal), typeof(int)))
-         {
-            // add default int to decimal converter
-            contextInitializer.SetCustomTypeConverter<decimal, int>(x => (int)x);
          }
 
          AdoParamHelper = _binder.Get<IAdoParamHelper>();

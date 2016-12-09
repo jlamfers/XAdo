@@ -25,27 +25,27 @@ namespace XAdo.Quobs.UnitTests
             db.Execute("delete dbo.[user]");
             db.Execute("delete dbo.[role]");
             db.Execute("delete dbo.[type]");
-            var users = new List<DbUser>();
-            var roles = new List<DbRole>();
-            var types = new List<DbType>();
+            var users = new List<User>();
+            var roles = new List<Role>();
+            var types = new List<Type>();
             foreach (var user in new[] { "Frank", "Klaas", "Piet", "Wim", "Admin" })
             {
-               var usr = new DbUser {UserName = user, Password = "test"};
+               var usr = new User {UserName = user, Password = "test"};
                db.Insert(usr);
                users.Add(usr);
             }
-            db.Insert<DbUser>()
-               .From(() => new DbUser {UserName = "Jan", Password = "test"})
+            db.Insert<User>()
+               .From(() => new User {UserName = "Jan", Password = "test"})
                .Apply();
             foreach (var role in new[] { "Admin", "User", "Manager", "Buyer", "Seller" })
             {
-               var r = new DbRole {Name = role};
+               var r = new Role {Name = role};
                db.Insert(r);
                roles.Add(r);
             }
             foreach (var type in new[] { "Normal", "Special" })
             {
-               var t = new DbType { Name = type };
+               var t = new Type { Name = type };
                db.Insert(t);
                types.Add(t);
             }
@@ -53,14 +53,14 @@ namespace XAdo.Quobs.UnitTests
             {
                foreach (var r in roles)
                {
-                  db.Insert<DbUserRole>()
-                     .From(() => new DbUserRole {RoleId = r.Id, UserId = u.Id})
+                  db.Insert<UserRole>()
+                     .From(() => new UserRole {RoleId = r.Id, UserId = u.Id})
                      .Apply();
                }
                foreach (var t in types)
                {
-                  db.Insert<DbUserType>()
-                     .From(() => new DbUserType { TypeId = t.Id, UserId = u.Id })
+                  db.Insert<UserType>()
+                     .From(() => new UserType { TypeId = t.Id, UserId = u.Id })
                      .Apply();
                }
             }
@@ -72,7 +72,7 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Users.CreateSession())
          {
-            var q = db.From<DbUser>()
+            var q = db.From<User>()
                .Select(u => new
                {
                   u.UserName,
@@ -102,14 +102,14 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Users.CreateSession())
          {
-            var users = db.From<DbUser>()
+            var users = db.From<User>()
                .Select(u => new
                {
                   Id=u.Id.Value,
                   u.UserName,
                   u.Password,
-                  Roles = new List<string>(),
-                  Types = new List<string>()
+                  Roles = new List<string>(10),
+                  Types = new List<string>(10)
                })
                .OrderBy(u => u.UserName)
                .Skip(1)
@@ -119,7 +119,7 @@ namespace XAdo.Quobs.UnitTests
             var first = users.First().UserName;
             var last = users.Last().UserName;
 
-            var roles = db.From<DbUser>()
+            var roles = db.From<User>()
                .Where(u => u.UserName.Between(first, last))
                .Select(u => new
                {
@@ -128,7 +128,7 @@ namespace XAdo.Quobs.UnitTests
                })
                .ToGroupedList(u => u.UserId, u => u.Name);
 
-            var types = db.From<DbUser>()
+            var types = db.From<User>()
                .Where(u => u.UserName.Between(first,last))
                .Select(u => new
                {

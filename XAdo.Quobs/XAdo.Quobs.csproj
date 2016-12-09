@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
-    <Compile Include="Core\Class1.cs" />
+    <Compile Include="Core\CString.cs" />
     <Compile Include="Core\DbSchema\Attributes\IDbTable.cs" />
     <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
     <Compile Include="Core\IQuob.cs" />

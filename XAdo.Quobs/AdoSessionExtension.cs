@@ -107,7 +107,7 @@ namespace XAdo.Quobs
       {
          return new DbEntityPersister<T>(new SqlExecuter(self)).Update(entity);
       }
-      public static long? Insert<T>(this IAdoSession self, T entity)
+      public static object Insert<T>(this IAdoSession self, T entity)
          where T : class
       {
          return new DbEntityPersister<T>(new SqlExecuter(self)).Insert(entity);

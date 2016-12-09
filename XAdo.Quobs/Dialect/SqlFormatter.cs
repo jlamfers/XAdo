@@ -306,9 +306,19 @@ namespace XAdo.Quobs.Dialect
          SqlDialect.Ceiling.Format(writer,arg);
       }
 
-      public virtual void WriteSelectNewIdentity(TextWriter writer)
+      public virtual void WriteSelectLastIdentity(TextWriter writer)
       {
          writer.Write(SqlDialect.SelectLastIdentity);
+      }
+      public virtual void WriteSelectLastIdentity(TextWriter writer, Type type)
+      {
+         type = Nullable.GetUnderlyingType(type) ?? type;
+         string sqlType;
+         if (!SqlDialect.TypeMap.TryGetValue(type, out sqlType))
+         {
+            throw new QuobException("Cannot format type " + type + " with SqlFormatter " + GetType());
+         }
+         writer.Write(SqlDialect.SelectLastIdentityTyped, sqlType);
       }
 
       public virtual void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false)

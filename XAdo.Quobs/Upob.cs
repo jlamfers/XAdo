@@ -52,13 +52,13 @@ namespace XAdo.Quobs
          SqlBuilderContext =  sqlBuilder.BuildSql(context, expression);
          return this;
       }
-      public virtual long Apply()
+      public virtual int Apply()
       {
-         if (!HasSql()) return -1L;
+         if (!HasSql()) return -1;
 
          var sql = GetSql();
          var args = GetArguments();
-         var result = -1L;
+         var result = -1;
 
          if (!_executer.HasSqlQueue)
          {

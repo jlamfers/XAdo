@@ -20,7 +20,7 @@ namespace XAdo.Quobs.UnitTests
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<DbPerson>()
+               .From<Person_Person>()
                .Distinct()
                .OrderBy(p => p.LastName)
                .Take(100)
@@ -50,7 +50,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<DbBusinessEntityContact>()
+               .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Select(p => new
@@ -86,7 +86,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<DbBusinessEntityContact>()
+               .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Select(p => new
@@ -133,7 +133,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<DbBusinessEntityContact>()
+               .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Select(p => new Person()
@@ -177,7 +177,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<DbProduct>()
+               .From<Production_Product>()
                .GroupBy(p => p.ProductModel().Name)
                .Select(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
@@ -195,7 +195,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<DbProduct>()
+               .From<Production_Product>()
                .GroupBy(p => p.ProductModel().Name)
                .Select(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
@@ -214,7 +214,7 @@ var query = from product in products
       {
          using (var s = Db.Northwind.CreateSession())
          {
-            var q = s.From<DbProduct>().ToEnumerable();
+            var q = s.From<Production_Product>().ToEnumerable();
             bool @any = q.Any();
             var list = q.ToList();
          }
@@ -226,9 +226,9 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<DbProduct>()
+               .From<Production_Product>()
                .Select(p => new { FullName = "_" + p.ProductModel().Name })
-               .Union(s.From<DbPerson>().Select(p => new { FullName = p.FirstName + " " + p.LastName }))
+               .Union(s.From<Person_Person>().Select(p => new { FullName = p.FirstName + " " + p.LastName }))
                .Distinct()
                .OrderBy(p => p.FullName);
 
@@ -247,7 +247,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<DbPerson>()
+               .From<Person_Person>()
                .Select(p => new
                {
                   p.FirstName,
@@ -276,7 +276,7 @@ var query = from product in products
 
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<DbBusinessEntityContact>()
+               .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Select(p => new 

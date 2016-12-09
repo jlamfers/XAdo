@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs
@@ -12,7 +13,7 @@ namespace XAdo.Quobs
    public class Crob<T> : ISqlBuilder
    {
 
-      private static bool _hasDbGeneratedIdentity = typeof (T).GetTableDescriptor().Columns.Any(c => c.IsAutoIncrement);
+      private static DbSchemaDescriptor.ColumnDescriptor _identityColumn = typeof (T).GetTableDescriptor().Columns.FirstOrDefault(c => c.IsAutoIncrement);
 
 
       private readonly ISqlFormatter _formatter;
@@ -40,19 +41,19 @@ namespace XAdo.Quobs
       }
 
       private bool _hasIdentityReturn;
-      public virtual long Apply()
+      public virtual object Apply()
       {
          if (_compileResult == null) return -1L;
 
-         _hasIdentityReturn = _hasDbGeneratedIdentity && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasSqlQueue;
+         _hasIdentityReturn = _identityColumn != null && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasSqlQueue;
 
          var sql = GetSql();
          var args = GetArguments();
-         long result = -1L;
+         object result = null;
 
          if (!_executer.HasSqlQueue)
          {
-            result = _hasIdentityReturn ? _executer.ExecuteScalar<long>(sql, args) : _executer.Execute(sql, args);
+            result = _hasIdentityReturn ? _executer.ExecuteScalar<object>(sql, args) : _executer.Execute(sql, args);
          }
          else
          {
@@ -95,6 +96,7 @@ namespace XAdo.Quobs
             if (_hasIdentityReturn)
             {
                sw.WriteLine(_formatter.SqlDialect.StatementSeperator);
+               _formatter.WriteSelectLastIdentity(sw,_identityColumn.Member.GetMemberType());
                sw.WriteLine(_formatter.SqlDialect.SelectLastIdentity);
             }
             return sw.GetStringBuilder().ToString();

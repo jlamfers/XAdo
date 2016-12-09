@@ -18,15 +18,15 @@ namespace XAdo.Quobs.UnitTests
          //DbSchemaDescriptor.DefineJoin<DbProduct,DbSalesOrderDetail>("myjoin",(l,r) => l.ProductID == r.ProductID && l.Color=="red");
       }
       [JoinMethod("myjoin")]
-      public static DbSalesOrderDetail RedProducts(this DbProduct product)
+      public static Sales_SalesOrderDetail RedProducts(this Production_Product product)
       {
          return product.RedProducts(JoinType.Inner);
       }
 
       [JoinMethod("myjoin")]
-      public static DbSalesOrderDetail RedProducts(this DbProduct product, JoinType joinType)
+      public static Sales_SalesOrderDetail RedProducts(this Production_Product product, JoinType joinType)
       {
-         return DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin",(l, r) => l.ProductID == r.ProductID && l.Color == "red");
+         return DbSchemaDescriptor.DefineJoin<Production_Product, Sales_SalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
       }
    }
    [TestFixture]
@@ -52,7 +52,7 @@ namespace XAdo.Quobs.UnitTests
          //DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
 
          var q = _db
-            .From<DbProduct>()
+            .From<Production_Product>()
             .Select(p => new
             {
                p.Class, 
@@ -73,42 +73,42 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void ToListWorks()
       {
-         _db.From<DbStateProvince>().ToList();
+         _db.From<Person_StateProvince>().ToList();
       }
       [Test]
       public void ToArrayWorks()
       {
-         _db.From<DbStateProvince>().ToArray();
+         _db.From<Person_StateProvince>().ToArray();
       }
       [Test]
       public void ToDictionaryWorks()
       {
-         _db.From<DbStateProvince>().ToDictionary(r => r.StateProvinceID, r => r);
+         _db.From<Person_StateProvince>().ToDictionary(r => r.StateProvinceID, r => r);
       }
 
       [Test]
       public void AnyWorks()
       {
-         Assert.IsTrue(_db.From<DbStateProvince>().Any());
-         Assert.IsTrue(_db.From<DbStateProvince>()
+         Assert.IsTrue(_db.From<Person_StateProvince>().Any());
+         Assert.IsTrue(_db.From<Person_StateProvince>()
             .Where(p => p.Name != null)
             .OrderBy(p => p.Name)
             .Distinct()
             .Skip(1)
             .Take(5)
             .Any());
-         Assert.IsTrue(_db.From<DbStateProvince>()
+         Assert.IsTrue(_db.From<Person_StateProvince>()
             .Where(p => p.Name != null)
             .OrderBy(p => p.Name)
             .Distinct()
             .Any());
-         Assert.IsFalse(_db.From<DbStateProvince>()
+         Assert.IsFalse(_db.From<Person_StateProvince>()
             .Where(p => p.Name =="kahdjhg")
             .OrderBy(p => p.Name)
             .Skip(10000000)
             .Take(5)
             .Any());
-         Assert.IsFalse(_db.From<DbStateProvince>()
+         Assert.IsFalse(_db.From<Person_StateProvince>()
             .OrderBy(p => p.Name)
             .Take(0)
             .Any());
@@ -117,7 +117,7 @@ namespace XAdo.Quobs.UnitTests
       public void AnyPerformance()
       {
          var sw = default(Stopwatch);
-         var q = _db.From<DbStateProvince>();
+         var q = _db.From<Person_StateProvince>();
          
          q.Any();
          sw = new Stopwatch();
@@ -151,29 +151,29 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void AnyWorksParameterized()
       {
-         var q = _db.From<DbStateProvince>().Any(p => p.CountryRegionCode != null);
+         var q = _db.From<Person_StateProvince>().Any(p => p.CountryRegionCode != null);
       }
       [Test]
       public void ToListWithCountWorks()
       {
          int count;
-         var list = _db.From<DbStateProvince>().ToList(out count);
+         var list = _db.From<Person_StateProvince>().ToList(out count);
          Assert.AreEqual(count,list.Count);
-         Assert.AreEqual(count, _db.From<DbStateProvince>().Count());
+         Assert.AreEqual(count, _db.From<Person_StateProvince>().Count());
       }
       [Test]
       public void PagingWorksWithSkipOnly()
       {
          int count;
          var list = _db
-            .From<DbStateProvince>()
+            .From<Person_StateProvince>()
             .Skip(10)
             .OrderBy(p => p.CountryRegionCode)
             .ToList(out count);
          Assert.AreEqual(count, list.Count + 10);
 
          var count2 = _db
-            .From<DbStateProvince>()
+            .From<Person_StateProvince>()
             .Skip(10)
             .OrderBy(p => p.CountryRegionCode)
             .Count();
@@ -183,7 +183,7 @@ namespace XAdo.Quobs.UnitTests
       public void PagingWorksWithTakeOnly()
       {
          var list = _db
-            .From<DbStateProvince>()
+            .From<Person_StateProvince>()
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
             .ToList();
@@ -193,14 +193,14 @@ namespace XAdo.Quobs.UnitTests
       public void PagingWorksWithBothTakeAndSkip()
       {
          var list = _db
-            .From<DbStateProvince>()
+            .From<Person_StateProvince>()
             .Skip(1)
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
             .ToList();
          Assert.AreEqual(10, list.Count);
          var list2 = _db
-            .From<DbStateProvince>()
+            .From<Person_StateProvince>()
             .OrderBy(p => p.CountryRegionCode)
             .ToArray()
             .Skip(1)

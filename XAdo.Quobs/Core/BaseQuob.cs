@@ -127,6 +127,15 @@ namespace XAdo.Quobs.Core
          return dictionary;
       }
 
+      public virtual T SingleOrDefault()
+      {
+         return ToEnumerable().SingleOrDefault();
+      }
+      public virtual T Single()
+      {
+         return ToEnumerable().Single();
+      }
+
       protected abstract IEnumerable<T> GetEnumerable(out int count);
       protected abstract IEnumerable<T> GetEnumerable();
 

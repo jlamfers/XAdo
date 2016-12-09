@@ -83,6 +83,10 @@
       <Project>{b1d11f2b-bec5-426d-9705-ee9af4cdc3f5}</Project>
       <Name>XAdo.Quobs</Name>
     </ProjectReference>
+    <ProjectReference Include="..\XAdo\XAdo.csproj">
+      <Project>{DE35B1AF-D6A1-4324-840A-11854787DED4}</Project>
+      <Name>XAdo</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

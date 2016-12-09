@@ -277,8 +277,14 @@ namespace XAdo.Quobs.Core.SqlExpression
             return exp;
          }
 
+         //if (exp.Expression.NodeType == ExpressionType.Convert)
+         //{
+         //   exp = Expression.MakeMemberAccess(((UnaryExpression) exp.Expression).Operand, exp.Member);
+         //}
+
          switch (exp.Expression.NodeType)
          {
+            case ExpressionType.Convert:
             case ExpressionType.Parameter:
                WriteFormattedColumn(exp);
                break;

@@ -50,7 +50,8 @@ namespace XAdo.Quobs.Dialect
       void WriteFloor(TextWriter writer, Action<TextWriter> arg);
       void WriteRound(TextWriter writer, Action<TextWriter> arg, Action<TextWriter> length);
       void WriteCeiling(TextWriter writer, Action<TextWriter> arg);
-      void WriteSelectNewIdentity(TextWriter writer);
+      void WriteSelectLastIdentity(TextWriter writer);
+      void WriteSelectLastIdentity(TextWriter writer, Type type);
       void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false);
       void WriteCount(TextWriter writer, QueryDescriptor descriptor);
       void WritePagedCount(TextWriter writer, QueryDescriptor descriptor);

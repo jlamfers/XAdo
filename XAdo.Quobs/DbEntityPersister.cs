@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using XAdo.Core;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Dialect;
@@ -22,7 +23,8 @@ namespace XAdo.Quobs
       private static string 
          _sqlUpdate,
          _sqlDelete,
-        _sqlInsert;
+        _sqlInsert,
+        _sqlSelectIdentity;
 
       private static Type _t = typeof (T);
 
@@ -46,7 +48,7 @@ namespace XAdo.Quobs
          _executer.EnqueueSql(SqlDelete, entity);
          return null;
       }
-      public long? Insert(T entity)
+      public object Insert(T entity)
       {
          if (entity == null) throw new ArgumentNullException("entity");
 
@@ -54,8 +56,8 @@ namespace XAdo.Quobs
          if (hasIdentityReturn)
          {
             var sql = SqlInsert + _formatter.SqlDialect.StatementSeperator + Environment.NewLine +
-                      _formatter.SqlDialect.SelectLastIdentity;
-            var id = _executer.ExecuteScalar<long>(sql, entity);
+                      SqlSelectIdentity;
+            var id = _executer.ExecuteScalar<object>(sql, entity);
             _identityColumn.Member.SetValue(entity,id);
             return id;
          }
@@ -174,6 +176,23 @@ namespace XAdo.Quobs
             }
 
             return _sqlInsert;
+         }
+      }
+
+      protected virtual string SqlSelectIdentity
+      {
+         get
+         {
+            if (_identityColumn == null || _sqlSelectIdentity != null)
+            {
+               return _sqlSelectIdentity;
+            }
+            using (var sw = new StringWriter())
+            {
+               _formatter.WriteSelectLastIdentity(sw,_identityColumn.Member.GetMemberType());
+               _sqlSelectIdentity = sw.GetStringBuilder().ToString();
+               return _sqlSelectIdentity;
+            }
          }
       }
    }
