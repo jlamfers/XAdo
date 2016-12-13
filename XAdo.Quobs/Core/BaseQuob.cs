@@ -11,7 +11,7 @@ namespace XAdo.Quobs.Core
    {
       protected bool _argumentsAsLiterals;
 
-      protected BaseQuob(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
+      protected BaseQuob(ISqlFormatter formatter, ISqlConnection executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
          if (executer == null) throw new ArgumentNullException("executer");
@@ -24,7 +24,7 @@ namespace XAdo.Quobs.Core
       }
 
       protected ISqlFormatter Formatter { get; set; }
-      protected ISqlExecuter Executer { get; set; }
+      protected ISqlConnection Executer { get; set; }
       protected QueryDescriptor Descriptor { get; set; }
       protected List<DbSchemaDescriptor.JoinPath> Joins { get; set; }
 

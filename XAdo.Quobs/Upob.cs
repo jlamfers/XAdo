@@ -16,13 +16,13 @@ namespace XAdo.Quobs
          KeyColumns = new HashSet<string>(typeof(T).GetTableDescriptor().Columns.Where(c => c.IsPKey).Select(c => c.Name));
 
       protected readonly ISqlFormatter Formatter;
-      private readonly ISqlExecuter _executer;
+      private readonly ISqlConnection _executer;
       private bool _argumentsAsLiterls;
       protected SetExpressionCompiler.CompileResult CompileResult;
       protected SqlBuilderContext SqlBuilderContext;
       protected Expression<Func<T>> Expression;
 
-      public Upob(ISqlExecuter executer)
+      public Upob(ISqlConnection executer)
       {
          Formatter = executer.GetSqlFormatter();
          _executer = executer;

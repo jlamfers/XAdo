@@ -7,7 +7,7 @@ namespace XAdo.Quobs
 {
    public class Deob<T> : Upob<T>
    {
-      public Deob(ISqlExecuter executer)
+      public Deob(ISqlConnection executer)
          : base(executer)
       {
       }

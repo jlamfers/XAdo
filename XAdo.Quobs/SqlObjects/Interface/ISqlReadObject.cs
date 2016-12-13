@@ -16,7 +16,7 @@ namespace XAdo.Quobs.SqlObjects.Interface
       ISqlReadObject Skip(int skip);
       ISqlReadObject Take(int take);
       IEnumerable FetchToEnumerable();
-      ISqlReadObject Attach(ISqlExecuter executer);
+      ISqlReadObject Attach(ISqlConnection executer);
 
    }
 }

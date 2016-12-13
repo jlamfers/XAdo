@@ -17,11 +17,11 @@ namespace XAdo.Quobs
 
 
       private readonly ISqlFormatter _formatter;
-      private readonly ISqlExecuter _executer;
+      private readonly ISqlConnection _executer;
       private bool _argumentsAsLiterls;
       private SetExpressionCompiler.CompileResult _compileResult;
 
-      public Crob(ISqlExecuter executer)
+      public Crob(ISqlConnection executer)
       {
          _formatter = executer.GetSqlFormatter();
          _executer = executer;

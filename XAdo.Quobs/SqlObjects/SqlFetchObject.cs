@@ -12,8 +12,8 @@ namespace XAdo.Quobs.SqlObjects
 {
    public abstract class SqlFetchObject<T> : SqlReadObject, ISqlFetchObject<T>
    {
-      protected SqlFetchObject(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins) 
-         : base(formatter, executer, descriptor, joins)
+      protected SqlFetchObject(ISqlFormatter formatter, ISqlConnection connection, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins) 
+         : base(formatter, connection, descriptor, joins)
       {
       }
 
@@ -121,7 +121,7 @@ namespace XAdo.Quobs.SqlObjects
             {
                Formatter.WriteSelect(w, Descriptor);
             }
-            return Executer.ExecuteQuery<T>(w.GetStringBuilder().ToString(), GetArguments(), out count);
+            return Connection.ExecuteQuery<T>(w.GetStringBuilder().ToString(), GetArguments(), out count);
          }
       }
 
@@ -131,7 +131,7 @@ namespace XAdo.Quobs.SqlObjects
          using (var sw = new StringWriter())
          {
             WriteSql(sw);
-            return Executer.ExecuteQuery<T>(sw.GetStringBuilder().ToString(), GetArguments());
+            return Connection.ExecuteQuery<T>(sw.GetStringBuilder().ToString(), GetArguments());
          }
       }
 

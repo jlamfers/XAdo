@@ -14,7 +14,7 @@ namespace XAdo.Quobs
 
    public class Quob<T> : BaseQuob<T>, IQuob
    {
-      public Quob(ISqlExecuter executer, bool argumentsAsLiterals)
+      public Quob(ISqlConnection executer, bool argumentsAsLiterals)
          : base(executer.GetSqlFormatter(), executer, new QueryDescriptor { FromTableName = typeof(T).GetTableDescriptor().Format(executer.GetSqlFormatter()) }, null, argumentsAsLiterals)
       {
       }
@@ -234,7 +234,7 @@ namespace XAdo.Quobs
          return helper.Select(this, expression);
       }
 
-      IQuob IQuob.Attach(ISqlExecuter executer)
+      IQuob IQuob.Attach(ISqlConnection executer)
       {
          var clone = Clone();
          clone.Executer = executer;

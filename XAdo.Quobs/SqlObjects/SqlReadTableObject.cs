@@ -9,12 +9,12 @@ using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects
 {
-   public class SqlTableObject<T> : SqlFetchObject<T>, ISqlTableObject<T> 
+   public class SqlReadTableObject<T> : SqlFetchObject<T>, ISqlReadTableObject<T> 
       where T : IDbTable
    {
 
-      public SqlTableObject(ISqlExecuter executer)
-         : base(executer.GetSqlFormatter(), executer, new QueryDescriptor { FromTableName = typeof(T).GetTableDescriptor().Format(executer.GetSqlFormatter()) }, null)
+      public SqlReadTableObject(ISqlConnection connection)
+         : base(connection.GetSqlFormatter(), connection, new QueryDescriptor { FromTableName = typeof(T).GetTableDescriptor().Format(connection.GetSqlFormatter()) }, null)
       {
       }
 
@@ -52,10 +52,10 @@ namespace XAdo.Quobs.SqlObjects
          return this;
       }
 
-      public ISqlMapObject<TMapped> Select<TMapped>(Expression<Func<T, TMapped>> mapExpression)
+      public ISqlReadMappedObject<TMapped> Map<TMapped>(Expression<Func<T, TMapped>> mapExpression)
       {
          var result = PrepareMapExpression<TMapped>(mapExpression);
-         return new SqlMapObject<TMapped>(Formatter, Executer, result.BinderExpression.Compile(), Descriptor, result, Joins);
+         return new SqlReadMappedObject<TMapped>(Formatter, Connection, result.BinderExpression.Compile(), Descriptor, result, Joins);
       }
 
       private BinderExpressionCompiler.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression)
@@ -69,47 +69,47 @@ namespace XAdo.Quobs.SqlObjects
       }
 
 
-      public virtual new ISqlTableObject<T> Distinct()
+      public virtual new ISqlReadTableObject<T> Distinct()
       {
-         return (ISqlTableObject<T>)base.Distinct();
+         return (ISqlReadTableObject<T>)base.Distinct();
       }
 
-      public virtual new ISqlTableObject<T> Skip(int skip)
+      public virtual new ISqlReadTableObject<T> Skip(int skip)
       {
-         return (ISqlTableObject<T>)base.Skip(skip);
+         return (ISqlReadTableObject<T>)base.Skip(skip);
       }
 
-      public virtual new ISqlTableObject<T> Take(int take)
+      public virtual new ISqlReadTableObject<T> Take(int take)
       {
-         return (ISqlTableObject<T>)base.Take(take);
+         return (ISqlReadTableObject<T>)base.Take(take);
       }
 
-      public virtual ISqlTableObject<T> OrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual ISqlReadTableObject<T> OrderBy(params Expression<Func<T, object>>[] expressions)
       {
-         return (ISqlTableObject<T>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
+         return (ISqlReadTableObject<T>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ISqlTableObject<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual ISqlReadTableObject<T> OrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
-         return (ISqlTableObject<T>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
+         return (ISqlReadTableObject<T>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ISqlTableObject<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
+      public virtual ISqlReadTableObject<T> AddOrderBy(params Expression<Func<T, object>>[] expressions)
       {
-         return (ISqlTableObject<T>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
+         return (ISqlReadTableObject<T>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ISqlTableObject<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
+      public virtual ISqlReadTableObject<T> AddOrderByDescending(params Expression<Func<T, object>>[] expressions)
       {
-         return (ISqlTableObject<T>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
+         return (ISqlReadTableObject<T>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public new virtual ISqlTableObject<T> Union(ISqlReadObject sqlReadObject)
+      public new virtual ISqlReadTableObject<T> Union(ISqlReadObject sqlReadObject)
       {
-         return (ISqlTableObject<T>)base.Union(sqlReadObject);
+         return (ISqlReadTableObject<T>)base.Union(sqlReadObject);
       }
 
-      public ISqlTableObject<T> GroupBy(params Expression<Func<T, object>>[] expressions)
+      public ISqlReadTableObject<T> GroupBy(params Expression<Func<T, object>>[] expressions)
       {
          foreach (var expression in expressions)
          {
@@ -124,19 +124,19 @@ namespace XAdo.Quobs.SqlObjects
          return this;
       }
 
-      public ISqlTableObject<T> Clone()
+      public ISqlReadTableObject<T> Clone()
       {
-         return (ISqlTableObject<T>)CloneSqlReadObject();
+         return (ISqlReadTableObject<T>)CloneSqlReadObject();
       }
 
-      public ISqlTableObject<T> Where(Expression<Func<T, bool>> whereClause)
+      public ISqlReadTableObject<T> Where(Expression<Func<T, bool>> whereClause)
       {
          if (whereClause == null) return this;
          this.CastTo<ISqlReadObject>().Where(whereClause);
          return this;
       }
 
-      public ISqlTableObject<T> Having(Expression<Func<T, bool>> havingClause)
+      public ISqlReadTableObject<T> Having(Expression<Func<T, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionBuilder();
          var context = new QuobContext(Formatter, Joins) { ArgumentsAsLiterals = false };
@@ -155,7 +155,7 @@ namespace XAdo.Quobs.SqlObjects
       protected override SqlReadObject CloneSqlReadObject()
       {
          //TODO: need to clone joins?
-         return new SqlTableObject<T>(Executer) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
+         return new SqlReadTableObject<T>(Connection) { Descriptor = Descriptor.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
       }
 
 

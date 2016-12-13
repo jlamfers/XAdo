@@ -13,20 +13,20 @@ namespace XAdo.Quobs.SqlObjects
    public abstract class SqlReadObject : ISqlReadObject
    {
    
-      protected SqlReadObject(ISqlFormatter formatter, ISqlExecuter executer, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins)
+      protected SqlReadObject(ISqlFormatter formatter, ISqlConnection connection, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
-         if (executer == null) throw new ArgumentNullException("executer");
+         if (connection == null) throw new ArgumentNullException("connection");
          if (descriptor == null) throw new ArgumentNullException("descriptor");
          Descriptor = descriptor;
          Formatter = formatter;
-         Executer = executer;
+         Connection = connection;
          Joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
       }
 
 
       protected ISqlFormatter Formatter { get; set; }
-      protected ISqlExecuter Executer { get; set; }
+      protected ISqlConnection Connection { get; set; }
       protected QueryDescriptor Descriptor { get; set; }
       protected List<DbSchemaDescriptor.JoinPath> Joins { get; set; }
 
@@ -71,7 +71,7 @@ namespace XAdo.Quobs.SqlObjects
             {
                Formatter.WriteExists(sw, w => Formatter.WriteSelect(w, Descriptor, true));
                var sql = sw.GetStringBuilder().ToString();
-               return Executer.ExecuteScalar<bool>(sql, Descriptor.GetArguments());
+               return Connection.ExecuteScalar<bool>(sql, Descriptor.GetArguments());
             }
          }
          finally
@@ -85,7 +85,7 @@ namespace XAdo.Quobs.SqlObjects
          {
             Formatter.WritePagedCount(sw, Descriptor);
             var sql = sw.GetStringBuilder().ToString();
-            return Executer.ExecuteScalar<int>(sql, Descriptor.GetArguments());
+            return Connection.ExecuteScalar<int>(sql, Descriptor.GetArguments());
          }
       }
 
@@ -150,15 +150,15 @@ namespace XAdo.Quobs.SqlObjects
       }
       protected abstract IEnumerable FetchToEnumerable();
 
-      ISqlReadObject ISqlReadObject.Attach(ISqlExecuter executer)
+      ISqlReadObject ISqlReadObject.Attach(ISqlConnection executer)
       {
          return Attach(executer);
       }
-      protected virtual ISqlReadObject Attach(ISqlExecuter executer)
+      protected virtual ISqlReadObject Attach(ISqlConnection executer)
       {
          if (executer == null) throw new ArgumentNullException("executer");
          var clone = CloneSqlReadObject();
-         clone.Executer = executer;
+         clone.Connection = executer;
          return clone;
       }
 

@@ -18,7 +18,7 @@ namespace XAdo.Quobs
       private readonly Func<IDataRecord, T> _binder;
       private readonly BinderExpressionCompiler.CompileResult<T> _binderCompileResult;
 
-      protected internal MappedQuob(ISqlFormatter formatter, ISqlExecuter executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
+      protected internal MappedQuob(ISqlFormatter formatter, ISqlConnection executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
          : base(formatter, executer, descriptor, joins, argumentsAsLiterals)
       {
          _binder = binder;
@@ -160,7 +160,7 @@ namespace XAdo.Quobs
          //return helper.Select(this, expression);
       }
 
-      IQuob IQuob.Attach(ISqlExecuter executer)
+      IQuob IQuob.Attach(ISqlConnection executer)
       {
          var clone = Clone();
          clone.Executer = executer;

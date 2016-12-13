@@ -54,17 +54,17 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SqlObjects\Interface\ISqlFetchObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlMapObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlReadMappedObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlReadObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlTableObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlReadTableObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlWriteFromObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlWriteObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlWriteWhereObject.cs" />
     <Compile Include="SqlObjects\SqlFetchObject.cs" />
-    <Compile Include="SqlObjects\SqlMapObject.cs" />
+    <Compile Include="SqlObjects\SqlReadMappedObject.cs" />
     <Compile Include="SqlObjects\SqlReadObject.cs" />
-    <Compile Include="SqlObjects\SqlTableObject.cs" />
+    <Compile Include="SqlObjects\SqlReadTableObject.cs" />
     <Compile Include="TableClassPersister.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -80,7 +80,7 @@
     <Compile Include="Core\BinderExpressionCompiler.cs" />
     <Compile Include="Core\ExpressionExtensions.cs" />
     <Compile Include="Core\ISqlBuilder.cs" />
-    <Compile Include="Core\ISqlExecuter.cs" />
+    <Compile Include="Core\ISqlConnection.cs" />
     <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
     <Compile Include="Core\QueryDescriptor.cs" />
     <Compile Include="Core\QuobContext.cs" />

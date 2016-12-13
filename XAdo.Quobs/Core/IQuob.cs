@@ -15,6 +15,6 @@ namespace XAdo.Quobs.Core
       IQuob Take(int take);
       IEnumerable ToEnumerable();
       IQuob Select(LambdaExpression expression);
-      IQuob Attach(ISqlExecuter executer);
+      IQuob Attach(ISqlConnection executer);
    }
 }

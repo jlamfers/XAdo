@@ -15,7 +15,7 @@ namespace XAdo.Quobs
       private static readonly DbSchemaDescriptor.ColumnDescriptor 
          _identityColumn = typeof(T).GetTableDescriptor().Columns.FirstOrDefault(c => c.IsAutoIncrement);
 
-      private readonly ISqlExecuter _executer;
+      private readonly ISqlConnection _executer;
       private readonly ISqlFormatter _formatter;
 
       private static string 
@@ -26,7 +26,7 @@ namespace XAdo.Quobs
 
       private static Type _t = typeof (T);
 
-      public TableClassPersister(ISqlExecuter executer)
+      public TableClassPersister(ISqlConnection executer)
       {
          _executer = executer;
          _formatter = _executer.GetSqlFormatter();

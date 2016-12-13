@@ -12,7 +12,7 @@ namespace XAdo.Quobs
 {
    public static class AdoSessionExtension
    {
-      private class SqlExecuter : ISqlExecuter
+      private class SqlExecuter : ISqlConnection
       {
          private readonly IAdoSession _session;
 
