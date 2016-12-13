@@ -53,9 +53,18 @@
     <Compile Include="Crob.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SqlObjects\ISqlBuilder.cs" />
-    <Compile Include="SqlObjects\ISqlObject.cs" />
-    <Compile Include="SqlObjects\ISqlWhereObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlFetchObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlMapObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlReadObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlTableObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlWriteFromObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlWriteObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlWriteWhereObject.cs" />
+    <Compile Include="SqlObjects\SqlFetchObject.cs" />
+    <Compile Include="SqlObjects\SqlMapObject.cs" />
+    <Compile Include="SqlObjects\SqlReadObject.cs" />
+    <Compile Include="SqlObjects\SqlTableObject.cs" />
     <Compile Include="TableClassPersister.cs">
       <SubType>Code</SubType>
     </Compile>
