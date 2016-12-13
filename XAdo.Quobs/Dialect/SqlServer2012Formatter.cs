@@ -20,7 +20,7 @@ namespace XAdo.Quobs.Dialect
          
       }
 
-      public override void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take)
+      protected override void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take)
       {
          var count = selectNames.FirstOrDefault() == "COUNT(1)";
          if (count)

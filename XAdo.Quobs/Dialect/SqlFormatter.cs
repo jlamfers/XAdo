@@ -444,7 +444,7 @@ namespace XAdo.Quobs.Dialect
       /// <param name="selectNames">The fully formatted single column names (no-dot-seperators, these may be aliases) that represent the returned column names</param>
       /// <param name="skip">The skip parameter, this may be either a formatted parameter name, or a formatted value</param>
       /// <param name="take">The take parameter, this may be either a formatted parameter name, or a formatted value</param>
-      public virtual void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take)
+      protected virtual void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take)
       {
          if (skip == null && take == null)
          {

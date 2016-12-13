@@ -52,7 +52,7 @@ namespace XAdo.Quobs
          SqlBuilderContext =  sqlBuilder.BuildSql(context, expression);
          return this;
       }
-      public virtual int Apply()
+      public virtual int Apply(Action<object> callback = null)
       {
          if (!HasSql()) return -1;
 
@@ -60,13 +60,13 @@ namespace XAdo.Quobs
          var args = GetArguments();
          var result = -1;
 
-         if (!_executer.HasSqlQueue)
+         if (!_executer.HasSqlBatch)
          {
             result = _executer.Execute(sql, args);
          }
          else
          {
-            _executer.EnqueueSql(sql, args);
+            _executer.AddToSqlBatch(sql, args, callback);
          }
 
          CompileResult = null;

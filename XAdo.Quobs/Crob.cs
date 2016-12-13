@@ -41,23 +41,23 @@ namespace XAdo.Quobs
       }
 
       private bool _hasIdentityReturn;
-      public virtual object Apply()
+      public virtual object Apply(Action<object> callback = null)
       {
          if (_compileResult == null) return -1L;
 
-         _hasIdentityReturn = _identityColumn != null && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasSqlQueue;
+         _hasIdentityReturn = _identityColumn != null && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity) && !_executer.HasSqlBatch;
 
          var sql = GetSql();
          var args = GetArguments();
          object result = null;
 
-         if (!_executer.HasSqlQueue)
+         if (!_executer.HasSqlBatch)
          {
             result = _hasIdentityReturn ? _executer.ExecuteScalar<object>(sql, args) : _executer.Execute(sql, args);
          }
          else
          {
-            _executer.EnqueueSql(sql, args);
+            _executer.AddToSqlBatch(sql, args, callback);
          }
 
          _compileResult = null;

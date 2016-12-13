@@ -46,11 +46,8 @@ namespace XAdo.Core.Impl
         private bool
             _autoCommit;
 
-        private bool 
-           _autoCommitSqlQueue;
-
-        private ISqlCommandQueue 
-           _sqlQueue;
+        private ISqlBatch 
+           _sqlBatch;
 
 
        private readonly IDictionary<object, object> _items = new Dictionary<object, object>();
@@ -264,44 +261,59 @@ namespace XAdo.Core.Impl
             return _connectionQueryManager.Execute(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
         }
 
-        #region Transaction
 
-        public virtual bool HasTransaction
-        {
-            get
-            {
-                EnsureNotDisposed();
-                return _tr != null;
-            }
-        }
-        public virtual bool HasSqlQueue
+       #region SqlBatch
+        public virtual bool HasSqlBatch
         {
            get
            {
               EnsureNotDisposed();
-              return _sqlQueue != null;
+              return _sqlBatch != null;
            }
         }
-
-       public IAdoSession EnqueueSql(string sql, object args)
+        public virtual bool StartSqlBatch()
        {
           EnsureNotDisposed();
-          EnsureSqlQueue();
-          _sqlQueue.Enqueue(sql, args);
+          if (_sqlBatch != null) return true;
+          _sqlBatch = _binder.Get<ISqlBatch>();
+          return true;
+       }
+       public virtual bool StopSqlBatch()
+       {
+          EnsureNotDisposed();
+          var batch = _sqlBatch;
+          _sqlBatch = null;
+          if (batch == null || batch.Count == 0) return false;
+          batch.Flush(this);
+          return true;
+       }
+       public virtual bool FlushSqlBatch()
+       {
+          EnsureNotDisposed();
+          var batch = _sqlBatch;
+          if (batch == null || batch.Count <= 0) return false;
+          batch.Flush(this);
+          return true;
+       }
+       public virtual IAdoSession AddSqlBatchItem(BatchItem batchItem)
+       {
+          EnsureNotDisposed();
+          var batch = _sqlBatch;
+          EnsureSqlBatch();
+          batch.Add(batchItem);
           return this;
        }
+       #endregion
 
-       public bool FlushSql()
+       #region Transaction
+       public virtual bool HasTransaction
        {
-          EnsureNotDisposed();
-          if (_sqlQueue != null && _sqlQueue.Count > 0)
+          get
           {
-             _sqlQueue.Flush(this);
-             return true;
+             EnsureNotDisposed();
+             return _tr != null;
           }
-          return false;
        }
-
        public virtual IAtomic BeginTransaction(bool autoCommit = false)
         {
             EnsureNotDisposed();
@@ -310,83 +322,45 @@ namespace XAdo.Core.Impl
             _tr = new Lazy<IDbTransaction>(() => EnsureConnectionIsOpen(LazyConnection.Value).BeginTransaction());
             return new Atomic(Commit, Rollback);
         }
-       public virtual IAtomic BeginSqlQueue(bool autoCommit = true)
-       {
-          EnsureNotDisposed();
-          EnsureNoSqlQueue();
-          _autoCommitSqlQueue = autoCommit;
-          if (_sqlQueue == null)
-          {
-             _sqlQueue = _binder.Get<ISqlCommandQueue>();
-          }
-          return new Atomic(CommitSqlQueue,RollbackSqlQueue);
-       }
-
-       protected virtual bool CommitSqlQueue()
-       {
-          EnsureNotDisposed();
-          _autoCommitSqlQueue = false;
-          var sqlqueue = _sqlQueue;
-          _sqlQueue = null;
-          if (sqlqueue != null && sqlqueue.Count > 0)
-          {
-             sqlqueue.Flush(this);
-             return true;
-          }
-          return false;
-       }
-       protected virtual bool RollbackSqlQueue()
-       {
-          _autoCommitSqlQueue = false;
-          var sqlcmd = _sqlQueue;
-          _sqlQueue = null;
-          if (sqlcmd != null && sqlcmd.Count > 0)
-          {
-             sqlcmd.Clear();
-             return true;
-          }
-          return false;
-       }
-
        protected virtual bool Commit()
-        {
-            EnsureNotDisposed();
-            _autoCommit = false;
-            var hadWork = _sqlQueue != null && _sqlQueue.Count > 0;
-          CommitSqlQueue();
+       {
+          EnsureNotDisposed();
+          _autoCommit = false;
+          var hadWork = _sqlBatch != null && _sqlBatch.Count > 0;
+          FlushSqlBatch();
           var tr = _tr;
-            _tr = null;
-           if (tr == null || !tr.IsValueCreated) return hadWork;
-            try
-            {
-                tr.Value.Commit();
-            }
-            finally
-            {
-                tr.Value.Dispose();
-            }
-            return true;
-        }
+          _tr = null;
+          if (tr == null || !tr.IsValueCreated) return hadWork;
+          try
+          {
+             tr.Value.Commit();
+          }
+          finally
+          {
+             tr.Value.Dispose();
+          }
+          return true;
+       }
        protected virtual bool Rollback()
-        {
-            _autoCommit = false;
-            var hadWork = _sqlQueue != null && _sqlQueue.Count > 0;
-            RollbackSqlQueue();
-            var tr = _tr;
-            _tr = null;
-            if (tr == null || !tr.IsValueCreated) return hadWork;
-            try
-            {
-                tr.Value.Rollback();
-            }
-            finally
-            {
-                tr.Value.Dispose();
-            }
-            return true;
-        }
-
-        #endregion
+       {
+          _autoCommit = false;
+          var batch = _sqlBatch;
+          var hadWork = batch != null && batch.Count > 0;
+          if (hadWork) batch.Clear();
+          var tr = _tr;
+          _tr = null;
+          if (tr == null || !tr.IsValueCreated) return hadWork;
+          try
+          {
+             tr.Value.Rollback();
+          }
+          finally
+          {
+             tr.Value.Dispose();
+          }
+          return true;
+       }
+       #endregion
 
         #region IDispose
 
@@ -398,28 +372,16 @@ namespace XAdo.Core.Impl
              Dispose(true);
              return;
           }
-
-          if (!HasTransaction && _autoCommitSqlQueue)
+          if (!HasTransaction)
           {
-             try
-             {
-                CommitSqlQueue();
-             }
-             finally
-             {
-                Dispose(true);
-             }
-             return;
+             StopSqlBatch();
           }
 
           if (HasTransaction && _autoCommit)
           {
              try
              {
-                if (_autoCommitSqlQueue)
-                {
-                   CommitSqlQueue();
-                }
+                StopSqlBatch();
                 Commit();
              }
              finally
@@ -432,37 +394,43 @@ namespace XAdo.Core.Impl
        }
 
        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
-            _disposed = true;
+       {
+          if (_disposed) return;
+          _disposed = true;
 
-            if (!disposing) return;
+          if (!disposing) return;
 
-            var cn = _cn;
-            var tr = _tr;
-            _cn = null;
-            _tr = null;
-            try
-            {
-                if (tr != null && tr.IsValueCreated)
-                {
-                    tr.Value.Rollback();
-                }
-            }
-            finally
-            {
-                if (tr != null && tr.IsValueCreated)
-                {
-                    tr.Value.Dispose();
-                }
-                if (cn != null && cn.IsValueCreated)
-                {
-                    cn.Value.Dispose();
-                }
-            }
-        }
+          var cn = _cn;
+          var tr = _tr;
+          var batch = _sqlBatch;
+          _cn = null;
+          _tr = null;
+          _sqlBatch = null;
+          if (batch != null)
+          {
+             batch.Clear();
+          }
+          try
+          {
+             if (tr != null && tr.IsValueCreated)
+             {
+                tr.Value.Rollback();
+             }
+          }
+          finally
+          {
+             if (tr != null && tr.IsValueCreated)
+             {
+                tr.Value.Dispose();
+             }
+             if (cn != null && cn.IsValueCreated)
+             {
+                cn.Value.Dispose();
+             }
+          }
+       }
 
-        #endregion
+       #endregion
 
         #region IAdoConnectionProvider
 
@@ -490,18 +458,12 @@ namespace XAdo.Core.Impl
                 throw new AdoException("Transaction cannot be started more than once");
             }
         }
-        private void EnsureNoSqlQueue()
+
+        private void EnsureSqlBatch()
         {
-           if (_sqlQueue != null)
+           if (_sqlBatch == null)
            {
-              throw new AdoException("SQL queue cannot be started more than once");
-           }
-        }
-        private void EnsureSqlQueue()
-        {
-           if (_sqlQueue == null)
-           {
-              throw new AdoException("No SQL queue available. Commands cannot be enqueued");
+              throw new AdoException("No SQL batch available. SQL cannot be batched");
            }
         }
 

@@ -6,7 +6,7 @@ using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Dialect;
-using XAdo.Quobs.Linq;
+
 
 namespace XAdo.Quobs
 {
@@ -58,21 +58,14 @@ namespace XAdo.Quobs
             return _session.Execute(sql, args);
          }
 
-         public bool HasSqlQueue
+         public bool HasSqlBatch
          {
-            get { return _session.HasSqlQueue; }
+            get { return _session.HasSqlBatch; }
          }
 
-         public bool EnqueueSql(string sql, object args)
+         public void AddToSqlBatch(string sql, object args, Action<object> callback)
          {
-            if (sql == null) throw new ArgumentNullException("sql");
-
-            if (_session.HasSqlQueue)
-            {
-               _session.EnqueueSql(sql, args);
-               return true;
-            }
-            return false;
+            _session.AddSqlBatchItem(new BatchItem(sql, args, callback));
          }
 
          public ISqlFormatter GetSqlFormatter()
@@ -105,30 +98,30 @@ namespace XAdo.Quobs
       public static int? Update<T>(this IAdoSession self, T entity)
          where T: class
       {
-         return new DbEntityPersister<T>(new SqlExecuter(self)).Update(entity);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Update(entity);
       }
       public static object Insert<T>(this IAdoSession self, T entity)
          where T : class
       {
-         return new DbEntityPersister<T>(new SqlExecuter(self)).Insert(entity);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Insert(entity);
       }
       public static long? Delete<T>(this IAdoSession self, T entity)
          where T : class
       {
-         return new DbEntityPersister<T>(new SqlExecuter(self)).Delete(entity);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Delete(entity);
       }
 
-      public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
-      {
-         return new QueryableQuob<T>((IQuob) self);
-      }
+      //public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
+      //{
+      //   return new QueryableQuob<T>((IQuob) self);
+      //}
 
       public static IAdoContextInitializer SetSqlFormatter(this IAdoContextInitializer self, ISqlFormatter formatter)
       {
          if (self == null) throw new ArgumentNullException("self");
          if (formatter == null) throw new ArgumentNullException("formatter");
          self.SetItem("quobs.sql.formatter", formatter);
-         self.SetUnitOfWorkStatementSeperator(formatter.SqlDialect.StatementSeperator);
+         self.SetSqlStatementSeperator(formatter.SqlDialect.StatementSeperator);
          return self;
       }
       public static ISqlFormatter GetSqlFormatter(this AdoContext self, bool throwException = true)

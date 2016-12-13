@@ -33,13 +33,13 @@ namespace XAdo.Quobs.UnitTests
             var sql = mq.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var persons = s.From<Person_Person>().AsQueryable();
-            var qq = from p in persons
-               where p.LastName.StartsWith("A")
-               orderby p.FirstName, p.LastName, p.EmailPromotion
-               select new {p.FirstName, p.LastName, p.EmailPromotion};
+            //var persons = s.From<Person_Person>().AsQueryable();
+            //var qq = from p in persons
+            //   where p.LastName.StartsWith("A")
+            //   orderby p.FirstName, p.LastName, p.EmailPromotion
+            //   select new {p.FirstName, p.LastName, p.EmailPromotion};
 
-            var qlist = qq.ToList();
+            //var qlist = qq.ToList();
 
 
 
@@ -126,7 +126,7 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Northwind.CreateSession())
          {
-            var trq = db.BeginSqlQueue();
+            var trq = db.StartSqlBatch();
 
             var u = db
                .Update<Person_Person>()
@@ -162,7 +162,7 @@ namespace XAdo.Quobs.UnitTests
          using (var db = Db.Northwind.CreateSession())
          {
 
-            var trq = db.BeginSqlQueue();
+            var trq = db.StartSqlBatch();
 
             db.Delete<FamilyPerson>()
                .Where(p => true)
@@ -182,7 +182,7 @@ namespace XAdo.Quobs.UnitTests
                .Where(p => true)
                .Apply();
 
-            db.FlushSql();
+            db.FlushSqlBatch();
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
@@ -196,7 +196,7 @@ namespace XAdo.Quobs.UnitTests
                   .Apply();
             }
             //Debug.WriteLine(sw.ElapsedMilliseconds);
-            db.FlushSql();
+            db.FlushSqlBatch();
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
@@ -208,7 +208,7 @@ namespace XAdo.Quobs.UnitTests
          using (var db = Db.Northwind.CreateSession())
          {
             var tr = db.BeginTransaction(true);
-            var trq = db.BeginSqlQueue();
+            var trq = db.StartSqlBatch();
 
             db.Delete<FamilyPerson>()
                .Where(p => true)
@@ -228,10 +228,10 @@ namespace XAdo.Quobs.UnitTests
                .Where(p => true)
                .Apply();
 
-            db.FlushSql();
+            db.FlushSqlBatch();
             tr.Commit();
             tr = db.BeginTransaction();
-            trq = db.BeginSqlQueue();
+            trq = db.StartSqlBatch();
 
 
             var sw = new Stopwatch();
@@ -247,7 +247,7 @@ namespace XAdo.Quobs.UnitTests
                   .Apply();
             }
             tr.Commit();
-            db.FlushSql();
+            db.FlushSqlBatch();
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);

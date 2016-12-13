@@ -88,12 +88,12 @@ namespace XAdo.Core.Impl
             return await _connectionQueryManager.ExecuteAsync(LazyConnection.Value, sql, param, _tr == null ? null : _tr.Value, _commandTimeout, commandType);
         }
 
-        public virtual async Task<bool> FlushSqlAsync()
+        public virtual async Task<bool> FlushSqlBatchAsync()
        {
           EnsureNotDisposed();
-          if (_sqlQueue != null && _sqlQueue.Count > 0)
+          if (_sqlBatch != null && _sqlBatch.Count > 0)
           {
-             await _sqlQueue.FlushAsync(this);
+             await _sqlBatch.FlushAsync(this);
              return true;
           }
           return false;

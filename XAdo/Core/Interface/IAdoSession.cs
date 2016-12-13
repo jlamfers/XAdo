@@ -46,10 +46,11 @@ namespace XAdo.Core.Interface
         IAtomic BeginTransaction(bool autoCommit = false);
         bool HasTransaction { get; }
 
-        IAtomic BeginSqlQueue(bool autoCommit = true);
-        bool HasSqlQueue { get; }
+        bool StartSqlBatch();
+        bool StopSqlBatch();
+        bool HasSqlBatch { get; }
+        bool FlushSqlBatch();
+        IAdoSession AddSqlBatchItem(BatchItem batchItem);
 
-       IAdoSession EnqueueSql(string sql, object args);
-       bool FlushSql();
     }
 }

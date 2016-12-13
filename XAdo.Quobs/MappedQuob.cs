@@ -10,7 +10,6 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Dialect;
-using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs
 {
@@ -154,10 +153,11 @@ namespace XAdo.Quobs
 
       IQuob IQuob.Select(LambdaExpression expression)
       {
-         var t = typeof(MapExpressionHelper<>);
-         t = t.MakeGenericType(typeof(T), expression.Body.Type);
-         var helper = t.CreateInstance<IMapExpressionHelper>();
-         return helper.Select(this, expression);
+         throw new NotImplementedException();
+         //var t = typeof(MapExpressionHelper<>);
+         //t = t.MakeGenericType(typeof(T), expression.Body.Type);
+         //var helper = t.CreateInstance<IMapExpressionHelper>();
+         //return helper.Select(this, expression);
       }
 
       IQuob IQuob.Attach(ISqlExecuter executer)
@@ -171,15 +171,15 @@ namespace XAdo.Quobs
       {
          IQuob Select(IQuob quob, LambdaExpression expression);
       }
-      private class MapExpressionHelper<TMapped> : IMapExpressionHelper
-      {
-         public IQuob Select(IQuob quob, LambdaExpression expression)
-         {
-            var q = (MappedQuob<T>)quob;
-            var f = (Func<T, TMapped>)expression.Compile();
-            return new WrappedQuob<TMapped>(q.ToList().Select(f));
-         }
-      }
+      //private class MapExpressionHelper<TMapped> : IMapExpressionHelper
+      //{
+      //   public IQuob Select(IQuob quob, LambdaExpression expression)
+      //   {
+      //      var q = (MappedQuob<T>)quob;
+      //      var f = (Func<T, TMapped>)expression.Compile();
+      //      return new WrappedQuob<TMapped>(q.ToList().Select(f));
+      //   }
+      //}
 
 
       IQuob IQuob.Distinct()

@@ -53,7 +53,12 @@
     <Compile Include="Crob.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DbEntityPersister.cs" />
+    <Compile Include="SqlObjects\ISqlBuilder.cs" />
+    <Compile Include="SqlObjects\ISqlObject.cs" />
+    <Compile Include="SqlObjects\ISqlWhereObject.cs" />
+    <Compile Include="TableClassPersister.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Dialect\ISqlFormatter.cs" />
     <Compile Include="Dialect\SqlFormatter.cs" />
     <Compile Include="Dialect\Core\StatementFormatter.cs" />
@@ -61,10 +66,6 @@
     <Compile Include="Dialect\SqlServer2012Formatter.cs" />
     <Compile Include="Dialect\SqlServerDialect.cs" />
     <Compile Include="Dialect\SqlServerFormatter.cs" />
-    <Compile Include="Linq\QuobExpressionVisitor.cs" />
-    <Compile Include="Linq\QueryableQuob.cs" />
-    <Compile Include="Linq\QueryProviderQuob.cs" />
-    <Compile Include="Linq\WrappedQuob.cs" />
     <Compile Include="QuobException.cs" />
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />
@@ -117,7 +118,9 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="_obsolete\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

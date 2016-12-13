@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
-using Microsoft.SqlServer.Server;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 
@@ -56,17 +54,6 @@ namespace XAdo.Quobs.Dialect
       void WriteCount(TextWriter writer, QueryDescriptor descriptor);
       void WritePagedCount(TextWriter writer, QueryDescriptor descriptor);
       void WritePagedSelect(TextWriter writer, QueryDescriptor descriptor);
-
-      /// <summary>
-      /// Write a paged select query from the passed arguments
-      /// </summary>
-      /// <param name="writer">The writer to which the output is written</param>
-      /// <param name="sqlSelectWithoutOrder">The fully formatted sql select query, without the order by clause</param>
-      /// <param name="orderByClause">The fully formatted order columns</param>
-      /// <param name="selectNames">The fully formatted single column names (no-dot-seperators, these may be aliases) that represent the returned column names</param>
-      /// <param name="skip">The skip parameter, this may be either a formatted parameter name, or a formatted value</param>
-      /// <param name="take">The take parameter, this may be either a formatted parameter name, or a formatted value</param>
-      void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take);
    }
 
    public static class SqlFormatterExtension

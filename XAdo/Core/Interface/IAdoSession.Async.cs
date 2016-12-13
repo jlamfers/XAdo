@@ -40,6 +40,6 @@ namespace XAdo.Core.Interface
 
         Task<int> ExecuteAsync(string sql, object param = null, CommandType? commandType = null);
 
-        Task<bool> FlushSqlAsync();
+        Task<bool> FlushSqlBatchAsync();
     }
 }

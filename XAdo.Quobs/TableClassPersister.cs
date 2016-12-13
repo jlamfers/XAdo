@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using XAdo.Core;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
@@ -10,7 +8,7 @@ using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs
 {
-   public class DbEntityPersister<T>
+   public class TableClassPersister<T>
       where T : class
    {
 
@@ -28,7 +26,7 @@ namespace XAdo.Quobs
 
       private static Type _t = typeof (T);
 
-      public DbEntityPersister(ISqlExecuter executer)
+      public TableClassPersister(ISqlExecuter executer)
       {
          _executer = executer;
          _formatter = _executer.GetSqlFormatter();
@@ -37,33 +35,41 @@ namespace XAdo.Quobs
       public int? Update(T entity)
       {
          if (entity == null) throw new ArgumentNullException("entity");
-         if (!_executer.HasSqlQueue) return _executer.Execute(SqlUpdate, entity);
-         _executer.EnqueueSql(SqlUpdate, entity);
+         if (!_executer.HasSqlBatch) return _executer.Execute(SqlUpdate, entity);
+         _executer.AddToSqlBatch(SqlUpdate, entity,null);
          return null;
       }
       public int? Delete(T entity)
       {
          if (entity == null) throw new ArgumentNullException("entity");
-         if (!_executer.HasSqlQueue) return _executer.Execute(SqlDelete, entity);
-         _executer.EnqueueSql(SqlDelete, entity);
+         if (!_executer.HasSqlBatch) return _executer.Execute(SqlDelete, entity);
+         _executer.AddToSqlBatch(SqlDelete, entity,null);
          return null;
       }
       public object Insert(T entity)
       {
          if (entity == null) throw new ArgumentNullException("entity");
 
-         var hasIdentityReturn = _identityColumn != null && !_executer.HasSqlQueue && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity);
+         var hasIdentityReturn = _identityColumn != null && !string.IsNullOrEmpty(_formatter.SqlDialect.SelectLastIdentity);
          if (hasIdentityReturn)
          {
-            var sql = SqlInsert + _formatter.SqlDialect.StatementSeperator + Environment.NewLine +
-                      SqlSelectIdentity;
-            var id = _executer.ExecuteScalar<object>(sql, entity);
-            _identityColumn.Member.SetValue(entity,id);
-            return id;
+            var sql = SqlInsert + _formatter.SqlDialect.StatementSeperator + Environment.NewLine + SqlSelectIdentity;
+
+            if (!_executer.HasSqlBatch)
+            {
+               var id = _executer.ExecuteScalar<object>(sql, entity);
+               _identityColumn.Member.SetValue(entity, id);
+               return id;
+            }
+            _executer.AddToSqlBatch(SqlInsert, entity, id => _identityColumn.Member.SetValue(entity, id));
+            return null;
          }
 
-         if (!_executer.HasSqlQueue) return _executer.Execute(SqlInsert, entity);
-         _executer.EnqueueSql(SqlInsert, entity);
+         if (!_executer.HasSqlBatch)
+         {
+            return _executer.Execute(SqlInsert, entity);
+         }
+         _executer.AddToSqlBatch(SqlInsert, entity, null);
          return null;
       }
 
