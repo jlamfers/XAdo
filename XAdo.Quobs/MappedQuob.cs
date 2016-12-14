@@ -18,7 +18,7 @@ namespace XAdo.Quobs
       private readonly Func<IDataRecord, T> _binder;
       private readonly BinderExpressionCompiler.CompileResult<T> _binderCompileResult;
 
-      protected internal MappedQuob(ISqlFormatter formatter, ISqlConnection executer, Func<IDataRecord, T> binder, QueryDescriptor descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
+      protected internal MappedQuob(ISqlFormatter formatter, ISqlConnection executer, Func<IDataRecord, T> binder, QueryChunks descriptor, BinderExpressionCompiler.CompileResult<T> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins, bool argumentsAsLiterals)
          : base(formatter, executer, descriptor, joins, argumentsAsLiterals)
       {
          _binder = binder;
@@ -146,7 +146,7 @@ namespace XAdo.Quobs
          {
             var m = expression.GetMemberInfo();
             var mappedColumnInfo = _binderCompileResult.MemberMap[m];
-            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(mappedColumnInfo.Sql, mappedColumnInfo.Alias, descending));
+            Descriptor.OrderColumns.Add(new QueryChunks.OrderColumn(mappedColumnInfo.Sql, mappedColumnInfo.Alias, descending));
          }
          return this;
       }

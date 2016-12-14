@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
 {
    //NOTE: at this level all sql is (must be) formatted, and provider specific
-   public class QueryDescriptor
+   public class QueryChunks
    {
       public static class Constants
       {
@@ -17,9 +16,9 @@ namespace XAdo.Quobs.Core
             ParNameTake = "__take_";
       }
 
-      public class SelectColumnDescriptor
+      public class SelectColumn
       {
-         public SelectColumnDescriptor(string expression, string alias)
+         public SelectColumn(string expression, string alias)
          {
             Expression = expression;
             Alias = alias;
@@ -32,9 +31,9 @@ namespace XAdo.Quobs.Core
             return Expression + (Alias != null ? (" AS " + Alias) : "");
          }
 
-         public SelectColumnDescriptor Clone()
+         public SelectColumn Clone()
          {
-            return new SelectColumnDescriptor(Expression, Alias);
+            return new SelectColumn(Expression, Alias);
          }
 
          public override int GetHashCode()
@@ -47,20 +46,20 @@ namespace XAdo.Quobs.Core
 
          public override bool Equals(object obj)
          {
-            var other = obj as SelectColumnDescriptor;
+            var other = obj as SelectColumn;
             return other != null && other.Expression == Expression && other.Alias == Alias;
          }
       }
 
-      public class OrderColumnDescriptor
+      public class OrderColumn
       {
-         public OrderColumnDescriptor(string expression, bool descending = false)
+         public OrderColumn(string expression, bool descending = false)
          {
             Expression = expression;
             Descending = @descending;
          }
 
-         public OrderColumnDescriptor(string expression, string alias, bool descending = false)
+         public OrderColumn(string expression, string alias, bool descending = false)
          {
             Expression = expression;
             Alias = alias;
@@ -77,17 +76,17 @@ namespace XAdo.Quobs.Core
             return String.Format("{0}{1}", this.Alias, Descending ? " DESC" : "");
          }
 
-         public OrderColumnDescriptor Clone()
+         public OrderColumn Clone()
          {
-            return new OrderColumnDescriptor(this.Expression, Descending){Alias = Alias};
+            return new OrderColumn(this.Expression, Descending){Alias = Alias};
          }
       }
 
-      public class JoinDescriptor 
+      public class Join 
       {
          private readonly int _hashcode;
 
-         public JoinDescriptor(string expression, string joinType)
+         public Join(string expression, string joinType)
          {
             Expression = expression;
             JoinType = joinType;
@@ -106,7 +105,7 @@ namespace XAdo.Quobs.Core
 
          public override bool Equals(object obj)
          {
-            var other = obj as JoinDescriptor;
+            var other = obj as Join;
             return other != null && other.Expression == Expression;
          }
 
@@ -115,15 +114,15 @@ namespace XAdo.Quobs.Core
             return JoinType + " " + Expression;
          }
 
-         public JoinDescriptor Clone()
+         public Join Clone()
          {
-            return new JoinDescriptor(Expression, JoinType);
+            return new Join(Expression, JoinType);
          }
       }
 
-      public QueryDescriptor()
+      public QueryChunks()
       {
-         SelectColumns = new List<SelectColumnDescriptor>();
+         SelectColumns = new List<SelectColumn>();
 
          WhereClausePredicates = new List<string>();
          Arguments = new Dictionary<string, object>();
@@ -132,17 +131,17 @@ namespace XAdo.Quobs.Core
 
          HavingClausePredicates = new List<string>();
          Unions = new List<ISqlBuilder>();
-         OrderColumns = new List<OrderColumnDescriptor>();
-         Joins = new List<JoinDescriptor>();
+         OrderColumns = new List<OrderColumn>();
+         Joins = new List<Join>();
       }
 
-      public List<SelectColumnDescriptor> SelectColumns { get; private set; }
+      public List<SelectColumn> SelectColumns { get; private set; }
       public List<string> WhereClausePredicates { get; private set; }
       public List<string> HavingClausePredicates { get; private set; }
       public List<ISqlBuilder> Unions { get; private set; }
-      public List<OrderColumnDescriptor> OrderColumns { get; private set; }
+      public List<OrderColumn> OrderColumns { get; private set; }
       public List<string> GroupByColumns { get; private set; }
-      public List<JoinDescriptor> Joins { get; private set; }
+      public List<Join> Joins { get; private set; }
       public string FromTableName { get; set; }
       public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }
@@ -179,9 +178,9 @@ namespace XAdo.Quobs.Core
          }
       }
 
-      public virtual QueryDescriptor Clone(bool reset = false)
+      public virtual QueryChunks Clone(bool reset = false)
       {
-         var clone = new QueryDescriptor();
+         var clone = new QueryChunks();
          clone.SelectColumns.AddRange(SelectColumns.Select(c => c.Clone()));
          clone.HavingClausePredicates.AddRange(HavingClausePredicates);
          clone.OrderColumns.AddRange(OrderColumns.Select(c => c.Clone()));
@@ -211,7 +210,7 @@ namespace XAdo.Quobs.Core
          return dict;
       }
 
-      public virtual void AddJoins(IEnumerable<JoinDescriptor> joins)
+      public virtual void AddJoins(IEnumerable<Join> joins)
       {
          foreach (var j in joins.Where(j => !Joins.Contains(j)))
          {

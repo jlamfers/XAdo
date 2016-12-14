@@ -15,7 +15,7 @@ namespace XAdo.Quobs
    public class Quob<T> : BaseQuob<T>, IQuob
    {
       public Quob(ISqlConnection executer, bool argumentsAsLiterals)
-         : base(executer.GetSqlFormatter(), executer, new QueryDescriptor { FromTableName = typeof(T).GetTableDescriptor().Format(executer.GetSqlFormatter()) }, null, argumentsAsLiterals)
+         : base(executer.GetSqlFormatter(), executer, new QueryChunks { FromTableName = typeof(T).GetTableDescriptor().Format(executer.GetSqlFormatter()) }, null, argumentsAsLiterals)
       {
       }
 
@@ -47,10 +47,10 @@ namespace XAdo.Quobs
       public virtual Quob<T> Having(Expression<Func<T, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter,Joins){ArgumentsAsLiterals = _argumentsAsLiterals};
+         var context = new JoinBuilderContext(Formatter,Joins){ArgumentsAsLiterals = _argumentsAsLiterals};
 
          sqlBuilder.BuildSql(context, havingClause);
-         Descriptor.AddJoins(context.QuobJoins);
+         Descriptor.AddJoins(context.JoinChunks);
          Descriptor.HavingClausePredicates.Add(context.ToString());
          foreach (var arg in context.Arguments)
          {
@@ -109,10 +109,10 @@ namespace XAdo.Quobs
          foreach (var expression in expressions)
          {
             var sqlBuilder = new SqlExpressionBuilder();
-            var context = new QuobContext(Formatter, Joins);
+            var context = new JoinBuilderContext(Formatter, Joins);
 
             sqlBuilder.BuildSql(context, expression);
-            Descriptor.AddJoins(context.QuobJoins);
+            Descriptor.AddJoins(context.JoinChunks);
             Descriptor.GroupByColumns.Add(context.ToString());
             return this;
          }
@@ -125,7 +125,7 @@ namespace XAdo.Quobs
          var compiler = new BinderExpressionCompiler(Formatter);
          var result = compiler.Compile<TMapped>(mapExpression,Joins);
          Descriptor.AddJoins(result.Joins);
-         Descriptor.SelectColumns.AddRange(result.Columns.Select(c => new QueryDescriptor.SelectColumnDescriptor(c.Sql, c.Alias)).Distinct());
+         Descriptor.SelectColumns.AddRange(result.Columns.Select(c => new QueryChunks.SelectColumn(c.Sql, c.Alias)).Distinct());
          Descriptor.EnsureSelectColumnsAreAliased();
          return result;
       }
@@ -170,7 +170,7 @@ namespace XAdo.Quobs
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(c.Format(Formatter),Formatter.FormatIdentifier(c.Member.Name)));
+               Descriptor.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter),Formatter.FormatIdentifier(c.Member.Name)));
             }
          }
       }
@@ -196,7 +196,7 @@ namespace XAdo.Quobs
       {
          if (expression == null) return this;
          var sqlBuilder = new SqlExpressionBuilder();
-         var context = new QuobContext(Formatter, Joins);
+         var context = new JoinBuilderContext(Formatter, Joins);
 
          sqlBuilder.BuildSql(context, expression);
          Descriptor.WhereClausePredicates.Add(context.ToString());
@@ -216,11 +216,11 @@ namespace XAdo.Quobs
          foreach (var expression in expressions)
          {
             var sqlBuilder = new SqlExpressionBuilder();
-            var context = new QuobContext(Formatter, Joins);
+            var context = new JoinBuilderContext(Formatter, Joins);
 
             sqlBuilder.BuildSql(context, expression);
-            Descriptor.AddJoins(context.QuobJoins);
-            Descriptor.OrderColumns.Add(new QueryDescriptor.OrderColumnDescriptor(context.ToString(), descending));
+            Descriptor.AddJoins(context.JoinChunks);
+            Descriptor.OrderColumns.Add(new QueryChunks.OrderColumn(context.ToString(), descending));
             return this;
          }
          return this;

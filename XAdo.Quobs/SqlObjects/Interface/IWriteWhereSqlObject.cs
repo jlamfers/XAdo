@@ -4,9 +4,9 @@ using XAdo.Quobs.Core.DbSchema.Attributes;
 
 namespace XAdo.Quobs.SqlObjects.Interface
 {
-   public interface ISqlWriteFromObject<TTable> : ISqlWriteObject
+   public interface IWriteWhereSqlObject<TTable> : IWriteFromSqlObject<TTable>
       where TTable : IDbTable
    {
-      ISqlWriteFromObject<TTable> From(Expression<Func<TTable>> expression);
+      IWriteWhereSqlObject<TTable> Where(Expression<Func<TTable, bool>> whereExpression);
    }
 }

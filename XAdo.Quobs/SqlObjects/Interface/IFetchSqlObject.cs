@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace XAdo.Quobs.SqlObjects.Interface
 {
-   public interface ISqlFetchObject<T> : ISqlReadObject
+   public interface IFetchSqlObject<T> : IReadSqlObject
    {
       List<T> FechToList(out int count);
       List<T> FetchToList();

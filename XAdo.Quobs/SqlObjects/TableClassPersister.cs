@@ -4,16 +4,17 @@ using System.Linq;
 using XAdo.Core;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Dialect;
+using XAdo.Quobs.SqlObjects.Interface;
 
-namespace XAdo.Quobs
+namespace XAdo.Quobs.SqlObjects
 {
-   public class TableClassPersister<T>
-      where T : class
+   public class TableClassPersister<TTable> : ITableClassPersister<TTable> where TTable : IDbTable
    {
 
       private static readonly DbSchemaDescriptor.ColumnDescriptor 
-         _identityColumn = typeof(T).GetTableDescriptor().Columns.FirstOrDefault(c => c.IsAutoIncrement);
+         _identityColumn = typeof(TTable).GetTableDescriptor().Columns.FirstOrDefault(c => c.IsAutoIncrement);
 
       private readonly ISqlConnection _executer;
       private readonly ISqlFormatter _formatter;
@@ -24,7 +25,7 @@ namespace XAdo.Quobs
         _sqlInsert,
         _sqlSelectIdentity;
 
-      private static Type _t = typeof (T);
+      private static Type _t = typeof (TTable);
 
       public TableClassPersister(ISqlConnection executer)
       {
@@ -32,21 +33,43 @@ namespace XAdo.Quobs
          _formatter = _executer.GetSqlFormatter();
       }
 
-      public int? Update(T entity)
+      public virtual int? Update(TTable entity, Action<object> callback = null)
       {
          if (entity == null) throw new ArgumentNullException("entity");
-         if (!_executer.HasSqlBatch) return _executer.Execute(SqlUpdate, entity);
-         _executer.AddToSqlBatch(SqlUpdate, entity,null);
-         return null;
+         int? result = null;
+         if (!_executer.HasSqlBatch)
+         {
+            result = _executer.Execute(SqlUpdate, entity);
+            if (callback != null)
+            {
+               callback(result);
+            }
+         }
+         else
+         {
+            _executer.AddToSqlBatch(SqlUpdate, entity, callback);
+         }
+         return result;
       }
-      public int? Delete(T entity)
+      public virtual int? Delete(TTable entity, Action<object> callback = null)
       {
          if (entity == null) throw new ArgumentNullException("entity");
-         if (!_executer.HasSqlBatch) return _executer.Execute(SqlDelete, entity);
-         _executer.AddToSqlBatch(SqlDelete, entity,null);
-         return null;
+         int? result = null;
+         if (!_executer.HasSqlBatch)
+         {
+            result = _executer.Execute(SqlDelete, entity);
+            if (callback != null)
+            {
+               callback(result);
+            }
+         }
+         else
+         {
+            _executer.AddToSqlBatch(SqlDelete, entity, callback);
+         }
+         return result;
       }
-      public object Insert(T entity)
+      public virtual object Insert(TTable entity, Action<object> callback = null)
       {
          if (entity == null) throw new ArgumentNullException("entity");
 
@@ -59,9 +82,24 @@ namespace XAdo.Quobs
             {
                var id = _executer.ExecuteScalar<object>(sql, entity);
                _identityColumn.Member.SetValue(entity, id);
+               if (callback != null)
+               {
+                  callback(id);
+               }
                return id;
             }
-            _executer.AddToSqlBatch(SqlInsert, entity, id => _identityColumn.Member.SetValue(entity, id));
+            if (callback != null)
+            {
+               _executer.AddToSqlBatch(SqlInsert, entity, id =>
+               {
+                  _identityColumn.Member.SetValue(entity, id);
+                  callback(id);
+               });
+            }
+            else
+            {
+               _executer.AddToSqlBatch(SqlInsert, entity, id => _identityColumn.Member.SetValue(entity, id));
+            }
             return null;
          }
 
@@ -69,7 +107,7 @@ namespace XAdo.Quobs
          {
             return _executer.Execute(SqlInsert, entity);
          }
-         _executer.AddToSqlBatch(SqlInsert, entity, null);
+         _executer.AddToSqlBatch(SqlInsert, entity, callback);
          return null;
       }
 

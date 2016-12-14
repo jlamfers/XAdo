@@ -3,7 +3,7 @@
 namespace XAdo.Quobs.SqlObjects.Interface
 {
 
-   public interface ISqlWriteObject : ISqlObject
+   public interface IWriteSqlObject : ISqlObject
    {
       void Apply(bool literals = false, Action<object> callback = null);
    }

@@ -8,17 +8,17 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Dialect;
 using XAdo.Quobs.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.Quobs.SqlObjects.Core
 {
-   public abstract class SqlReadObject : ISqlReadObject
+   public abstract class ReadSqlObject : IReadSqlObject
    {
    
-      protected SqlReadObject(ISqlFormatter formatter, ISqlConnection connection, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins)
+      protected ReadSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
          if (connection == null) throw new ArgumentNullException("connection");
-         if (descriptor == null) throw new ArgumentNullException("descriptor");
-         Descriptor = descriptor;
+         if (chunks == null) throw new ArgumentNullException("chunks");
+         Chunks = chunks;
          Formatter = formatter;
          Connection = connection;
          Joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
@@ -27,7 +27,7 @@ namespace XAdo.Quobs.SqlObjects
 
       protected ISqlFormatter Formatter { get; set; }
       protected ISqlConnection Connection { get; set; }
-      protected QueryDescriptor Descriptor { get; set; }
+      protected QueryChunks Chunks { get; set; }
       protected List<DbSchemaDescriptor.JoinPath> Joins { get; set; }
 
       #region ISqlObject
@@ -35,15 +35,15 @@ namespace XAdo.Quobs.SqlObjects
       {
          WriteSql(writer);
       }
-      protected virtual void WriteSql(TextWriter w)
+      protected virtual void WriteSql(TextWriter writer)
       {
-         if (Descriptor.IsPaged())
+         if (Chunks.IsPaged())
          {
-            Formatter.WritePagedSelect(w, Descriptor);
+            Formatter.WritePagedSelect(writer, Chunks);
          }
          else
          {
-            Formatter.WriteSelect(w, Descriptor);
+            Formatter.WriteSelect(writer, Chunks);
          }
       }
 
@@ -53,52 +53,52 @@ namespace XAdo.Quobs.SqlObjects
       }
       protected virtual object GetArguments()
       {
-         return Descriptor.GetArguments();
+         return Chunks.GetArguments();
       }
       #endregion
 
 
       public virtual bool Any()
       {
-         if (Descriptor.IsPaged())
+         if (Chunks.IsPaged())
          {
             return Count() > 0;
          }
-         var descriptor = Descriptor;
+         var descriptor = Chunks;
          try
          {
             using (var sw = new StringWriter())
             {
-               Formatter.WriteExists(sw, w => Formatter.WriteSelect(w, Descriptor, true));
+               Formatter.WriteExists(sw, w => Formatter.WriteSelect(w, Chunks, true));
                var sql = sw.GetStringBuilder().ToString();
-               return Connection.ExecuteScalar<bool>(sql, Descriptor.GetArguments());
+               return Connection.ExecuteScalar<bool>(sql, Chunks.GetArguments());
             }
          }
          finally
          {
-            Descriptor = descriptor;
+            Chunks = descriptor;
          }
       }
       public virtual int Count()
       {
          using (var sw = new StringWriter())
          {
-            Formatter.WritePagedCount(sw, Descriptor);
+            Formatter.WritePagedCount(sw, Chunks);
             var sql = sw.GetStringBuilder().ToString();
-            return Connection.ExecuteScalar<int>(sql, Descriptor.GetArguments());
+            return Connection.ExecuteScalar<int>(sql, Chunks.GetArguments());
          }
       }
 
-      ISqlReadObject ISqlReadObject.Where(Expression expression)
+      IReadSqlObject IReadSqlObject.Where(Expression expression)
       {
          return Where(expression);
       }
 
-      ISqlReadObject ISqlReadObject.Union(ISqlReadObject sqlReadObject)
+      IReadSqlObject IReadSqlObject.Union(IReadSqlObject sqlReadObject)
       {
          return Union(sqlReadObject);
       }
-      protected virtual ISqlReadObject Union(ISqlReadObject sqlReadObject)
+      protected virtual IReadSqlObject Union(IReadSqlObject sqlReadObject)
       {
          //TODO
          throw new NotImplementedException();
@@ -106,55 +106,55 @@ namespace XAdo.Quobs.SqlObjects
          return this;
       }
 
-      protected abstract ISqlReadObject Where(Expression expression);
+      protected abstract IReadSqlObject Where(Expression expression);
 
-      ISqlReadObject ISqlReadObject.OrderBy(bool keepOrder, bool @descending, params Expression[] expressions)
+      IReadSqlObject IReadSqlObject.OrderBy(bool keepOrder, bool @descending, params Expression[] expressions)
       {
          return OrderBy(keepOrder, @descending, expressions);
       }
-      protected abstract ISqlReadObject OrderBy(bool keepOrder, bool @descending, params Expression[] expressions);
+      protected abstract IReadSqlObject OrderBy(bool keepOrder, bool @descending, params Expression[] expressions);
 
-      ISqlReadObject ISqlReadObject.Distinct()
+      IReadSqlObject IReadSqlObject.Distinct()
       {
          return Distinct();
       }
-      protected virtual ISqlReadObject Distinct()
+      protected virtual IReadSqlObject Distinct()
       {
-         Descriptor.Distict = true;
+         Chunks.Distict = true;
          return this;
       }
 
-      ISqlReadObject ISqlReadObject.Skip(int skip)
+      IReadSqlObject IReadSqlObject.Skip(int skip)
       {
          return Skip(skip);
       }
-      protected virtual ISqlReadObject Skip(int skip)
+      protected virtual IReadSqlObject Skip(int skip)
       {
-         Descriptor.Skip = skip;
+         Chunks.Skip = skip;
          return this;
       }
 
-      ISqlReadObject ISqlReadObject.Take(int take)
+      IReadSqlObject IReadSqlObject.Take(int take)
       {
          return Take(take);
       }
-      protected virtual ISqlReadObject Take(int take)
+      protected virtual IReadSqlObject Take(int take)
       {
-         Descriptor.Take = take;
+         Chunks.Take = take;
          return this;
       }
 
-      IEnumerable ISqlReadObject.FetchToEnumerable()
+      IEnumerable IReadSqlObject.FetchToEnumerable()
       {
          return FetchToEnumerable();
       }
       protected abstract IEnumerable FetchToEnumerable();
 
-      ISqlReadObject ISqlReadObject.Attach(ISqlConnection executer)
+      IReadSqlObject IReadSqlObject.Attach(ISqlConnection executer)
       {
          return Attach(executer);
       }
-      protected virtual ISqlReadObject Attach(ISqlConnection executer)
+      protected virtual IReadSqlObject Attach(ISqlConnection executer)
       {
          if (executer == null) throw new ArgumentNullException("executer");
          var clone = CloneSqlReadObject();
@@ -163,7 +163,7 @@ namespace XAdo.Quobs.SqlObjects
       }
 
       #region ICloneable
-      protected abstract SqlReadObject CloneSqlReadObject();
+      protected abstract ReadSqlObject CloneSqlReadObject();
       object ICloneable.Clone()
       {
          return CloneSqlReadObject();

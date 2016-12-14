@@ -321,7 +321,7 @@ namespace XAdo.Quobs.Dialect
          writer.Write(SqlDialect.SelectLastIdentityTyped, sqlType);
       }
 
-      public virtual void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false)
+      public virtual void WriteSelect(TextWriter writer, QueryChunks descriptor, bool ignoreOrder = false)
       {
 
          var distinct = descriptor.Distict ? "DISTINCT " : "";
@@ -379,13 +379,13 @@ namespace XAdo.Quobs.Dialect
             writer.WriteLine("   " + String.Join(",\r\n   ", descriptor.OrderColumns.Select(c => c.ToString()).ToArray()));
          }
       }
-      public virtual void WriteCount(TextWriter writer, QueryDescriptor descriptor)
+      public virtual void WriteCount(TextWriter writer, QueryChunks descriptor)
       {
          writer.Write("SELECT COUNT(1) FROM (");
          WriteSelect(writer, descriptor, true);
          writer.Write(") AS __pt_inner");
       }
-      public virtual void WritePagedCount(TextWriter writer, QueryDescriptor descriptor)
+      public virtual void WritePagedCount(TextWriter writer, QueryChunks descriptor)
       {
          if (!descriptor.IsPaged())
          {
@@ -400,7 +400,7 @@ namespace XAdo.Quobs.Dialect
             if (selectOrderColumns)
             {
                var index = 0;
-               descriptor.SelectColumns.AddRange(descriptor.OrderColumns.Select(c => new QueryDescriptor.SelectColumnDescriptor(c.Expression, Aliases.Column(index++))));
+               descriptor.SelectColumns.AddRange(descriptor.OrderColumns.Select(c => new QueryChunks.SelectColumn(c.Expression, Aliases.Column(index++))));
             }
             WriteSelect(w, descriptor, true);
             if (selectOrderColumns)
@@ -414,10 +414,10 @@ namespace XAdo.Quobs.Dialect
             sqlSelect,
             descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
             new[] { "COUNT(1)" },
-            descriptor.Skip != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameSkip) : null,
-            descriptor.Take != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameTake) : null);
+            descriptor.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
+            descriptor.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
       }
-      public virtual void WritePagedSelect(TextWriter writer, QueryDescriptor descriptor)
+      public virtual void WritePagedSelect(TextWriter writer, QueryChunks descriptor)
       {
          string sqlSelect;
          using (var w = new StringWriter())
@@ -430,8 +430,8 @@ namespace XAdo.Quobs.Dialect
             sqlSelect,
             descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
             descriptor.SelectColumns.Select(c => c.Alias),
-            descriptor.Skip != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameSkip) : null,
-            descriptor.Take != null ? this.FormatParameter(QueryDescriptor.Constants.ParNameTake) : null);
+            descriptor.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
+            descriptor.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
       }
 
 

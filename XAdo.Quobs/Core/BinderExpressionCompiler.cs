@@ -8,7 +8,6 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
@@ -156,7 +155,7 @@ namespace XAdo.Quobs.Core
       {
          public List<ColumnInfo> Columns { get; set; }
          [Obsolete]
-         public List<QueryDescriptor.JoinDescriptor> Joins { get; set; }
+         public List<QueryChunks.Join> Joins { get; set; }
          public Dictionary<MemberInfo, MappedMemberInfo> MemberMap { get; set; }
          public ParameterExpression OrigParameter { get; set; }
          public Expression<Func<IDataRecord, T>> BinderExpression { get; set; }
@@ -194,7 +193,7 @@ namespace XAdo.Quobs.Core
          return new CompileResult<T>
          {
             BinderExpression = binderExpression,
-            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(_formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
+            Joins = _joins.SelectMany(j => j.Joins).Select(j =>  new QueryChunks.Join(j.JoinInfo.Format(_formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())).ToList(),
             Columns = _columns.Keys.OrderBy(c => c.Index).ToList(),
             MemberMap = _memberMap,
             OrigParameter = _origParameter
@@ -221,7 +220,7 @@ namespace XAdo.Quobs.Core
                else
                {
                   var b = new SqlExpressionBuilder();
-                  var ctx = new QuobContext(_formatter, _joins);
+                  var ctx = new JoinBuilderContext(_formatter, _joins);
                   b.BuildSql(ctx, node.Arguments[i]);
                   var sql = ctx.ToString();
                   var index = AddOrGetColumnIndex(sql,members[i]);
@@ -242,7 +241,7 @@ namespace XAdo.Quobs.Core
             return base.VisitMemberAssignment(node);
          }
          var b = new SqlExpressionBuilder();
-         var ctx = new QuobContext(_formatter, _joins);
+         var ctx = new JoinBuilderContext(_formatter, _joins);
          b.BuildSql(ctx, e);
          var sql = ctx.ToString();
          var index = AddOrGetColumnIndex(ctx.ToString(),node.Member);
@@ -276,7 +275,7 @@ namespace XAdo.Quobs.Core
          }
 
          var b = new SqlExpressionBuilder();
-         var ctx = new QuobContext(_formatter, _joins);
+         var ctx = new JoinBuilderContext(_formatter, _joins);
          b.BuildSql(ctx, node);
          var index = AddOrGetColumnIndex(ctx.ToString(), node.Member);
          return GetReaderExpression(node.Member.GetMemberType(), index);

@@ -50,10 +50,10 @@ namespace XAdo.Quobs.Dialect
       void WriteCeiling(TextWriter writer, Action<TextWriter> arg);
       void WriteSelectLastIdentity(TextWriter writer);
       void WriteSelectLastIdentity(TextWriter writer, Type type);
-      void WriteSelect(TextWriter writer, QueryDescriptor descriptor, bool ignoreOrder = false);
-      void WriteCount(TextWriter writer, QueryDescriptor descriptor);
-      void WritePagedCount(TextWriter writer, QueryDescriptor descriptor);
-      void WritePagedSelect(TextWriter writer, QueryDescriptor descriptor);
+      void WriteSelect(TextWriter writer, QueryChunks descriptor, bool ignoreOrder = false);
+      void WriteCount(TextWriter writer, QueryChunks descriptor);
+      void WritePagedCount(TextWriter writer, QueryChunks descriptor);
+      void WritePagedSelect(TextWriter writer, QueryChunks descriptor);
    }
 
    public static class SqlFormatterExtension

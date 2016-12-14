@@ -8,12 +8,12 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Dialect;
 using XAdo.Quobs.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.Quobs.SqlObjects.Core
 {
-   public abstract class SqlFetchObject<T> : SqlReadObject, ISqlFetchObject<T>
+   public abstract class FetchSqlObject<T> : ReadSqlObject, IFetchSqlObject<T>
    {
-      protected SqlFetchObject(ISqlFormatter formatter, ISqlConnection connection, QueryDescriptor descriptor, List<DbSchemaDescriptor.JoinPath> joins) 
-         : base(formatter, connection, descriptor, joins)
+      protected FetchSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins) 
+         : base(formatter, connection, chunks, joins)
       {
       }
 
@@ -101,7 +101,7 @@ namespace XAdo.Quobs.SqlObjects
          return FetchToEnumerable().Cast<T>().Single();
       }
 
-      IEnumerable<T> ISqlFetchObject<T>.FetchToEnumerable()
+      IEnumerable<T> IFetchSqlObject<T>.FetchToEnumerable()
       {
          return FetchToEnumerable().Cast<T>();
       }
@@ -111,15 +111,15 @@ namespace XAdo.Quobs.SqlObjects
          EnsureColumnsSelected();
          using (var w = new StringWriter())
          {
-            Formatter.WriteCount(w, Descriptor);
+            Formatter.WriteCount(w, Chunks);
             w.Write(Formatter.SqlDialect.StatementSeperator);
-            if (Descriptor.IsPaged())
+            if (Chunks.IsPaged())
             {
-               Formatter.WritePagedSelect(w, Descriptor);
+               Formatter.WritePagedSelect(w, Chunks);
             }
             else
             {
-               Formatter.WriteSelect(w, Descriptor);
+               Formatter.WriteSelect(w, Chunks);
             }
             return Connection.ExecuteQuery<T>(w.GetStringBuilder().ToString(), GetArguments(), out count);
          }
@@ -138,11 +138,11 @@ namespace XAdo.Quobs.SqlObjects
 
       protected virtual void EnsureColumnsSelected()
       {
-         if (!Descriptor.SelectColumns.Any())
+         if (!Chunks.SelectColumns.Any())
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Descriptor.SelectColumns.Add(new QueryDescriptor.SelectColumnDescriptor(c.Format(Formatter), Formatter.FormatIdentifier(c.Member.Name)));
+               Chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter), Formatter.FormatIdentifier(c.Member.Name)));
             }
          }
       }

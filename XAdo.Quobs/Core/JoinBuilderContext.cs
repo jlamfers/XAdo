@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 using XAdo.Quobs.Dialect;
 
 namespace XAdo.Quobs.Core
 {
-   public class QuobContext : SqlBuilderContext
+   public class JoinBuilderContext : SqlBuilderContext
    {
 
       private readonly List<DbSchemaDescriptor.JoinPath>
@@ -19,7 +17,7 @@ namespace XAdo.Quobs.Core
       private int _tableAliasIndex;
 
 
-      public QuobContext(ISqlFormatter formatter, List<DbSchemaDescriptor.JoinPath> joins = null)
+      public JoinBuilderContext(ISqlFormatter formatter, List<DbSchemaDescriptor.JoinPath> joins = null)
          : base(formatter)
       {
          _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
@@ -32,10 +30,9 @@ namespace XAdo.Quobs.Core
       }
 
 
-      [Obsolete]
-      public IEnumerable<QueryDescriptor.JoinDescriptor> QuobJoins
+      public IEnumerable<QueryChunks.Join> JoinChunks
       {
-         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryDescriptor.JoinDescriptor(j.JoinInfo.Format(Formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())); }
+         get { return Joins.SelectMany(j => j.Joins).Select(j =>  new QueryChunks.Join(j.JoinInfo.Format(Formatter,j.LeftTableAlias,j.RightTableAlias),j.JoinType.ToJoinTypeString())); }
       }
 
       public override void WriteFormattedColumn(MemberExpression exp)

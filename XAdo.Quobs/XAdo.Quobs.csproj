@@ -53,19 +53,28 @@
     <Compile Include="Crob.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SqlObjects\Interface\ISqlFetchObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlReadMappedObject.cs" />
+    <Compile Include="SqlObjects\AdoSessionExtension.cs" />
+    <Compile Include="SqlObjects\Core\WriteSqlObject.cs" />
+    <Compile Include="SqlObjects\DeleteSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlObjectFactory.cs" />
+    <Compile Include="SqlObjects\Interface\ITableClassPersister.cs" />
+    <Compile Include="SqlObjects\SqlObjectFactory.cs" />
+    <Compile Include="SqlObjects\SqlObjectsContext.cs" />
+    <Compile Include="SqlObjects\UpdateSqlObject.cs" />
+    <Compile Include="SqlObjects\CreateSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IFetchSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IMappedSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlReadObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlReadTableObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlWriteFromObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlWriteObject.cs" />
-    <Compile Include="SqlObjects\Interface\ISqlWriteWhereObject.cs" />
-    <Compile Include="SqlObjects\SqlFetchObject.cs" />
-    <Compile Include="SqlObjects\SqlReadMappedObject.cs" />
-    <Compile Include="SqlObjects\SqlReadObject.cs" />
-    <Compile Include="SqlObjects\SqlReadTableObject.cs" />
-    <Compile Include="TableClassPersister.cs">
+    <Compile Include="SqlObjects\Interface\IReadSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\ITableSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IWriteFromSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IWriteSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IWriteWhereSqlObject.cs" />
+    <Compile Include="SqlObjects\Core\FetchSqlObject.cs" />
+    <Compile Include="SqlObjects\MappedSqlObject.cs" />
+    <Compile Include="SqlObjects\Core\ReadSqlObject.cs" />
+    <Compile Include="SqlObjects\TableSqlObject.cs" />
+    <Compile Include="SqlObjects\TableClassPersister.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Dialect\ISqlFormatter.cs" />
@@ -82,8 +91,8 @@
     <Compile Include="Core\ISqlBuilder.cs" />
     <Compile Include="Core\ISqlConnection.cs" />
     <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
-    <Compile Include="Core\QueryDescriptor.cs" />
-    <Compile Include="Core\QuobContext.cs" />
+    <Compile Include="Core\QueryChunks.cs" />
+    <Compile Include="Core\JoinBuilderContext.cs" />
     <Compile Include="Core\DbSchema\Attributes\AutoIncrementAttribute.cs" />
     <Compile Include="Core\DbSchema\Attributes\DbUniqueAttribute.cs" />
     <Compile Include="Core\DbSchema\Attributes\DbViewAttribute.cs" />
@@ -127,9 +136,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="_obsolete\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
