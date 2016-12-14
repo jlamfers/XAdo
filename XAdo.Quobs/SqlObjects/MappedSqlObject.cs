@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
@@ -114,6 +116,35 @@ namespace XAdo.Quobs.SqlObjects
       protected override ReadSqlObject CloneSqlReadObject()
       {
          return new MappedSqlObject<TMapped>(Formatter, Connection, _binder, Chunks.Clone(), _binderCompileResult, Joins);
+      }
+
+      protected override IEnumerable FetchToEnumerable()
+      {
+         EnsureColumnsSelected();
+         using (var sw = new StringWriter())
+         {
+            WriteSql(sw);
+            return Connection.ExecuteQuery(sw.GetStringBuilder().ToString(), _binder, GetArguments());
+         }
+      }
+
+      public override IEnumerable<TMapped> FetchToEnumerable(out int count)
+      {
+         EnsureColumnsSelected();
+         using (var w = new StringWriter())
+         {
+            Formatter.WriteCount(w, Chunks);
+            w.Write(Formatter.SqlDialect.StatementSeperator);
+            if (Chunks.IsPaged())
+            {
+               Formatter.WritePagedSelect(w, Chunks);
+            }
+            else
+            {
+               Formatter.WriteSelect(w, Chunks);
+            }
+            return Connection.ExecuteQuery(w.GetStringBuilder().ToString(), _binder, GetArguments(), out count);
+         }
       }
    }
 }

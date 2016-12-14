@@ -39,7 +39,6 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="Core\Aliases.cs" />
     <Compile Include="Core\CString.cs" />
     <Compile Include="Core\DbSchema\Attributes\IDbTable.cs" />
@@ -50,10 +49,7 @@
     <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
     <Compile Include="Core\SetExpressionCompiler.cs" />
     <Compile Include="Core\SqlExpression\SqlIgnoreAttribute.cs" />
-    <Compile Include="Crob.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="SqlObjects\AdoSessionExtension.cs" />
+    <Compile Include="AdoSessionExtension.cs" />
     <Compile Include="SqlObjects\Core\WriteSqlObject.cs" />
     <Compile Include="SqlObjects\DeleteSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObjectFactory.cs" />
@@ -108,9 +104,7 @@
     <Compile Include="Core\DbSchema\DbSchemaReader.cs" />
     <Compile Include="Core\DbSchema\DbTableItem.cs" />
     <Compile Include="Core\DbSchema\Generator\CSharpGenerator.cs" />
-    <Compile Include="MappedQuob.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Quob.cs" />
     <Compile Include="Core\SqlExpression\Core\Annotator.cs" />
     <Compile Include="Core\SqlExpression\Core\Extensions.cs" />
     <Compile Include="Core\SqlExpression\Core\KnownMembers.cs" />
@@ -124,8 +118,6 @@
     <Compile Include="Core\SqlExpression\SqlWeekNumberAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\CustomSqlExpressionBuilderAttribute.cs" />
     <Compile Include="Core\SqlExpression\Sql\ICustomSqlExpressionBuilder.cs" />
-    <Compile Include="Deob.cs" />
-    <Compile Include="Upob.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAdo\XAdo.csproj">

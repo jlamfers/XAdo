@@ -5,7 +5,7 @@ namespace XAdo.Quobs.SqlObjects.Interface
 {
    public interface IFetchSqlObject<T> : IReadSqlObject
    {
-      List<T> FechToList(out int count);
+      List<T> FetchToList(out int count);
       List<T> FetchToList();
       T[] FetchToArray(out int count);
       T[] FetchToArray();

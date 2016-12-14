@@ -1,12 +1,13 @@
 ﻿using XAdo.Core.Impl;
 using XAdo.Quobs.Dialect;
+using XAdo.Quobs.SqlObjects;
 
 namespace XAdo.Quobs.UnitTests
 {
     public sealed partial class Db
     {
         public static readonly AdoContext
-            Northwind = new AdoContext(i => i
+            Northwind = new SqlObjectsContext(i => i
                 .SetConnectionString(@"data source=.\SqlExpress;initial catalog=AdventureWorks2012;integrated security=SSPI", "System.Data.SqlClient")
                 .EnableFieldBinding()
                 .KeepConnectionAlive(true)
@@ -18,7 +19,7 @@ namespace XAdo.Quobs.UnitTests
             );
 
         public static readonly AdoContext
-            Users = new AdoContext(i => i
+            Users = new SqlObjectsContext(i => i
                 .SetConnectionString(@"data source=.\SqlExpress;initial catalog=Users;integrated security=SSPI", "System.Data.SqlClient")
                 .SetSqlFormatter(new SqlServer2012Formatter())
             );

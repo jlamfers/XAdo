@@ -25,7 +25,7 @@ namespace XAdo.Quobs.UnitTests
                .OrderBy(p => p.LastName)
                .Take(100)
                .Skip(10)
-               .Select(p => new
+               .Map(p => new
                {
                   p.FirstName,
                   p.LastName,
@@ -39,7 +39,7 @@ namespace XAdo.Quobs.UnitTests
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 
@@ -53,7 +53,7 @@ namespace XAdo.Quobs.UnitTests
                .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
-               .Select(p => new
+               .Map(p => new
                {
                   p.Person().FirstName,
                   p.Person().LastName,
@@ -75,7 +75,7 @@ namespace XAdo.Quobs.UnitTests
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 
@@ -89,7 +89,7 @@ namespace XAdo.Quobs.UnitTests
                .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
-               .Select(p => new
+               .Map(p => new
                {
                   p.Person().FirstName,
                   p.Person().LastName,
@@ -109,7 +109,7 @@ namespace XAdo.Quobs.UnitTests
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 
@@ -136,7 +136,7 @@ namespace XAdo.Quobs.UnitTests
                .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
-               .Select(p => new Person()
+               .Map(p => new Person()
                {
                   FirstName = p.Person().FirstName,
                   LastName = p.Person().LastName,
@@ -158,7 +158,7 @@ namespace XAdo.Quobs.UnitTests
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 
@@ -179,13 +179,13 @@ var query = from product in products
             var q = s
                .From<Production_Product>()
                .GroupBy(p => p.ProductModel().Name)
-               .Select(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
+               .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
 
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 
@@ -197,7 +197,7 @@ var query = from product in products
             var q = s
                .From<Production_Product>()
                .GroupBy(p => p.ProductModel().Name)
-               .Select(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
+               .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
 
             var sql = q.CastTo<ISqlBuilder>().GetSql();
@@ -214,7 +214,7 @@ var query = from product in products
       {
          using (var s = Db.Northwind.CreateSession())
          {
-            var q = s.From<Production_Product>().ToEnumerable();
+            var q = s.From<Production_Product>().FetchToEnumerable();
             bool @any = q.Any();
             var list = q.ToList();
          }
@@ -227,15 +227,15 @@ var query = from product in products
          {
             var q = s
                .From<Production_Product>()
-               .Select(p => new { FullName = "_" + p.ProductModel().Name })
-               .Union(s.From<Person_Person>().Select(p => new { FullName = p.FirstName + " " + p.LastName }))
+               .Map(p => new { FullName = "_" + p.ProductModel().Name })
+               .Union(s.From<Person_Person>().Map(p => new { FullName = p.FirstName + " " + p.LastName }))
                .Distinct()
                .OrderBy(p => p.FullName);
 
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
 
 
          }
@@ -248,7 +248,7 @@ var query = from product in products
          {
             var q = s
                .From<Person_Person>()
-               .Select(p => new
+               .Map(p => new
                {
                   p.FirstName,
                   p.LastName,
@@ -260,7 +260,7 @@ var query = from product in products
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
 
 
          }
@@ -279,7 +279,7 @@ var query = from product in products
                .From<Person_BusinessEntityContact>()
                .Take(100)
                .Skip(10)
-               .Select(p => new 
+               .Map(p => new 
                {
                   FirstName = p.Person(JoinType.Left).FirstName,
                   LastName = p.Person(JoinType.Left).LastName,
@@ -301,7 +301,7 @@ var query = from product in products
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
       }
 

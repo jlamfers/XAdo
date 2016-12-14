@@ -30,6 +30,11 @@ namespace XAdo.Quobs.SqlObjects
       }
 
 
+      public virtual new IWriteWhereSqlObject<TTable> From(Expression<Func<TTable>> expression)
+      {
+         return (IWriteWhereSqlObject<TTable>)base.From(expression);
+      }
+
       public virtual IWriteWhereSqlObject<TTable> Where(Expression<Func<TTable, bool>> whereExpression)
       {
          WhereExpression = whereExpression;

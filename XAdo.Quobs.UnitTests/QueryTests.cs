@@ -53,19 +53,23 @@ namespace XAdo.Quobs.UnitTests
 
          var q = _db
             .From<Production_Product>()
-            .Select(p => new
+            .Map(p => new
             {
-               p.Class, 
-               p.Color, 
-               p.RedProducts(JoinType.Left).UnitPrice, p.RedProducts(JoinType.Left).ProductSpecialOffer().ModifiedDate
+               p.Class,
+               p.Color,
+               p.RedProducts(JoinType.Left).UnitPrice,
+               p.RedProducts(JoinType.Left).ProductSpecialOffer().ModifiedDate
             })
-            .Where(x => x.UnitPrice == null || x.UnitPrice != null || x.ModifiedDate < DateTime.Now);
+            .Where(x => x.UnitPrice == null || x.UnitPrice != null || x.ModifiedDate < DateTime.Now)
+            .OrderBy(p => p.Class)
+            .Skip(10)
+            .Take(100);
          
 
          var sql = q.CastTo<ISqlBuilder>().GetSql();
          Debug.WriteLine(sql);
 
-         var list = q.ToList();
+         var list = q.FetchToList();
 
 
       }
@@ -73,17 +77,17 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void ToListWorks()
       {
-         _db.From<Person_StateProvince>().ToList();
+         _db.From<Person_StateProvince>().FetchToList();
       }
       [Test]
       public void ToArrayWorks()
       {
-         _db.From<Person_StateProvince>().ToArray();
+         _db.From<Person_StateProvince>().FetchToArray();
       }
       [Test]
       public void ToDictionaryWorks()
       {
-         _db.From<Person_StateProvince>().ToDictionary(r => r.StateProvinceID, r => r);
+         _db.From<Person_StateProvince>().FetchToDictionary(r => r.StateProvinceID, r => r);
       }
 
       [Test]
@@ -133,7 +137,7 @@ namespace XAdo.Quobs.UnitTests
          sw.Start();
          for (var i = 0; i < 100; i++)
          {
-            var b = q.ToEnumerable().Any();
+            var b = q.FetchToEnumerable().Any();
          }
          sw.Stop();
          Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -151,13 +155,13 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void AnyWorksParameterized()
       {
-         var q = _db.From<Person_StateProvince>().Any(p => p.CountryRegionCode != null);
+         var q = _db.From<Person_StateProvince>().Where(p => p.CountryRegionCode != null).Any();
       }
       [Test]
       public void ToListWithCountWorks()
       {
          int count;
-         var list = _db.From<Person_StateProvince>().ToList(out count);
+         var list = _db.From<Person_StateProvince>().FetchToList(out count);
          Assert.AreEqual(count,list.Count);
          Assert.AreEqual(count, _db.From<Person_StateProvince>().Count());
       }
@@ -169,7 +173,7 @@ namespace XAdo.Quobs.UnitTests
             .From<Person_StateProvince>()
             .Skip(10)
             .OrderBy(p => p.CountryRegionCode)
-            .ToList(out count);
+            .FetchToList(out count);
          Assert.AreEqual(count, list.Count + 10);
 
          var count2 = _db
@@ -186,7 +190,7 @@ namespace XAdo.Quobs.UnitTests
             .From<Person_StateProvince>()
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
-            .ToList();
+            .FetchToList();
          Assert.AreEqual(10, list.Count);
       }
       [Test]
@@ -197,12 +201,12 @@ namespace XAdo.Quobs.UnitTests
             .Skip(1)
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
-            .ToList();
+            .FetchToList();
          Assert.AreEqual(10, list.Count);
          var list2 = _db
             .From<Person_StateProvince>()
             .OrderBy(p => p.CountryRegionCode)
-            .ToArray()
+            .FetchToArray()
             .Skip(1)
             .Take(10)
             .ToList();

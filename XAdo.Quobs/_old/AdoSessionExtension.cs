@@ -7,18 +7,18 @@ using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Dialect;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.Quobs.SqlObjects;
 
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.Quobs
 {
    public static class AdoSessionExtension
    {
-      private class XAdoConnection : ISqlConnection
+      private class SqlExecuter : ISqlConnection
       {
          private readonly IAdoSession _session;
 
-         public XAdoConnection(IAdoSession session)
+         public SqlExecuter(IAdoSession session)
          {
             _session = session;
          }
@@ -76,63 +76,47 @@ namespace XAdo.Quobs.SqlObjects
          }
       }
 
-      public static ITableSqlObject<TTable> From<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static Quob<T> From<T>(this IAdoSession self)
       {
-         return self
-            .Context
-            .GetInstance<ISqlObjectFactory>()
-            .CreateReadSqlObject<TTable>(new XAdoConnection(self));
+         return new Quob<T>(new SqlExecuter(self), false);
       }
-      public static TMappedSqlObject From<TMappedSqlObject>(this IAdoSession self, TMappedSqlObject mappedSqlObject) where TMappedSqlObject : IMappedSqlObject
+      public static T From<T>(this IAdoSession self, T quob) where T : IQuob
       {
-         return (TMappedSqlObject)mappedSqlObject.Attach(new XAdoConnection(self));
+         return (T)quob.Attach(new SqlExecuter(self));
       }
-      public static IWriteWhereSqlObject<TTable> Update<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static Upob<T> Update<T>(this IAdoSession self)
       {
-         return self
-            .Context
-            .GetInstance<ISqlObjectFactory>()
-            .CreateUpdateSqlObject<TTable>(new XAdoConnection(self));
+         return new Upob<T>(new SqlExecuter(self));
       }
-      public static IWriteFromSqlObject<TTable> Insert<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static Crob<T> Insert<T>(this IAdoSession self)
       {
-         return self
-            .Context
-            .GetInstance<ISqlObjectFactory>()
-            .CreateCreateSqlObject<TTable>(new XAdoConnection(self));
+         return new Crob<T>(new SqlExecuter(self));
       }
-      public static IWriteWhereSqlObject<TTable> Delete<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static Deob<T> Delete<T>(this IAdoSession self)
       {
-         return self
-            .Context
-            .GetInstance<ISqlObjectFactory>()
-            .CreateDeleteSqlObject<TTable>(new XAdoConnection(self));
+         return new Deob<T>(new SqlExecuter(self));
       }
 
-      public static int? Update<TTable>(this IAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static int? Update<T>(this IAdoSession self, T entity)
+         where T: class, IDbTable
       {
-         return self
-                    .Context
-                    .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
-                    .Update(entity, callback);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Update(entity);
       }
-      public static object Insert<TTable>(this IAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static object Insert<T>(this IAdoSession self, T entity)
+         where T : class, IDbTable
       {
-         return self
-                    .Context
-                    .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
-                    .Insert(entity,callback);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Insert(entity);
       }
-      public static int? Delete<TTable>(this IAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static long? Delete<T>(this IAdoSession self, T entity)
+         where T : class, IDbTable
       {
-         return self
-                    .Context
-                    .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
-                    .Delete(entity, callback);
+         return new TableClassPersister<T>(new SqlExecuter(self)).Delete(entity);
       }
+
+      //public static QueryableQuob<T> AsQueryable<T>(this BaseQuob<T> self)
+      //{
+      //   return new QueryableQuob<T>((IQuob) self);
+      //}
 
       public static IAdoContextInitializer SetSqlFormatter(this IAdoContextInitializer self, ISqlFormatter formatter)
       {

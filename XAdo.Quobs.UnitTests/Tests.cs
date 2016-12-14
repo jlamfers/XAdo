@@ -7,6 +7,8 @@ using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
+using XAdo.Quobs.SqlObjects;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
 {
@@ -23,12 +25,12 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MoneyTest()
       {
-         var mq = default(MappedQuob<Person>);
+         IMappedSqlObject<Person> mq = null;
          using (var s = Db.Northwind.CreateSession())
          {
             mq = s
                .From<Person_Person>()
-               .Select(p => new Person {NameFirst = p.FirstName, NameLast = p.LastName})
+               .Map(p => new Person {NameFirst = p.FirstName, NameLast = p.LastName})
                .Where(p => p.NameFirst.Contains("e"));
             var sql = mq.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
@@ -43,30 +45,30 @@ namespace XAdo.Quobs.UnitTests
 
 
 
-            mq.ToList();
+            mq.FetchToList();
 
             var list = s
                .From<Person_Person>()
-               .Select(p => new {Name = p.FirstName + " " + p.LastName})
-               .ToList();
+               .Map(p => new {Name = p.FirstName + " " + p.LastName})
+               .FetchToList();
 
             var q = s
                .From<Person_Person>()
                .GroupBy(p => p.LastName)
                .Having(p => p.LastName.Count().Between(100, 150))
-               .Select(p => new {p.LastName, Count = p.LastName.Count()})
+               .Map(p => new { p.LastName, Count = p.LastName.Count() })
                .OrderByDescending(p => p.Count)
                .AddOrderBy(p => p.LastName);
 
             sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list2 = q.ToList();
+            var list2 = q.FetchToList();
          }
          using (var s = Db.Northwind.CreateSession())
          {
             mq = s.From(mq);
-            mq.ToList();
+            mq.FetchToList();
          }
 
       }
@@ -79,7 +81,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var q = s
                .From<FamilyPerson>()
-               .Select(p => new
+               .Map(p => new
                {
 
                   p.Name,
@@ -114,7 +116,7 @@ namespace XAdo.Quobs.UnitTests
             sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
 
          }
 
@@ -135,7 +137,9 @@ namespace XAdo.Quobs.UnitTests
 
             var sql = u.CastTo<ISqlBuilder>().GetSql();
 
-            var result = u.Apply();
+            object result = null;
+            
+            u.Apply(callback:r => result = r);
 
             Debug.WriteLine(sql);
 
@@ -173,9 +177,8 @@ namespace XAdo.Quobs.UnitTests
                var i1 = i;
                db
                   .Insert<FamilyPerson>()
-                  .WithArgumentsAsLiterals()
                   .From(() => new FamilyPerson {Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
-                  .Apply();
+                  .Apply(literals:true);
             }
 
             db.Delete<FamilyPerson>()
@@ -191,9 +194,8 @@ namespace XAdo.Quobs.UnitTests
                var i1 = i;
                db
                   .Insert<FamilyPerson>()
-                  .WithArgumentsAsLiterals()
                   .From(() => new FamilyPerson {Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1})
-                  .Apply();
+                  .Apply(literals: true);
             }
             //Debug.WriteLine(sw.ElapsedMilliseconds);
             db.FlushSqlBatch();
@@ -219,9 +221,8 @@ namespace XAdo.Quobs.UnitTests
                var i1 = i;
                db
                   .Insert<FamilyPerson>()
-                  .WithArgumentsAsLiterals()
                   .From(() => new FamilyPerson {Id = i, Name = i1.ToString(), FatherId = i1, MotherId = i1})
-                  .Apply();
+                  .Apply(literals:true);
             }
 
             db.Delete<FamilyPerson>()
@@ -242,9 +243,8 @@ namespace XAdo.Quobs.UnitTests
                var i1 = i;
                db
                   .Insert<FamilyPerson>()
-                  .WithArgumentsAsLiterals()
                   .From(() => new FamilyPerson { Id = i1, Name = i1.ToString(), FatherId = i1, MotherId = i1 })
-                  .Apply();
+                  .Apply(literals:true);
             }
             tr.Commit();
             db.FlushSqlBatch();

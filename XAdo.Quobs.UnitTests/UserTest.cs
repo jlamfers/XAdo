@@ -73,7 +73,7 @@ namespace XAdo.Quobs.UnitTests
          using (var db = Db.Users.CreateSession())
          {
             var q = db.From<User>()
-               .Select(u => new
+               .Map(u => new
                {
                   u.UserName,
                   u.Password,
@@ -92,7 +92,7 @@ namespace XAdo.Quobs.UnitTests
             var sql = q.CastTo<ISqlBuilder>().GetSql();
             Debug.WriteLine(sql);
 
-            var list = q.ToList();
+            var list = q.FetchToList();
          }
         
       }
@@ -103,7 +103,7 @@ namespace XAdo.Quobs.UnitTests
          using (var db = Db.Users.CreateSession())
          {
             var users = db.From<User>()
-               .Select(u => new
+               .Map(u => new
                {
                   Id=u.Id.Value,
                   u.UserName,
@@ -114,28 +114,28 @@ namespace XAdo.Quobs.UnitTests
                .OrderBy(u => u.UserName)
                .Skip(1)
                .Take(5)
-               .ToList();
+               .FetchToList();
 
             var first = users.First().UserName;
             var last = users.Last().UserName;
 
             var roles = db.From<User>()
                .Where(u => u.UserName.Between(first, last))
-               .Select(u => new
+               .Map(u => new
                {
                   UserId = u.Id,
                   u.UserRole_N(JoinType.Left).Role(JoinType.Left).Name,
                })
-               .ToGroupedList(u => u.UserId, u => u.Name);
+               .FetchToGroupedDictionary(u => u.UserId, u => u.Name);
 
             var types = db.From<User>()
                .Where(u => u.UserName.Between(first,last))
-               .Select(u => new
+               .Map(u => new
                {
                   UserId = u.Id,
                   u.UserType_N(JoinType.Left).Type(JoinType.Left).Name,
                })
-               .ToGroupedList(u => u.UserId, u => u.Name);
+               .FetchToGroupedDictionary(u => u.UserId, u => u.Name);
 
 
             foreach (var user in users)

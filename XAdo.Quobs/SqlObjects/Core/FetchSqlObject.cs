@@ -17,7 +17,7 @@ namespace XAdo.Quobs.SqlObjects.Core
       {
       }
 
-      public virtual List<T> FechToList(out int count)
+      public virtual List<T> FetchToList(out int count)
       {
          return FetchToEnumerable(out count).ToList();
       }

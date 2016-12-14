@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using System.Text;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Dialect;
@@ -10,7 +11,7 @@ using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects.Core
 {
-   public abstract class ReadSqlObject : IReadSqlObject
+   public abstract class ReadSqlObject : IReadSqlObject, ISqlBuilder
    {
    
       protected ReadSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins)
@@ -45,6 +46,20 @@ namespace XAdo.Quobs.SqlObjects.Core
          {
             Formatter.WriteSelect(writer, Chunks);
          }
+      }
+
+      string ISqlBuilder.GetSql()
+      {
+         using (var sw = new StringWriter())
+         {
+            WriteSql(sw);
+            return sw.GetStringBuilder().ToString();
+         }
+      }
+
+      IDictionary<string, object> ISqlBuilder.GetArguments()
+      {
+         return (IDictionary<string, object>) GetArguments();
       }
 
       object ISqlObject.GetArguments()
@@ -101,8 +116,8 @@ namespace XAdo.Quobs.SqlObjects.Core
       protected virtual IReadSqlObject Union(IReadSqlObject sqlReadObject)
       {
          //TODO
-         throw new NotImplementedException();
-         //Descriptor.Unions.Add(sqlReadObject);
+         //throw new NotImplementedException();
+         Chunks.Unions.Add((ReadSqlObject)sqlReadObject);
          return this;
       }
 
