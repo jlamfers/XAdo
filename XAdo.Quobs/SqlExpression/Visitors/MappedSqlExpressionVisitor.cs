@@ -9,11 +9,11 @@ using XAdo.Quobs.Core.SqlExpression;
 
 namespace XAdo.Quobs.Core
 {
-   public class MappedSqlExpressionBuilder : SqlExpressionBuilder
+   public class MappedSqlExpressionVisitor : SqlExpressionVisitor
    {
       private readonly IDictionary<MemberInfo, string> _sqlMap;
 
-      public MappedSqlExpressionBuilder(IDictionary<MemberInfo, string> sqlMap)
+      public MappedSqlExpressionVisitor(IDictionary<MemberInfo, string> sqlMap)
       {
          _sqlMap = sqlMap;
       }

@@ -7,7 +7,7 @@ using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.Core
 {
-   public static class ExpressionExtensions
+   public static class Extensions
    {
 
       public static bool IsJoinMethod(this Expression expression)

@@ -151,7 +151,7 @@ namespace XAdo.Quobs.Core.SqlExpression.Core
          if (attribute == null) throw new ArgumentNullException("attribute");
          if (!attribute.IsAllowMultiple() && attributeList.Contains(attribute))
          {
-            throw new QuobException(string.Format("AllowMultiple==false => Attribute '{0}' already was added.", attribute.GetType()));
+            throw new SqlObjectsException(string.Format("AllowMultiple==false => Attribute '{0}' already was added.", attribute.GetType()));
          }
       }
 

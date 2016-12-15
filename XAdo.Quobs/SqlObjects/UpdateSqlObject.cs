@@ -45,7 +45,7 @@ namespace XAdo.Quobs.SqlObjects
       {
          if (WhereExpression != null)
          {
-            var sqlBuilder = new SqlExpressionBuilder();
+            var sqlBuilder = new SqlExpressionVisitor();
             var context = new SqlBuilderContext(Formatter)
             {
                ArgumentsAsLiterals = literals
@@ -68,7 +68,7 @@ namespace XAdo.Quobs.SqlObjects
             var cols = CompileResult.KeyConstraint.Select(k => k.Item1.Name).ToArray();
             if (cols.Length != KeyColumns.Count || cols.Any(c => !KeyColumns.Contains(c)))
             {
-               throw new QuobException(
+               throw new SqlObjectsException(
                   string.Format("Missing pkey columns in update: {0}. Add pkey columns or else use where-clause.",
                      Expression));
             }

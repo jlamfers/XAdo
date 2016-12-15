@@ -4,6 +4,6 @@ namespace XAdo.Quobs.Core.SqlExpression.Sql
 {
    public interface ICustomSqlExpressionBuilder
    {
-      void BuildSql(ExpressionVisitor parent, SqlBuilderContext context, Expression expression);
+      void BuildSql(ExpressionVisitor visitor, SqlBuilderContext context, Expression expression);
    }
 }

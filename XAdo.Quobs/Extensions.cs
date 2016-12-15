@@ -12,7 +12,7 @@ using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs
 {
-   public static class AdoSessionExtension
+   public static class Extensions
    {
       private class XAdoConnection : ISqlConnection
       {
@@ -154,14 +154,14 @@ namespace XAdo.Quobs
             {
                return null;
             }
-            throw new QuobException(
+            throw new SqlObjectsException(
                "Missing SQL formatter. You need to specify a SQL formatter on your AdoContext initialization (using the initializer parameter), e.g., i => i.SetItem(\"" +
                FormatterKey + "\",new MySqlFormatter())");
          }
 
          if (!(formatter is ISqlFormatter))
          {
-            throw new QuobException("Invalid SQL formatter: the SQL formmater must implement interface type " +
+            throw new SqlObjectsException("Invalid SQL formatter: the SQL formmater must implement interface type " +
                                     typeof(ISqlFormatter));
          }
 

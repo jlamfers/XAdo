@@ -4,7 +4,7 @@ using XAdo.Quobs.Core.SqlExpression.Core;
 
 namespace XAdo.Quobs.Core.SqlExpression
 {
-   internal class FactoryExpressionSubstituter : ExpressionVisitor
+   internal class CreateExpressionSubstituteVisitor : ExpressionVisitor
    {
       private ParameterExpression _newParameter;
       private Type _joinClassType;
@@ -62,7 +62,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          if (node.Method.EqualMethods(KnownMembers.SqlMethods.DefaultIfEmpty))
          {
             var newExpression = (LambdaExpression) node.Arguments[1];
-            var substituter = new FactoryExpressionSubstituter();
+            var substituter = new CreateExpressionSubstituteVisitor();
             var arg2 = substituter.Substitute(newExpression, newExpression.Parameters[0], node.Arguments[0],newParameter);
             var arg1 = Expression.Convert(substituter.FirstMember, typeof (object));
             var m = KnownMembers.SqlMethods.DefaultIfEmpty2.MakeGenericMethod(node.Method.GetGenericArguments()[1]);
@@ -72,7 +72,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          {
             _registerFirstMember = false;
             var newExpression = (LambdaExpression)node.Arguments[1];
-            var substituter = new FactoryExpressionSubstituter();
+            var substituter = new CreateExpressionSubstituteVisitor();
             expression = substituter.Substitute(newExpression, newExpression.Parameters[0], node.Arguments[0], newParameter);
          }
          return expression != null;

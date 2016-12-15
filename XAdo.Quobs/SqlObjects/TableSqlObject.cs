@@ -22,7 +22,7 @@ namespace XAdo.Quobs.SqlObjects
       protected override IReadSqlObject Where(Expression expression)
       {
          if (expression == null) return this;
-         var sqlBuilder = new SqlExpressionBuilder();
+         var sqlBuilder = new SqlExpressionVisitor();
          var context = new JoinBuilderContext(Formatter, Joins);
 
          sqlBuilder.BuildSql(context, expression);
@@ -42,7 +42,7 @@ namespace XAdo.Quobs.SqlObjects
          }
          foreach (var expression in expressions)
          {
-            var sqlBuilder = new SqlExpressionBuilder();
+            var sqlBuilder = new SqlExpressionVisitor();
             var context = new JoinBuilderContext(Formatter, Joins);
 
             sqlBuilder.BuildSql(context, expression);
@@ -59,9 +59,9 @@ namespace XAdo.Quobs.SqlObjects
          return new MappedSqlObject<TMapped>(Formatter, Connection, result.BinderExpression.Compile(), Chunks, result, Joins);
       }
 
-      private BinderExpressionCompiler.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression)
+      private BinderExpressionVisitor.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression)
       {
-         var compiler = new BinderExpressionCompiler(Formatter);
+         var compiler = new BinderExpressionVisitor(Formatter);
          var result = compiler.Compile<TMapped>(mapExpression, Joins);
          Chunks.AddJoins(result.Joins);
          Chunks.SelectColumns.AddRange(result.Columns.Select(c => new QueryChunks.SelectColumn(c.Sql, c.Alias)).Distinct());
@@ -114,7 +114,7 @@ namespace XAdo.Quobs.SqlObjects
       {
          foreach (var expression in expressions)
          {
-            var sqlBuilder = new SqlExpressionBuilder();
+            var sqlBuilder = new SqlExpressionVisitor();
             var context = new JoinBuilderContext(Formatter, Joins);
 
             sqlBuilder.BuildSql(context, expression);
@@ -139,7 +139,7 @@ namespace XAdo.Quobs.SqlObjects
 
       public virtual ITableSqlObject<TTable> Having(Expression<Func<TTable, bool>> havingClause)
       {
-         var sqlBuilder = new SqlExpressionBuilder();
+         var sqlBuilder = new SqlExpressionVisitor();
          var context = new JoinBuilderContext(Formatter, Joins) { ArgumentsAsLiterals = false };
 
          sqlBuilder.BuildSql(context, havingClause);

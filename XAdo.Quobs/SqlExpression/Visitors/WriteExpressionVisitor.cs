@@ -10,7 +10,7 @@ using XAdo.Quobs.Dialects;
 
 namespace XAdo.Quobs.Core
 {
-   public class SetExpressionCompiler : ExpressionVisitor
+   public class WriteExpressionVisitor : ExpressionVisitor
    {
       private static readonly ConcurrentDictionary<Type,int>
          ArgumentKeys = new ConcurrentDictionary<Type, int>();
@@ -41,7 +41,7 @@ namespace XAdo.Quobs.Core
          public string TableName { get; private set; }
       }
 
-      public SetExpressionCompiler(ISqlFormatter formatter)
+      public WriteExpressionVisitor(ISqlFormatter formatter)
       {
          _formatter = formatter;
          
@@ -105,7 +105,7 @@ namespace XAdo.Quobs.Core
             _arguments.Add(name, value);
             return _formatter.FormatParameter(name);
          }
-         var b = new SqlExpressionBuilder();
+         var b = new SqlExpressionVisitor();
          var c = new SqlBuilderContext(_formatter)
          {
             Arguments = _arguments,

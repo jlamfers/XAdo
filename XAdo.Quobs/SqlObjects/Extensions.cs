@@ -4,9 +4,9 @@ using System.Globalization;
 using System.Reflection;
 using XAdo.Quobs.Core.SqlExpression;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.Quobs.SqlObjects
 {
-   internal static class Extension
+   internal static class Extensions
    {
       public static T CreateInstance<T>(this Type self)
       {

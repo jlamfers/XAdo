@@ -13,7 +13,7 @@ using XAdo.Quobs.SqlObjects.Core;
 
 namespace XAdo.Quobs.Core
 {
-   public class BinderExpressionCompiler : ExpressionVisitor
+   public class BinderExpressionVisitor : ExpressionVisitor
    {
       private readonly ISqlFormatter _formatter;
 
@@ -155,7 +155,6 @@ namespace XAdo.Quobs.Core
       public class CompileResult<T> 
       {
          public List<ColumnInfo> Columns { get; set; }
-         [Obsolete]
          public List<QueryChunks.Join> Joins { get; set; }
          public Dictionary<MemberInfo, MappedMemberInfo> MemberMap { get; set; }
          public ParameterExpression OrigParameter { get; set; }
@@ -177,7 +176,7 @@ namespace XAdo.Quobs.Core
       private ParameterExpression
          _origParameter;
 
-      public BinderExpressionCompiler(ISqlFormatter formatter)
+      public BinderExpressionVisitor(ISqlFormatter formatter)
       {
          _formatter = formatter;
       }
@@ -220,7 +219,7 @@ namespace XAdo.Quobs.Core
                }
                else
                {
-                  var b = new SqlExpressionBuilder();
+                  var b = new SqlExpressionVisitor();
                   var ctx = new JoinBuilderContext(_formatter, _joins);
                   b.BuildSql(ctx, node.Arguments[i]);
                   var sql = ctx.ToString();
@@ -241,7 +240,7 @@ namespace XAdo.Quobs.Core
          {
             return base.VisitMemberAssignment(node);
          }
-         var b = new SqlExpressionBuilder();
+         var b = new SqlExpressionVisitor();
          var ctx = new JoinBuilderContext(_formatter, _joins);
          b.BuildSql(ctx, e);
          var sql = ctx.ToString();
@@ -254,7 +253,7 @@ namespace XAdo.Quobs.Core
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
          Expression substitute;
-         var substituter = new FactoryExpressionSubstituter();
+         var substituter = new CreateExpressionSubstituteVisitor();
          if (substituter.TrySubstituteFactoryMethod(node, _origParameter, out substitute))
          {
             return Visit(substitute);
@@ -275,7 +274,7 @@ namespace XAdo.Quobs.Core
             return base.VisitMember(node);
          }
 
-         var b = new SqlExpressionBuilder();
+         var b = new SqlExpressionVisitor();
          var ctx = new JoinBuilderContext(_formatter, _joins);
          b.BuildSql(ctx, node);
          var index = AddOrGetColumnIndex(ctx.ToString(), node.Member);

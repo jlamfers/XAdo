@@ -104,7 +104,7 @@ namespace XAdo.Quobs.Dialects
          string sqlType;
          if (!SqlDialect.TypeMap.TryGetValue(type, out sqlType))
          {
-            throw new QuobException(string.Format("Type {0} not supported.", type));
+            throw new SqlObjectsException(string.Format("Type {0} not supported.", type));
          }
          writer.Write(sqlType);
       }
@@ -317,7 +317,7 @@ namespace XAdo.Quobs.Dialects
          string sqlType;
          if (!SqlDialect.TypeMap.TryGetValue(type, out sqlType))
          {
-            throw new QuobException("Cannot format type " + type + " with SqlFormatter " + GetType());
+            throw new SqlObjectsException("Cannot format type " + type + " with SqlFormatter " + GetType());
          }
          writer.Write(SqlDialect.SelectLastIdentityTyped, sqlType);
       }
@@ -457,7 +457,7 @@ namespace XAdo.Quobs.Dialects
 
          if (orderByClause == null || !orderByClause.Any())
          {
-            throw new QuobException("For SQL paging at least one order column must be specified.");
+            throw new SqlObjectsException("For SQL paging at least one order column must be specified.");
          }
 
          if (skip == null)

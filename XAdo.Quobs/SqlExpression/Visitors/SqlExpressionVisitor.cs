@@ -11,12 +11,12 @@ using XAdo.Quobs.Dialects;
 
 namespace XAdo.Quobs.Core.SqlExpression
 {
-   public class SqlExpressionBuilder : ExpressionVisitor
+   public class SqlExpressionVisitor : ExpressionVisitor
    {
       #region Writer Method Mappings
 
-      private static readonly Dictionary<MethodInfo, Func<SqlExpressionBuilder, MethodCallExpression, Expression>>
-          MethodWriterMap = new Dictionary<MethodInfo, Func<SqlExpressionBuilder, MethodCallExpression, Expression>>
+      private static readonly Dictionary<MethodInfo, Func<SqlExpressionVisitor, MethodCallExpression, Expression>>
+          MethodWriterMap = new Dictionary<MethodInfo, Func<SqlExpressionVisitor, MethodCallExpression, Expression>>
             {
                 {KnownMembers.String.StartsWith, WriteStartsWith},
                 {KnownMembers.String.EndsWith, WriteEndsWith},
@@ -43,8 +43,8 @@ namespace XAdo.Quobs.Core.SqlExpression
             };
 
 
-      private static readonly IDictionary<ExpressionType, Func<SqlExpressionBuilder, BinaryExpression, Expression>>
-          OperatorWriterMap = new Dictionary<ExpressionType, Func<SqlExpressionBuilder, BinaryExpression, Expression>>
+      private static readonly IDictionary<ExpressionType, Func<SqlExpressionVisitor, BinaryExpression, Expression>>
+          OperatorWriterMap = new Dictionary<ExpressionType, Func<SqlExpressionVisitor, BinaryExpression, Expression>>
             {
                 {ExpressionType.AndAlso, (w,e) => w.FormatBinary(e," AND ")},
                 {ExpressionType.OrElse, (w,e) => w.FormatBinary(e," OR ")},
@@ -63,8 +63,8 @@ namespace XAdo.Quobs.Core.SqlExpression
             };
 
 
-      private static readonly Dictionary<PropertyInfo, Func<SqlExpressionBuilder, MemberExpression, Expression>>
-          PropertyWriterMap = new Dictionary<PropertyInfo, Func<SqlExpressionBuilder, MemberExpression, Expression>>
+      private static readonly Dictionary<PropertyInfo, Func<SqlExpressionVisitor, MemberExpression, Expression>>
+          PropertyWriterMap = new Dictionary<PropertyInfo, Func<SqlExpressionVisitor, MemberExpression, Expression>>
             {
                 {KnownMembers.DateTime.Now, WriteDateTimeNow},
                 {KnownMembers.DateTime.UtcNow, WriteDateTimeUtcNow},
@@ -140,13 +140,13 @@ namespace XAdo.Quobs.Core.SqlExpression
             return Visit(exp.Object);
          }
 
-         Func<SqlExpressionBuilder, MethodCallExpression, Expression> Writer;
+         Func<SqlExpressionVisitor, MethodCallExpression, Expression> Writer;
          if (MethodWriterMap.TryGetValue(exp.Method, out Writer))
          {
             return Writer(this, exp);
          }
 
-         throw new QuobException(string.Format("The method '{0}' is not supported", exp.Method.Name));
+         throw new SqlObjectsException(string.Format("The method '{0}' is not supported", exp.Method.Name));
       }
 
       protected override Expression VisitUnary(UnaryExpression exp)
@@ -174,7 +174,7 @@ namespace XAdo.Quobs.Core.SqlExpression
                break;
 
             default:
-               throw new QuobException(string.Format("The unary operator '{0}' is not supported", exp.NodeType));
+               throw new SqlObjectsException(string.Format("The unary operator '{0}' is not supported", exp.NodeType));
          }
          return exp;
       }
@@ -214,10 +214,10 @@ namespace XAdo.Quobs.Core.SqlExpression
             return visitResult;
          }
 
-         Func<SqlExpressionBuilder, BinaryExpression, Expression> wrtr;
+         Func<SqlExpressionVisitor, BinaryExpression, Expression> wrtr;
          if (!OperatorWriterMap.TryGetValue(exp.NodeType, out wrtr))
          {
-            throw new QuobException(string.Format("The binary operator '{0}' is not supported", exp.NodeType));
+            throw new SqlObjectsException(string.Format("The binary operator '{0}' is not supported", exp.NodeType));
          }
 
          return wrtr(this, exp);
@@ -264,7 +264,7 @@ namespace XAdo.Quobs.Core.SqlExpression
             return exp;
          }
 
-         Func<SqlExpressionBuilder, MemberExpression, Expression> generator;
+         Func<SqlExpressionVisitor, MemberExpression, Expression> generator;
          if (exp.Member.MemberType == MemberTypes.Property && PropertyWriterMap.TryGetValue((PropertyInfo)exp.Member, out generator))
          {
             return generator(this, exp);
@@ -400,7 +400,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          }
          catch (Exception ex)
          {
-            throw new QuobException("You must compare to a constant int value, e.g., -1,0,1", ex);
+            throw new SqlObjectsException("You must compare to a constant int value, e.g., -1,0,1", ex);
          }
          return false;
       }
@@ -525,7 +525,7 @@ namespace XAdo.Quobs.Core.SqlExpression
 
       #region Write methods
 
-      private static Expression WriteContains(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteContains(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w.Visit(e.Object);
          w.Write(" LIKE ");
@@ -538,7 +538,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          return e;
       }
 
-      private static Expression WriteStartsWith(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteStartsWith(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w.Visit(e.Object);
          w.Write(" LIKE ");
@@ -551,7 +551,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          return e;
       }
 
-      private static Expression WriteEndsWith(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteEndsWith(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w.Visit(e.Object);
          w.Write(" LIKE ");
@@ -565,185 +565,185 @@ namespace XAdo.Quobs.Core.SqlExpression
          return e;
       }
 
-      private static Expression WriteModulo(SqlExpressionBuilder w, BinaryExpression e)
+      private static Expression WriteModulo(SqlExpressionVisitor w, BinaryExpression e)
       {
          w._formatter.WriteModulo(w._writer, ParameterizeWriter(() => w.Visit(e.Left), w), ParameterizeWriter(() => w.Visit(e.Right), w));
          return e;
       }
 
-      private static Expression WriteAddYears(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddYears(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddYears(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddMonths(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddMonths(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddMonths(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddDays(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddDays(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddDays(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddHours(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddHours(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddHours(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddMinutes(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddMinutes(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddMinutes(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddSeconds(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddSeconds(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddSeconds(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteAddMilliseconds(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteAddMilliseconds(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteDateTimeAddMilliseconds(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w), ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteDateTimeMillisecond(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeMillisecond(SqlExpressionVisitor w, MemberExpression e)
       {
          w._formatter.WriteDateTimeMillisecond(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeSecond(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeSecond(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeSecond(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeMinute(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeMinute(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeMinute(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeHour(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeHour(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeHour(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeDayOfYear(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeDayOfYear(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeDayOfYear(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeDayOfWeek(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeDayOfWeek(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeDayOfWeek(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeDay(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeDay(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeDay(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeMonth(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeMonth(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeMonth(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeYear(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeYear(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeYear(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeDate(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeDate(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteDateTimeDate(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteDateTimeToday(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeToday(SqlExpressionVisitor w, MemberExpression e)
       {
          w.Write(w._formatter.SqlDialect.Today);
          return e;
       }
 
-      private static Expression WriteDateTimeUtcNow(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeUtcNow(SqlExpressionVisitor w, MemberExpression e)
       {
          w.Write(w._formatter.SqlDialect.UtcNow);
          return e;
       }
 
-      private static Expression WriteDateTimeNow(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteDateTimeNow(SqlExpressionVisitor w, MemberExpression e)
       {
          w.Write(w._formatter.SqlDialect.Now);
          return e;
       }
 
-      private static Expression WriteCoalesce(SqlExpressionBuilder w, BinaryExpression e)
+      private static Expression WriteCoalesce(SqlExpressionVisitor w, BinaryExpression e)
       {
          w._formatter.WriteCoalesce(w._writer, ParameterizeWriter(() => w.Visit(e.Left), w), ParameterizeWriter(() => w.Visit(e.Right), w));
          return e;                              
       }
 
-      private static Expression WriteStringLength(SqlExpressionBuilder w, MemberExpression e)
+      private static Expression WriteStringLength(SqlExpressionVisitor w, MemberExpression e)
       {
 
          w._formatter.WriteStringLength(w._writer, ParameterizeWriter(() => w.Visit(e.Expression), w));
          return e;
       }
 
-      private static Expression WriteRound(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteRound(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteRound(w._writer, ParameterizeWriter(() => w.Visit(e.Arguments[0]), w), ParameterizeWriter(() => w.Visit(e.Arguments[1]), w));
          return e;
       }
 
-      private static Expression WriteRoundZeroDigits(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteRoundZeroDigits(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteRound(w._writer, ParameterizeWriter(() => w.Visit(e.Arguments[0]), w), ParameterizeWriter(() => w._writer.Write("0"), w));
          return e;
       }
 
-      private static Expression WriteCeiling(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteCeiling(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteCeiling(w._writer, ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteFloor(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteFloor(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteFloor(w._writer, ParameterizeWriter(() => w.Visit(e.Arguments[0]), w));
          return e;
       }
 
-      private static Expression WriteToUpper(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteToUpper(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteToUpper(w._writer, ParameterizeWriter(() => w.Visit(e.Object), w));
          return e;
       }
 
-      private static Expression WriteToLower(SqlExpressionBuilder w, MethodCallExpression e)
+      private static Expression WriteToLower(SqlExpressionVisitor w, MethodCallExpression e)
       {
          w._formatter.WriteToLower(w._writer, ParameterizeWriter(() => w.Visit(e.Object),w));
          return e;
@@ -761,7 +761,7 @@ namespace XAdo.Quobs.Core.SqlExpression
          Context.WriteFormattedColumn(exp);
       }
 
-      private static Action<TextWriter> ParameterizeWriter(Action action, SqlExpressionBuilder sqlWriter)
+      private static Action<TextWriter> ParameterizeWriter(Action action, SqlExpressionVisitor sqlWriter)
       {
          var parw = sqlWriter._writer;
          return w =>

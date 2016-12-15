@@ -26,7 +26,7 @@ namespace XAdo.Quobs.Dialects.SqlServer2012
 
          if (orderByClause == null || !orderByClause.Any())
          {
-            throw new QuobException("For SQL paging at least one order column must be specified.");
+            throw new SqlObjectsException("For SQL paging at least one order column must be specified.");
          }
 
          var count = selectNames.FirstOrDefault() == "COUNT(1)";

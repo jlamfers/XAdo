@@ -18,9 +18,9 @@ namespace XAdo.Quobs.SqlObjects
    public class MappedSqlObject<TMapped> : FetchSqlObject<TMapped>, IMappedSqlObject<TMapped> {
 
       private readonly Func<IDataRecord, TMapped> _binder;
-      private readonly BinderExpressionCompiler.CompileResult<TMapped> _binderCompileResult;
+      private readonly BinderExpressionVisitor.CompileResult<TMapped> _binderCompileResult;
 
-      protected internal MappedSqlObject(ISqlFormatter formatter, ISqlConnection connection, Func<IDataRecord, TMapped> binder, QueryChunks descriptor, BinderExpressionCompiler.CompileResult<TMapped> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins)
+      protected internal MappedSqlObject(ISqlFormatter formatter, ISqlConnection connection, Func<IDataRecord, TMapped> binder, QueryChunks descriptor, BinderExpressionVisitor.CompileResult<TMapped> binderCompileResult, List<DbSchemaDescriptor.JoinPath> joins)
          : base(formatter, connection, descriptor, joins)
       {
          _binder = binder;
@@ -30,7 +30,7 @@ namespace XAdo.Quobs.SqlObjects
       protected override IReadSqlObject Where(Expression expression)
       {
          if (expression == null) return this;
-         var sqlBuilder = new MappedSqlExpressionBuilder(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
+         var sqlBuilder = new MappedSqlExpressionVisitor(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
          var context = new SqlBuilderContext(Formatter) { ArgumentsAsLiterals = false };
 
          sqlBuilder.BuildSql(context, expression);

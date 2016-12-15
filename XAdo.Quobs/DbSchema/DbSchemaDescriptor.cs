@@ -327,7 +327,7 @@ namespace XAdo.Quobs.DbSchema
 
          private string CompileExpression(ISqlFormatter formatter)
          {
-            var b = new SqlExpressionBuilder();
+            var b = new SqlExpressionVisitor();
             var context = new JoinBuilderContext(formatter, _leftTable.Type);
             var result = b.BuildSql(context, Expression);
             return result.ToString();
@@ -437,7 +437,7 @@ namespace XAdo.Quobs.DbSchema
       {
          if (!JoinLookup.TryAdd(relationshipName, new JoinInfo(relationshipName, joinExpression, typeof(TLeft), typeof(TRight))))
          {
-            throw new QuobException("Join name already exists");
+            throw new SqlObjectsException("Join name already exists");
          }
          return default(TRight);
       }
@@ -495,12 +495,12 @@ namespace XAdo.Quobs.DbSchema
          {
             if (!(ex.InnerException is NotImplementedException))
             {
-               throw new QuobException(string.Format("Join method '{0}' threw an unexpected exception.", joinMethod), ex.InnerException);
+               throw new SqlObjectsException(string.Format("Join method '{0}' threw an unexpected exception.", joinMethod), ex.InnerException);
             }
          }
          catch (Exception ex)
          {
-            throw new QuobException(string.Format("Join method '{0}' has an invalid signature.", joinMethod), ex);
+            throw new SqlObjectsException(string.Format("Join method '{0}' has an invalid signature.", joinMethod), ex);
          }
          
       }
@@ -514,7 +514,7 @@ namespace XAdo.Quobs.DbSchema
             case MemberTypes.Field:
                return self.CastTo<FieldInfo>().GetColumnDescriptor();
             default:
-               throw new QuobException("type " + self.MemberType + " is not supported.");
+               throw new SqlObjectsException("type " + self.MemberType + " is not supported.");
          }
       }
 
