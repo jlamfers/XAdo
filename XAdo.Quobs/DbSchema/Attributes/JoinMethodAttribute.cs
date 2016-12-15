@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.DbSchema.Attributes
+namespace XAdo.SqlObjects.DbSchema.Attributes
 {
    [AttributeUsage(AttributeTargets.Method,AllowMultiple = true)]
    public class JoinMethodAttribute : Attribute

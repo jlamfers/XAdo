@@ -5,15 +5,14 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Core;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlExpression.Visitors;
+using XAdo.SqlObjects.SqlObjects.Core;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    public class MappedSqlObject<TMapped> : FetchSqlObject<TMapped>, IMappedSqlObject<TMapped> {
 

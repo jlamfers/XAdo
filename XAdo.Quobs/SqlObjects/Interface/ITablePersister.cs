@@ -1,7 +1,7 @@
 using System;
-using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.SqlObjects.DbSchema;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface ITablePersister<in TTable> where TTable : IDbTable
    {

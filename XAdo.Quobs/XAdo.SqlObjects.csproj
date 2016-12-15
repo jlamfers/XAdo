@@ -7,8 +7,8 @@
     <ProjectGuid>{B1D11F2B-BEC5-426D-9705-EE9AF4CDC3F5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>XAdo.Quobs</RootNamespace>
-    <AssemblyName>XAdo.Quobs</AssemblyName>
+    <RootNamespace>XAdo.SqlObjects</RootNamespace>
+    <AssemblyName>XAdo.SqlObjects</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="SqlExpression\Aliases.cs" />
     <Compile Include="SqlExpression\CString.cs" />
-    <Compile Include="DbSchema\Attributes\IDbTable.cs" />
+    <Compile Include="DbSchema\IDbTable.cs" />
     <Compile Include="SqlObjects\Extensions.cs" />
     <Compile Include="SqlExpression\Visitors\CreateExpressionSubstituteVisitor.cs" />
     <Compile Include="SqlExpression\Attributes\SqlCastAttribute.cs" />

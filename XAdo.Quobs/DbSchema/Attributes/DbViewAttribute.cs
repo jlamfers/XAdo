@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.DbSchema.Attributes
+namespace XAdo.SqlObjects.DbSchema.Attributes
 {
    [AttributeUsage(AttributeTargets.Class)]
    public class DbViewAttribute : Attribute

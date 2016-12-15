@@ -1,8 +1,7 @@
 using System;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression.Attributes
 {
    public class SqlInAttribute : CustomSqlExpressionBuilderAttribute
    {

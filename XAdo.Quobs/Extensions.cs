@@ -4,13 +4,12 @@ using System.Data;
 using System.Linq;
 using XAdo.Core;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs
+namespace XAdo.SqlObjects
 {
    public static class Extensions
    {

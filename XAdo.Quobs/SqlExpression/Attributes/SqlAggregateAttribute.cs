@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression.Sql;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression.Attributes
 {
    public abstract class SqlAggregateAttribute : CustomSqlExpressionBuilderAttribute
    {

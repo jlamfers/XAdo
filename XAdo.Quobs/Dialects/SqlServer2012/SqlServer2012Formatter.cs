@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Dialects.SqlServer;
+using XAdo.SqlObjects.Dialects.SqlServer;
 
-namespace XAdo.Quobs.Dialects.SqlServer2012
+namespace XAdo.SqlObjects.Dialects.SqlServer2012
 {
    public class SqlServer2012Formatter : SqlServerFormatter
    {

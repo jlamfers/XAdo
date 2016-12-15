@@ -1,11 +1,9 @@
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    public class DeleteSqlObject<TTable> : UpdateSqlObject<TTable>
       where TTable : IDbTable

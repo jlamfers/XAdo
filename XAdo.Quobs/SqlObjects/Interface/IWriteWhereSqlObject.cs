@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
-using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.SqlObjects.DbSchema;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface IWriteWhereSqlObject<TTable> : IWriteFromSqlObject<TTable>
       where TTable : IDbTable

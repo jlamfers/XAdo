@@ -66,9 +66,9 @@
       <Project>{f16ea1d1-8ab0-4d04-b43b-f7f02c074182}</Project>
       <Name>XAdo.EF</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XAdo.Quobs\XAdo.Quobs.csproj">
+    <ProjectReference Include="..\XAdo.Quobs\XAdo.SqlObjects.csproj">
       <Project>{b1d11f2b-bec5-426d-9705-ee9af4cdc3f5}</Project>
-      <Name>XAdo.Quobs</Name>
+      <Name>XAdo.SqlObjects</Name>
     </ProjectReference>
     <ProjectReference Include="..\XAdo.T4\XAdo.T4.csproj">
       <Project>{42a9a97f-6a9d-42ea-8a9f-f1f6f088cf64}</Project>

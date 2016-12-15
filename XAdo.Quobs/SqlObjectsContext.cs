@@ -1,9 +1,9 @@
 ﻿using System;
 using XAdo.Core.Interface;
-using XAdo.Quobs.SqlObjects;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.SqlObjects;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs
+namespace XAdo.SqlObjects
 {
    public class SqlObjectsContext : AdoContext
    {

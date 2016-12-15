@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace XAdo.Quobs
+namespace XAdo.SqlObjects
 {
    [Serializable]
    public class SqlObjectsException : Exception

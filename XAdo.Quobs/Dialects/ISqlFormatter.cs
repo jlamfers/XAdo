@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.SqlObjects.Core;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects.Core;
 
-namespace XAdo.Quobs.Dialects
+namespace XAdo.SqlObjects.Dialects
 {
    public interface ISqlFormatter
    {

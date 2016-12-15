@@ -2,9 +2,9 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using XAdo.Quobs.Core.SqlExpression;
+using XAdo.SqlObjects.SqlExpression;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    internal static class Extensions
    {

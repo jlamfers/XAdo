@@ -1,14 +1,13 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.SqlObjects.Core;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlExpression.Visitors;
+using XAdo.SqlObjects.SqlObjects.Core;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    public class TableSqlObject<TTable> : FetchSqlObject<TTable>, ITableSqlObject<TTable> 
       where TTable : IDbTable

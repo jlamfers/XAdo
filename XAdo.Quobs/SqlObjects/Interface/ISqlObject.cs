@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
 
    public interface ISqlObject

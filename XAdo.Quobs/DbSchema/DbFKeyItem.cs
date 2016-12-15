@@ -1,6 +1,6 @@
 using System;
 
-namespace XAdo.Quobs.DbSchema
+namespace XAdo.SqlObjects.DbSchema
 {
    [Serializable]
    public class DbFKeyItem : DbItem

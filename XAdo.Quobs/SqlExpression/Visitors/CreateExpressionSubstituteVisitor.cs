@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression.Core;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    internal class CreateExpressionSubstituteVisitor : ExpressionVisitor
    {

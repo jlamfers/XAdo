@@ -79,9 +79,9 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\XAdo.Quobs\XAdo.Quobs.csproj">
+    <ProjectReference Include="..\XAdo.Quobs\XAdo.SqlObjects.csproj">
       <Project>{b1d11f2b-bec5-426d-9705-ee9af4cdc3f5}</Project>
-      <Name>XAdo.Quobs</Name>
+      <Name>XAdo.SqlObjects</Name>
     </ProjectReference>
     <ProjectReference Include="..\XAdo\XAdo.csproj">
       <Project>{DE35B1AF-D6A1-4324-840A-11854787DED4}</Project>

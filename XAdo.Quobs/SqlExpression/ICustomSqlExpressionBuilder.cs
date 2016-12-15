@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace XAdo.Quobs.Core.SqlExpression.Sql
+namespace XAdo.SqlObjects.SqlExpression
 {
    public interface ICustomSqlExpressionBuilder
    {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface IFetchSqlObject<T> : IReadSqlObject
    {

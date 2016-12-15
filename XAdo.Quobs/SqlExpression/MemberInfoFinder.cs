@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace XAdo.Quobs.Core.SqlExpression.Core
+namespace XAdo.SqlObjects.SqlExpression
 {
    public static class MemberInfoFinder
    {

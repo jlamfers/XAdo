@@ -5,8 +5,8 @@
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Xml.Linq" #>
 <#@ assembly name="System.Configuration" #>
-<#@ assembly name="C:\Work\XAdo\XAdo\XAdo.Quobs\bin\Debug\XAdo.Quobs.dll" #>
-<#@ import namespace="XAdo.Quobs.Core.DbSchema.Generator" #>
+<#@ assembly name="C:\Work\XAdo\XAdo\XAdo.Quobs\bin\Debug\XAdo.SqlObjects.dll" #>
+<#@ import namespace="XAdo.SqlObjects.DbSchema.Generator" #>
 <#@ import namespace="System.Data.Common" #>
 
 //------------------------------------------------------------------------------

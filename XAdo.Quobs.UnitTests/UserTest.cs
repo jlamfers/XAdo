@@ -4,10 +4,10 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using DbSchema.Users;
 using NUnit.Framework;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
 {

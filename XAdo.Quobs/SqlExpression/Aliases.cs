@@ -1,4 +1,4 @@
-﻿namespace XAdo.Quobs.Core
+﻿namespace XAdo.SqlObjects.SqlExpression
 {
    internal static class Aliases
    {

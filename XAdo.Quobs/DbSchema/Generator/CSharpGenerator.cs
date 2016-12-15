@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CSharp;
-using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.SqlObjects.DbSchema.Attributes;
 
-namespace XAdo.Quobs.DbSchema.Generator
+namespace XAdo.SqlObjects.DbSchema.Generator
 {
    public class CSharpGenerator
    {
@@ -46,6 +46,7 @@ namespace XAdo.Quobs.DbSchema.Generator
          namespaces.Add("System.ComponentModel.DataAnnotations");
          namespaces.Add("System.ComponentModel.DataAnnotations.Schema");
          namespaces.Add(typeof(DbViewAttribute).Namespace);
+         namespaces.Add(typeof(IDbTable).Namespace);
 
          namespaces =
             namespaces.Where(n => n.StartsWith("System.") || n == "System")

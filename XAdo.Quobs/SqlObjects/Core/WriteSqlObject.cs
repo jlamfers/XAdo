@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression.Visitors;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects.Core
+namespace XAdo.SqlObjects.SqlObjects.Core
 {
    public abstract class WriteSqlObject<TTable> : IWriteFromSqlObject<TTable>
       where TTable : IDbTable

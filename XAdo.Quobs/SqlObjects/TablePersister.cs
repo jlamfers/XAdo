@@ -2,14 +2,11 @@
 using System.IO;
 using System.Linq;
 using XAdo.Core;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Interface;
-using ISqlFormatter = XAdo.Quobs.Dialects.ISqlFormatter;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    public class TablePersister<TTable> : ITablePersister<TTable> where TTable : IDbTable
    {

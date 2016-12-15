@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using XAdo.Quobs.Core.SqlExpression;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class MappedSqlExpressionVisitor : SqlExpressionVisitor
    {

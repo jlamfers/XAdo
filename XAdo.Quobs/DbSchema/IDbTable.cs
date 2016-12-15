@@ -1,4 +1,4 @@
-﻿namespace XAdo.Quobs.DbSchema.Attributes
+﻿namespace XAdo.SqlObjects.DbSchema
 {
    // Marker interface
    public interface IDbTable

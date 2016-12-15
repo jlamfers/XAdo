@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface IReadSqlObject : ISqlObject, ICloneable
    {

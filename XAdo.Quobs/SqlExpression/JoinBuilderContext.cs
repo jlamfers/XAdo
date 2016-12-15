@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Core;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlObjects.Core;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.SqlObjects.SqlExpression
 {
    public class JoinBuilderContext : SqlBuilderContext
    {
@@ -22,7 +21,7 @@ namespace XAdo.Quobs.Core
          : base(formatter)
       {
          _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
-         _tableAliasIndex = _joins.SelectMany(j => j.Joins).Count();
+         _tableAliasIndex = Enumerable.Count(_joins.SelectMany(j => j.Joins));
       }
 
       public IEnumerable<DbSchemaDescriptor.JoinPath> Joins

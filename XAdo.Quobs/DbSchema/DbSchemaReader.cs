@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-namespace XAdo.Quobs.DbSchema
+namespace XAdo.SqlObjects.DbSchema
 {
    public class DbSchemaReader
    {

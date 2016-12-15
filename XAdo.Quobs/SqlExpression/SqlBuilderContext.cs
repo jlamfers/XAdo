@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.Dialects;
-using ISqlFormatter = XAdo.Quobs.Dialects.ISqlFormatter;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression
 {
    public class SqlBuilderContext
    {

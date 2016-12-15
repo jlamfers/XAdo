@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression
 {
 
    /// <summary>

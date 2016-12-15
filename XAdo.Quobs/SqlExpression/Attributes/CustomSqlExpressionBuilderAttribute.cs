@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Core.SqlExpression.Sql
+namespace XAdo.SqlObjects.SqlExpression.Attributes
 {
    public class CustomSqlExpressionBuilderAttribute : Attribute
    {

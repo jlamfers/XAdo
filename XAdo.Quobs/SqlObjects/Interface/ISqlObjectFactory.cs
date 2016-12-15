@@ -1,7 +1,6 @@
-﻿using XAdo.Quobs.Core;
-using XAdo.Quobs.DbSchema.Attributes;
+﻿using XAdo.SqlObjects.DbSchema;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface ISqlObjectFactory
    {

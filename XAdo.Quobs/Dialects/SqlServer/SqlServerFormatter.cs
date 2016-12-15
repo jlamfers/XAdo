@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Dialects.SqlServer
+namespace XAdo.SqlObjects.Dialects.SqlServer
 {
    public class SqlServerFormatter : SqlFormatter
    {

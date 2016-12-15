@@ -4,14 +4,12 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Core;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlObjects.Core;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class BinderExpressionVisitor : ExpressionVisitor
    {

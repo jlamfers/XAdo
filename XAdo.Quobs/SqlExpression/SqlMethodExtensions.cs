@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlTypes;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
+using XAdo.SqlObjects.SqlExpression.Attributes;
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression
 {
    public static class SqlMethodExtensions
    {

@@ -1,8 +1,7 @@
 using System;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core;
 
-namespace XAdo.Quobs.SqlObjects.Interface
+namespace XAdo.SqlObjects.SqlObjects.Interface
 {
    public interface IMappedSqlObject : IReadSqlObject { }
 

@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects.Core
+namespace XAdo.SqlObjects.SqlObjects.Core
 {
    public abstract class FetchSqlObject<T> : ReadSqlObject, IFetchSqlObject<T>
    {

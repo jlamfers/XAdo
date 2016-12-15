@@ -1,11 +1,10 @@
 ﻿using System.IO;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.SqlObjects.Core;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects.Core;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.SqlObjects.SqlObjects
 {
    public class CreateSqlObject<TTable> : WriteSqlObject<TTable>
       where TTable : IDbTable

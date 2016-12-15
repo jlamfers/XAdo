@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.SqlExpression;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.SqlObjects.DbSchema
 {
    public static class Extensions
    {

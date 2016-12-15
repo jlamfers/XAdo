@@ -9,12 +9,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.Dialects;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlExpression.Visitors;
 
-namespace XAdo.Quobs.DbSchema
+namespace XAdo.SqlObjects.DbSchema
 {
    public static class DbSchemaDescriptor
    {

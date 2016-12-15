@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace XAdo.Quobs.DbSchema.Attributes
+namespace XAdo.SqlObjects.DbSchema.Attributes
 {
    public class ReferencedByAttribute : Attribute
    {

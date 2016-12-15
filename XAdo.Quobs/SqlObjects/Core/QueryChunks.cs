@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.SqlServer;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.Dialects.SqlServer;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects.Core
+namespace XAdo.SqlObjects.SqlObjects.Core
 {
    //NOTE: at this level all sql is (must be) formatted, and provider specific
    public class QueryChunks

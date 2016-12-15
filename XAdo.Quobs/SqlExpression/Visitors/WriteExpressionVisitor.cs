@@ -3,12 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.Dialects;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class WriteExpressionVisitor : ExpressionVisitor
    {

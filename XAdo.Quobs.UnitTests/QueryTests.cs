@@ -4,11 +4,11 @@ using System.Linq;
 using DbSchema.AdventureWorks;
 using NUnit.Framework;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.DbSchema;
-using XAdo.Quobs.DbSchema.Attributes;
-using XAdo.Quobs.SqlObjects.Interface;
+using XAdo.SqlObjects;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.DbSchema.Attributes;
+using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
 {

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.Core.SqlExpression.Sql;
-using XAdo.Quobs.Dialects;
+using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression.Attributes;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
-namespace XAdo.Quobs.Core.SqlExpression
+namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class SqlExpressionVisitor : ExpressionVisitor
    {
