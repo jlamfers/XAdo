@@ -5,8 +5,8 @@ using System.Security.Cryptography.X509Certificates;
 using DbSchema.Users;
 using NUnit.Framework;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.UnitTests
 {

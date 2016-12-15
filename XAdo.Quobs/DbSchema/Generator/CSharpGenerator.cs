@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CSharp;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema.Attributes;
 
-namespace XAdo.Quobs.Core.DbSchema.Generator
+namespace XAdo.Quobs.DbSchema.Generator
 {
    public class CSharpGenerator
    {

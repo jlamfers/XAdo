@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Core.DbSchema.Attributes
+namespace XAdo.Quobs.DbSchema.Attributes
 {
    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
    public class DbUniqueAttribute : Attribute { }

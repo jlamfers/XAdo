@@ -1,5 +1,5 @@
 ﻿using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.SqlObjects.Interface
 {

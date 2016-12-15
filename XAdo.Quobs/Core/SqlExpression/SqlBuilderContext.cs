@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.DbSchema;
 using XAdo.Quobs.Dialects;
-using ISqlFormatter = XAdo.Quobs.Dialects.Core.ISqlFormatter;
+using ISqlFormatter = XAdo.Quobs.Dialects.ISqlFormatter;
 
 namespace XAdo.Quobs.Core.SqlExpression
 {

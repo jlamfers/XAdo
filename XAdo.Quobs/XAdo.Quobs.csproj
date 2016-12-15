@@ -40,9 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Aliases.cs" />
-    <Compile Include="Core\CString.cs" />
-    <Compile Include="Core\DbSchema\Attributes\IDbTable.cs" />
-    <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
+    <Compile Include="Core\ISqlBuilder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\SqlExpression\CString.cs" />
+    <Compile Include="DbSchema\Attributes\IDbTable.cs" />
     <Compile Include="Core\Extension.cs" />
     <Compile Include="Core\SqlExpression\FactoryExpressionSubstituter.cs" />
     <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
@@ -73,37 +75,35 @@
     <Compile Include="SqlObjects\TablePersister.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Dialects\Core\ISqlFormatter.cs" />
-    <Compile Include="Dialects\Core\SqlFormatter.cs" />
-    <Compile Include="Dialects\Core\StatementFormatter.cs" />
-    <Compile Include="Dialects\Core\ISqlDialect.cs" />
+    <Compile Include="Dialects\ISqlFormatter.cs" />
+    <Compile Include="Dialects\SqlFormatter.cs" />
+    <Compile Include="Dialects\StatementFormatter.cs" />
+    <Compile Include="Dialects\ISqlDialect.cs" />
     <Compile Include="Dialects\SqlServer2012\SqlServer2012Formatter.cs" />
     <Compile Include="Dialects\SqlServer\SqlServerDialect.cs" />
     <Compile Include="Dialects\SqlServer\SqlServerFormatter.cs" />
     <Compile Include="QuobException.cs" />
-    <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />
     <Compile Include="Core\ExpressionExtensions.cs" />
-    <Compile Include="Core\ISqlBuilder.cs" />
-    <Compile Include="Core\ISqlConnection.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlConnection.cs" />
     <Compile Include="Core\MappedSqlExpressionBuilder.cs" />
-    <Compile Include="Core\QueryChunks.cs" />
+    <Compile Include="SqlObjects\Core\QueryChunks.cs" />
     <Compile Include="Core\JoinBuilderContext.cs" />
-    <Compile Include="Core\DbSchema\Attributes\AutoIncrementAttribute.cs" />
-    <Compile Include="Core\DbSchema\Attributes\DbUniqueAttribute.cs" />
-    <Compile Include="Core\DbSchema\Attributes\DbViewAttribute.cs" />
-    <Compile Include="Core\DbSchema\Attributes\JoinMethodAttribute.cs" />
-    <Compile Include="Core\DbSchema\Attributes\JoinType.cs" />
-    <Compile Include="Core\DbSchema\Attributes\ReferencedByAttribute.cs" />
-    <Compile Include="Core\DbSchema\Attributes\ReferencesAttribute.cs" />
-    <Compile Include="Core\DbSchema\DbColumnItem.cs" />
-    <Compile Include="Core\DbSchema\DbFKeyItem.cs" />
-    <Compile Include="Core\DbSchema\DbItem.cs" />
-    <Compile Include="Core\DbSchema\DbSchema.cs" />
-    <Compile Include="Core\DbSchema\DbSchemaDescriptor.cs" />
-    <Compile Include="Core\DbSchema\DbSchemaReader.cs" />
-    <Compile Include="Core\DbSchema\DbTableItem.cs" />
-    <Compile Include="Core\DbSchema\Generator\CSharpGenerator.cs" />
+    <Compile Include="DbSchema\Attributes\AutoIncrementAttribute.cs" />
+    <Compile Include="DbSchema\Attributes\DbUniqueAttribute.cs" />
+    <Compile Include="DbSchema\Attributes\DbViewAttribute.cs" />
+    <Compile Include="DbSchema\Attributes\JoinMethodAttribute.cs" />
+    <Compile Include="DbSchema\Attributes\JoinType.cs" />
+    <Compile Include="DbSchema\Attributes\ReferencedByAttribute.cs" />
+    <Compile Include="DbSchema\Attributes\ReferencesAttribute.cs" />
+    <Compile Include="DbSchema\DbColumnItem.cs" />
+    <Compile Include="DbSchema\DbFKeyItem.cs" />
+    <Compile Include="DbSchema\DbItem.cs" />
+    <Compile Include="DbSchema\DbSchema.cs" />
+    <Compile Include="DbSchema\DbSchemaDescriptor.cs" />
+    <Compile Include="DbSchema\DbSchemaReader.cs" />
+    <Compile Include="DbSchema\DbTableItem.cs" />
+    <Compile Include="DbSchema\Generator\CSharpGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\SqlExpression\Core\Annotator.cs" />
     <Compile Include="Core\SqlExpression\Core\Extensions.cs" />

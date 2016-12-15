@@ -6,8 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
+using XAdo.Quobs.SqlObjects.Core;
 
-namespace XAdo.Quobs.Dialects.Core
+namespace XAdo.Quobs.Dialects
 {
    public class SqlFormatter : ISqlFormatter
    {

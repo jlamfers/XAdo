@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using XAdo.Quobs.Dialects.Core;
 
 namespace XAdo.Quobs.Dialects.SqlServer
 {

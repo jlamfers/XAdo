@@ -19,12 +19,12 @@ namespace XAdo.Quobs.Core
          if (self.MemberType == MemberTypes.Property)
          {
             var pi = (PropertyInfo) self;
-            pi.SetValue(instance,SanitizeType(value,pi.PropertyType));
+            pi.SetValue(instance,ConvertValue(value,pi.PropertyType));
          }
          else if (self.MemberType == MemberTypes.Field)
          {
             var fi = (FieldInfo)self;
-            fi.SetValue(instance, SanitizeType(value, fi.FieldType));
+            fi.SetValue(instance, ConvertValue(value, fi.FieldType));
          }
          else
          {
@@ -32,7 +32,7 @@ namespace XAdo.Quobs.Core
          }
       }
 
-      private static object SanitizeType(object value, Type type)
+      private static object ConvertValue(object value, Type type)
       {
          if (value == null)
          {
@@ -40,7 +40,7 @@ namespace XAdo.Quobs.Core
          }
          type = Nullable.GetUnderlyingType(type) ?? type;
          if (type.IsAssignableFrom(value.GetType())) return value;
-         TypeConverter typeConverter = TypeDescriptor.GetConverter(type);
+         var typeConverter = TypeDescriptor.GetConverter(type);
          if (typeConverter.CanConvertFrom(value.GetType()))
          {
             return typeConverter.ConvertFrom(value);

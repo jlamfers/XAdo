@@ -6,11 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
+using XAdo.Quobs.DbSchema;
 using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.Core;
 using XAdo.Quobs.SqlObjects.Core;
 using XAdo.Quobs.SqlObjects.Interface;
 

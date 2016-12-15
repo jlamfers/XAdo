@@ -10,7 +10,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace DbSchema.Users
 {

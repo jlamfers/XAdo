@@ -6,8 +6,8 @@ using System.Linq;
 using DbSchema.AdventureWorks;
 using NUnit.Framework;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.UnitTests
 {

@@ -1,6 +1,6 @@
 using System;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.SqlObjects.Interface
 {

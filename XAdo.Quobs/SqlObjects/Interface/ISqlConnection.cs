@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.Core;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.Quobs.SqlObjects.Interface
 {
    public interface ISqlConnection
    {

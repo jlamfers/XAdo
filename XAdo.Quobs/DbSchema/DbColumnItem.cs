@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace XAdo.Quobs.Core.DbSchema
+namespace XAdo.Quobs.DbSchema
 {
    [Serializable]
    public class DbColumnItem : DbItem

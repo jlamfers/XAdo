@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema;
+using XAdo.Quobs.DbSchema.Attributes;
 using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.Core;
 using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects.Core

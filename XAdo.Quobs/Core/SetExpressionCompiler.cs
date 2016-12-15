@@ -3,18 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
+using XAdo.Quobs.DbSchema;
 using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.Core;
 
 namespace XAdo.Quobs.Core
 {
    public class SetExpressionCompiler : ExpressionVisitor
    {
-      private static ConcurrentDictionary<Type,int>
-         _keys = new ConcurrentDictionary<Type, int>();
+      private static readonly ConcurrentDictionary<Type,int>
+         ArgumentKeys = new ConcurrentDictionary<Type, int>();
 
       private readonly ISqlFormatter _formatter;
       private bool _argumentsAsLiterals;
@@ -56,7 +55,7 @@ namespace XAdo.Quobs.Core
          _keyConstraint = new List<Tuple<DbSchemaDescriptor.ColumnDescriptor, string>>();
          _tableType = expression.Body.Type;
          _tableName = _tableType.GetTableDescriptor().Format(_formatter);  
-         _key = _keys.GetOrAdd(_tableType, t => _keys.Count + 1);
+         _key = ArgumentKeys.GetOrAdd(_tableType, t => ArgumentKeys.Count + 1);
 
          Visit(expression);
 

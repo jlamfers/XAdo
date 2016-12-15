@@ -14,7 +14,7 @@ using Microsoft.SqlServer.Types;
 using XAdo;
 using XAdo.Core.Interface;
 using XAdo.Quobs;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace DbSchema.AdventureWorks
 {

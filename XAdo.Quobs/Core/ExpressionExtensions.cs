@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.DbSchema;
-using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression.Core;
+using XAdo.Quobs.DbSchema;
+using XAdo.Quobs.DbSchema.Attributes;
 
 namespace XAdo.Quobs.Core
 {

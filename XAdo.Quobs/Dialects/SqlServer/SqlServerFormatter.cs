@@ -1,5 +1,4 @@
 ﻿using System;
-using XAdo.Quobs.Dialects.Core;
 
 namespace XAdo.Quobs.Dialects.SqlServer
 {

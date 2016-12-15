@@ -5,9 +5,8 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Text;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema;
+using XAdo.Quobs.DbSchema;
 using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Dialects.Core;
 using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects.Core

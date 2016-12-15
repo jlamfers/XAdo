@@ -1,8 +1,9 @@
 using System.IO;
 using System.Linq;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.DbSchema;
-using XAdo.Quobs.Core.DbSchema.Attributes;
+using XAdo.Quobs.DbSchema;
+using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects
 {
