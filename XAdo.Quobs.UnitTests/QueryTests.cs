@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using DbSchema.AdventureWorks;
+using DbSchema;
+using DbSchema;
 using NUnit.Framework;
 using XAdo.Core.Interface;
 using XAdo.SqlObjects;
@@ -19,15 +20,15 @@ namespace XAdo.Quobs.UnitTests
          //DbSchemaDescriptor.DefineJoin<DbProduct,DbSalesOrderDetail>("myjoin",(l,r) => l.ProductID == r.ProductID && l.Color=="red");
       }
       [JoinMethod("myjoin")]
-      public static Sales_SalesOrderDetail RedProducts(this Production_Product product)
+      public static AW.Sales.SalesOrderDetail RedProducts(this AW.Production.Product product)
       {
          return product.RedProducts(JoinType.Inner);
       }
 
       [JoinMethod("myjoin")]
-      public static Sales_SalesOrderDetail RedProducts(this Production_Product product, JoinType joinType)
+      public static AW.Sales.SalesOrderDetail RedProducts(this AW.Production.Product product, JoinType joinType)
       {
-         return DbSchemaDescriptor.DefineJoin<Production_Product, Sales_SalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
+         return DbSchemaDescriptor.DefineJoin<AW.Production.Product, AW.Sales.SalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
       }
    }
    [TestFixture]
@@ -53,7 +54,7 @@ namespace XAdo.Quobs.UnitTests
          //DbSchemaDescriptor.DefineJoin<DbProduct, DbSalesOrderDetail>("myjoin", (l, r) => l.ProductID == r.ProductID && l.Color == "red");
 
          var q = _db
-            .From<Production_Product>()
+            .From<AW.Production.Product>()
             .Map(p => new
             {
                p.Class,
@@ -78,42 +79,42 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void ToListWorks()
       {
-         _db.From<Person_StateProvince>().FetchToList();
+         _db.From<AW.Person.StateProvince>().FetchToList();
       }
       [Test]
       public void ToArrayWorks()
       {
-         _db.From<Person_StateProvince>().FetchToArray();
+         _db.From<AW.Person.StateProvince>().FetchToArray();
       }
       [Test]
       public void ToDictionaryWorks()
       {
-         _db.From<Person_StateProvince>().FetchToDictionary(r => r.StateProvinceID, r => r);
+         _db.From<AW.Person.StateProvince>().FetchToDictionary(r => r.StateProvinceID, r => r);
       }
 
       [Test]
       public void AnyWorks()
       {
-         Assert.IsTrue(_db.From<Person_StateProvince>().Any());
-         Assert.IsTrue(_db.From<Person_StateProvince>()
+         Assert.IsTrue(_db.From<AW.Person.StateProvince>().Any());
+         Assert.IsTrue(_db.From<AW.Person.StateProvince>()
             .Where(p => p.Name != null)
             .OrderBy(p => p.Name)
             .Distinct()
             .Skip(1)
             .Take(5)
             .Any());
-         Assert.IsTrue(_db.From<Person_StateProvince>()
+         Assert.IsTrue(_db.From<AW.Person.StateProvince>()
             .Where(p => p.Name != null)
             .OrderBy(p => p.Name)
             .Distinct()
             .Any());
-         Assert.IsFalse(_db.From<Person_StateProvince>()
+         Assert.IsFalse(_db.From<AW.Person.StateProvince>()
             .Where(p => p.Name =="kahdjhg")
             .OrderBy(p => p.Name)
             .Skip(10000000)
             .Take(5)
             .Any());
-         Assert.IsFalse(_db.From<Person_StateProvince>()
+         Assert.IsFalse(_db.From<AW.Person.StateProvince>()
             .OrderBy(p => p.Name)
             .Take(0)
             .Any());
@@ -122,7 +123,7 @@ namespace XAdo.Quobs.UnitTests
       public void AnyPerformance()
       {
          var sw = default(Stopwatch);
-         var q = _db.From<Person_StateProvince>();
+         var q = _db.From<AW.Person.StateProvince>();
          
          q.Any();
          sw = new Stopwatch();
@@ -156,29 +157,29 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void AnyWorksParameterized()
       {
-         var q = _db.From<Person_StateProvince>().Where(p => p.CountryRegionCode != null).Any();
+         var q = _db.From<AW.Person.StateProvince>().Where(p => p.CountryRegionCode != null).Any();
       }
       [Test]
       public void ToListWithCountWorks()
       {
          int count;
-         var list = _db.From<Person_StateProvince>().FetchToList(out count);
+         var list = _db.From<AW.Person.StateProvince>().FetchToList(out count);
          Assert.AreEqual(count,list.Count);
-         Assert.AreEqual(count, _db.From<Person_StateProvince>().Count());
+         Assert.AreEqual(count, _db.From<AW.Person.StateProvince>().Count());
       }
       [Test]
       public void PagingWorksWithSkipOnly()
       {
          int count;
          var list = _db
-            .From<Person_StateProvince>()
+            .From<AW.Person.StateProvince>()
             .Skip(10)
             .OrderBy(p => p.CountryRegionCode)
             .FetchToList(out count);
          Assert.AreEqual(count, list.Count + 10);
 
          var count2 = _db
-            .From<Person_StateProvince>()
+            .From<AW.Person.StateProvince>()
             .Skip(10)
             .OrderBy(p => p.CountryRegionCode)
             .Count();
@@ -188,7 +189,7 @@ namespace XAdo.Quobs.UnitTests
       public void PagingWorksWithTakeOnly()
       {
          var list = _db
-            .From<Person_StateProvince>()
+            .From<AW.Person.StateProvince>()
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
             .FetchToList();
@@ -198,14 +199,14 @@ namespace XAdo.Quobs.UnitTests
       public void PagingWorksWithBothTakeAndSkip()
       {
          var list = _db
-            .From<Person_StateProvince>()
+            .From<AW.Person.StateProvince>()
             .Skip(1)
             .Take(10)
             .OrderBy(p => p.CountryRegionCode)
             .FetchToList();
          Assert.AreEqual(10, list.Count);
          var list2 = _db
-            .From<Person_StateProvince>()
+            .From<AW.Person.StateProvince>()
             .OrderBy(p => p.CountryRegionCode)
             .FetchToArray()
             .Skip(1)

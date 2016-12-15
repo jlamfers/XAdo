@@ -15,7 +15,7 @@
 //      {
 //         using (var db = Db.Northwind.CreateSession())
 //         {
-//            var persons = new QueryableQuob<Person_Person>(db.From<Person_Person>());
+//            var persons = new QueryableQuob<AW.Person.Person_>(db.From<AW.Person.Person_>());
 
 //            var q = from p in persons
 //               where p.FirstName.Contains("e")
@@ -52,7 +52,7 @@
 //      {
 //         using (var db = Db.Northwind.CreateSession())
 //         {
-//            var persons = new QueryableQuob<Person_Person>(db.From<Person_Person>());
+//            var persons = new QueryableQuob<AW.Person.Person_>(db.From<AW.Person.Person_>());
 
 //            var q = from p in persons
 //                    where p.FirstName.StartsWith("e")
@@ -72,7 +72,7 @@
 //            q.ToList();
 //            var list = q.Where(p => p.BusinessEntity.BusinessEntityID != null).ToList();
 
-//            var q2 = db.From<Person_Person>()
+//            var q2 = db.From<AW.Person.Person_>()
 //               .Where(p => p.FirstName.StartsWith("e"))
 //               .OrderBy(p => p.FirstName, p => p.LastName)
 //               .Select(p => new

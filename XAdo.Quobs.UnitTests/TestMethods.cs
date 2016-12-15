@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using DbSchema.AdventureWorks;
+using DbSchema;
 using NUnit.Framework;
 using XAdo.SqlObjects;
 using XAdo.SqlObjects.DbSchema.Attributes;
@@ -21,7 +21,7 @@ namespace XAdo.Quobs.UnitTests
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<Person_Person>()
+               .From<AW.Person.Person_>()
                .Distinct()
                .OrderBy(p => p.LastName)
                .Take(100)
@@ -51,7 +51,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<Person_BusinessEntityContact>()
+               .From<AW.Person.BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Map(p => new
@@ -87,7 +87,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<Person_BusinessEntityContact>()
+               .From<AW.Person.BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Map(p => new
@@ -134,7 +134,7 @@ namespace XAdo.Quobs.UnitTests
          {
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<Person_BusinessEntityContact>()
+               .From<AW.Person.BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Map(p => new Person()
@@ -178,7 +178,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<Production_Product>()
+               .From<AW.Production.Product>()
                .GroupBy(p => p.ProductModel().Name)
                .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
@@ -196,7 +196,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<Production_Product>()
+               .From<AW.Production.Product>()
                .GroupBy(p => p.ProductModel().Name)
                .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
@@ -215,7 +215,7 @@ var query = from product in products
       {
          using (var s = Db.Northwind.CreateSession())
          {
-            var q = s.From<Production_Product>().FetchToEnumerable();
+            var q = s.From<AW.Production.Product>().FetchToEnumerable();
             bool @any = q.Any();
             var list = q.ToList();
          }
@@ -227,9 +227,9 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<Production_Product>()
+               .From<AW.Production.Product>()
                .Map(p => new { FullName = "_" + p.ProductModel().Name })
-               .Union(s.From<Person_Person>().Map(p => new { FullName = p.FirstName + " " + p.LastName }))
+               .Union(s.From<AW.Person.Person_>().Map(p => new { FullName = p.FirstName + " " + p.LastName }))
                .Distinct()
                .OrderBy(p => p.FullName);
 
@@ -248,7 +248,7 @@ var query = from product in products
          using (var s = Db.Northwind.CreateSession())
          {
             var q = s
-               .From<Person_Person>()
+               .From<AW.Person.Person_>()
                .Map(p => new
                {
                   p.FirstName,
@@ -277,7 +277,7 @@ var query = from product in products
 
             var dict = new ConcurrentDictionary<int, object>();
             var q = s
-               .From<Person_BusinessEntityContact>()
+               .From<AW.Person.BusinessEntityContact>()
                .Take(100)
                .Skip(10)
                .Map(p => new 

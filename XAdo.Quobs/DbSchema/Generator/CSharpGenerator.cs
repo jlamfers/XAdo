@@ -14,6 +14,7 @@ namespace XAdo.SqlObjects.DbSchema.Generator
       private static readonly CodeDomProvider _codeDomProvider = new CSharpCodeProvider();
 
       private string _namespace;
+      private string _database;
       private string _classNamePrefix;
       private Regex _excludedTables;
 
@@ -33,7 +34,8 @@ namespace XAdo.SqlObjects.DbSchema.Generator
          if (connectionString == null) throw new ArgumentNullException("connectionString");
          if (providerInvariantName == null) throw new ArgumentNullException("providerInvariantName");
          if (@namespace == null) throw new ArgumentNullException("namespace");
-         _namespace = @namespace;
+         _database = NormalizeName(@namespace.Split('.').Last());
+         _namespace = _database == @namespace ? "SqlObjects" : @namespace.Substring(0, @namespace.LastIndexOf('.'));
          _classNamePrefix = classNamePrefix;
          _excludedTables = excludedTables;
          var schema = new DbSchemaReader().Read(connectionString, providerInvariantName);
@@ -63,10 +65,14 @@ namespace XAdo.SqlObjects.DbSchema.Generator
          w.WriteLine("namespace " + _namespace);
          w.WriteLine("{");
          w.Indent++;
+         w.WriteLine("public static partial class " + _database);
+         w.WriteLine("{");
+         w.Indent++;
          w.WriteLine("public abstract partial class DbBaseTable : IDbTable {}");
          w.WriteLine();
-
-         foreach (var t in schema.Tables)
+         string owner = null;
+         bool generatingOwner = false;
+         foreach (var t in schema.Tables.OrderBy(t => t.Owner ?? "").ThenBy(t => t.Name))
          {
             if (_excludedTables != null)
             {
@@ -78,19 +84,48 @@ namespace XAdo.SqlObjects.DbSchema.Generator
                }
             }
 
+            var generateOwner = owner != t.Owner;
+            if (generateOwner)
+            {
+               if (generatingOwner)
+               {
+                  w.Indent--;
+                  w.WriteLine("}");
+               }
+               if (t.Owner == "dbo")
+               {
+                  generatingOwner = false;
+               }
+               else
+               {
+                  w.WriteLine("public static partial class " + NormalizeName(t.Owner));
+                  w.WriteLine("{");
+                  w.Indent++;
+                  generatingOwner = true;
+               }
+            }
             WriteTableAttributes(w, t);
             WriteTable(w, t);
+            owner = t.Owner;
          }
+         if (generatingOwner)
+         {
+            w.Indent--;
+            w.WriteLine("}");
+         }
+         w.Indent--;
+         w.WriteLine("}"); // class
+
          w.WriteLine();
          WriteJoinExtension(w, schema);
 
          w.Indent--;
-         w.WriteLine("}");
+         w.WriteLine("}"); // namespace
       }
 
       protected virtual void WriteTable(IndentedTextWriter w, DbTableItem t)
       {
-         w.WriteLine("public partial class {0} : DbBaseTable", TableToClassName(t));
+         w.WriteLine("public partial class {0} : DbBaseTable", TableToClassName(t,true));
          w.WriteLine("{");
          w.Indent++;
          foreach (var c in t.Columns)
@@ -162,18 +197,31 @@ namespace XAdo.SqlObjects.DbSchema.Generator
 
       }
 
-      protected virtual string TableToClassName(DbTableItem item)
+      protected virtual string TableToClassName(DbTableItem item, bool nameOnly = false)
       {
+         var ownerName = NormalizeName(item.Owner);
+         var tableName = NormalizeName(string.Format("{0}{1}", _classNamePrefix, item.Name));
+         if (ownerName == tableName)
+         {
+            tableName += "_";
+         }
+         if (nameOnly)
+         {
+            return tableName;
+         }
+
          if (!string.IsNullOrEmpty(item.Owner) && item.Owner != "dbo")
          {
-            return NormalizeName(string.Format("{0}{1}_{2}", _classNamePrefix, item.Owner, item.Name));
+            return string.Format("{0}.{1}.{2}", _database, ownerName, tableName);
          }
-         return NormalizeName(string.Format("{0}{1}", _classNamePrefix, item.Name));
+         return string.Format("{0}.{1}", _database, tableName);
       }
 
 
       protected virtual string NormalizeName(string dbname)
       {
+         if (string.IsNullOrEmpty(dbname)) return null;
+
          var normalized = dbname.Replace(" ", "_").Replace(".", "_").Replace("-", "_");
          if (!_codeDomProvider.IsValidIdentifier(normalized))
          {
@@ -185,9 +233,9 @@ namespace XAdo.SqlObjects.DbSchema.Generator
       protected virtual string NormalizePropertyName(DbColumnItem c)
       {
          var normalized = NormalizeName(c.Name);
-         if (normalized == TableToClassName(c.Table))
+         if (normalized == TableToClassName(c.Table,true))
          {
-            normalized = "_" + normalized;
+            normalized += "_";
          }
          return normalized;
       }

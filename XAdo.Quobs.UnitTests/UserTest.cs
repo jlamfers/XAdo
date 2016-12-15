@@ -2,7 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using DbSchema.Users;
+using DbSchema;
+using DbSchema;
 using NUnit.Framework;
 using XAdo.SqlObjects;
 using XAdo.SqlObjects.DbSchema.Attributes;
@@ -26,27 +27,27 @@ namespace XAdo.Quobs.UnitTests
             db.Execute("delete dbo.[user]");
             db.Execute("delete dbo.[role]");
             db.Execute("delete dbo.[type]");
-            var users = new List<User>();
-            var roles = new List<Role>();
-            var types = new List<Type>();
+            var users = new List<Users.User>();
+            var roles = new List<Users.Role>();
+            var types = new List<Users.Type>();
             foreach (var user in new[] { "Frank", "Klaas", "Piet", "Wim", "Admin" })
             {
-               var usr = new User {UserName = user, Password = "test"};
+               var usr = new Users.User {UserName = user, Password = "test"};
                db.Insert(usr);
                users.Add(usr);
             }
-            db.Insert<User>()
-               .From(() => new User {UserName = "Jan", Password = "test"})
+            db.Insert<Users.User>()
+               .From(() => new Users.User {UserName = "Jan", Password = "test"})
                .Apply();
             foreach (var role in new[] { "Admin", "User", "Manager", "Buyer", "Seller" })
             {
-               var r = new Role {Name = role};
+               var r = new Users.Role {Name = role};
                db.Insert(r);
                roles.Add(r);
             }
             foreach (var type in new[] { "Normal", "Special" })
             {
-               var t = new Type { Name = type };
+               var t = new Users.Type { Name = type };
                db.Insert(t);
                types.Add(t);
             }
@@ -54,14 +55,14 @@ namespace XAdo.Quobs.UnitTests
             {
                foreach (var r in roles)
                {
-                  db.Insert<UserRole>()
-                     .From(() => new UserRole {RoleId = r.Id, UserId = u.Id})
+                  db.Insert<Users.UserRole>()
+                     .From(() => new Users.UserRole {RoleId = r.Id, UserId = u.Id})
                      .Apply();
                }
                foreach (var t in types)
                {
-                  db.Insert<UserType>()
-                     .From(() => new UserType { TypeId = t.Id, UserId = u.Id })
+                  db.Insert<Users.UserType>()
+                     .From(() => new Users.UserType { TypeId = t.Id, UserId = u.Id })
                      .Apply();
                }
             }
@@ -73,7 +74,7 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Users.CreateSession())
          {
-            var q = db.From<User>()
+            var q = db.From<Users.User>()
                .Map(u => new
                {
                   u.UserName,
@@ -103,7 +104,7 @@ namespace XAdo.Quobs.UnitTests
       {
          using (var db = Db.Users.CreateSession())
          {
-            var users = db.From<User>()
+            var users = db.From<Users.User>()
                .Map(u => new
                {
                   Id=u.Id.Value,
@@ -120,7 +121,7 @@ namespace XAdo.Quobs.UnitTests
             var first = users.First().UserName;
             var last = users.Last().UserName;
 
-            var roles = db.From<User>()
+            var roles = db.From<Users.User>()
                .Where(u => u.UserName.Between(first, last))
                .Map(u => new
                {
@@ -129,7 +130,7 @@ namespace XAdo.Quobs.UnitTests
                })
                .FetchToGroupedDictionary(u => u.UserId, u => u.Name);
 
-            var types = db.From<User>()
+            var types = db.From<Users.User>()
                .Where(u => u.UserName.Between(first,last))
                .Map(u => new
                {
