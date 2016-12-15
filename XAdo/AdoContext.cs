@@ -191,10 +191,10 @@ namespace XAdo
          TryBindSingleton<IAdoGraphBinderFactory, AdoGraphBinderFactoryImpl>();
          TryBindSingleton<IAdoParameterFactory, AdoParameterFactoryImpl>();
          TryBindSingleton<IAdoSessionFactory, AdoSessionFactoryImpl>();
-         TryBindSingleton<IConcreteTypeBuilder, ConcreteTypeBuilderImpl>();
+         TryBindSingleton<IAdoConcreteTypeBuilder, AdoConcreteTypeBuilderImpl>();
          TryBindSingleton(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
          TryBindSingleton<IAdoParamHelper, AdoParamHelperImpl>();
-         TryBind<ISqlBatch>(b => new SqlBatchImpl{Seperator = SqlStatementSeperator});
+         TryBind<IAdoSqlBatch>(b => new AdoSqlBatchImpl{Seperator = SqlStatementSeperator});
          TryBind<IAdoParameter>(b => new AdoParameterImpl());
          TryBind<IAdoSession, AdoSessionImpl>();
 

@@ -50,19 +50,20 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Impl\AdoGraphBinderCompilerImpl.cs" />
-    <Compile Include="Core\Impl\SqlBatchImpl.Async.cs" />
+    <Compile Include="Core\Impl\AdoSqlBatchImpl.Async.cs" />
     <Compile Include="Core\Interface\IAdoGraphBinderCompiler.cs" />
     <Compile Include="Core\Interface\IAdoParamHelper.cs" />
     <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
     <Compile Include="Core\Impl\AdoParameterFactoryWithStringSanitizeImpl.cs" />
     <Compile Include="Core\Impl\GetterFactory.cs" />
+    <Compile Include="Core\Interface\IAdoSqlBatch.cs" />
     <Compile Include="Core\Interface\IAtomic.cs" />
     <Compile Include="Core\Interface\IGetterFactory.cs" />
-    <Compile Include="Core\Interface\IConcreteTypeBuilder.cs" />
+    <Compile Include="Core\Interface\IAdoConcreteTypeBuilder.cs" />
     <Compile Include="Core\Interface\IAdoRow.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
     <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
-    <Compile Include="Core\Impl\ConcreteTypeBuilderImpl.cs" />
+    <Compile Include="Core\Impl\AdoConcreteTypeBuilderImpl.cs" />
     <Compile Include="AdoContext.cs" />
     <Compile Include="Core\AdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>
@@ -118,14 +119,14 @@
     <Compile Include="Core\Impl\AdoTypeConverterFactoryImpl.cs" />
     <Compile Include="Core\Impl\GetterDelegate.cs" />
     <Compile Include="Core\Impl\NullableGetters.cs" />
-    <Compile Include="Core\Interface\ISqlBatch.Async.cs" />
+    <Compile Include="Core\Interface\IAdoSqlBatch.Async.cs" />
     <Compile Include="Core\TVoid.cs" />
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\Interface\ISqlBatch.cs" />
-    <Compile Include="Core\Impl\SqlBatchImpl.cs" />
+    <Compile Include="Core\AdoSqlBatchItem.cs" />
+    <Compile Include="Core\Impl\AdoSqlBatchImpl.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -50,7 +50,7 @@ namespace XAdo.Core.Interface
         bool StopSqlBatch();
         bool HasSqlBatch { get; }
         bool FlushSqlBatch();
-        IAdoSession AddSqlBatchItem(BatchItem batchItem);
+        IAdoSession AddSqlBatchItem(AdoSqlBatchItem batchItem);
 
     }
 }

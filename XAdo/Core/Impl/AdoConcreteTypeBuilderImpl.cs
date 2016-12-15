@@ -4,7 +4,7 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    public class ConcreteTypeBuilderImpl : IConcreteTypeBuilder
+    public class AdoConcreteTypeBuilderImpl : IAdoConcreteTypeBuilder
     {
         private readonly ConcurrentDictionary<Type, Type>
             _cache = new ConcurrentDictionary<Type, Type>();

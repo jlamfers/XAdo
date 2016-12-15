@@ -1,8 +1,9 @@
 ﻿using System;
 using XAdo.Core.Interface;
+using XAdo.Quobs.SqlObjects;
 using XAdo.Quobs.SqlObjects.Interface;
 
-namespace XAdo.Quobs.SqlObjects
+namespace XAdo.Quobs
 {
    public class SqlObjectsContext : AdoContext
    {
@@ -19,7 +20,10 @@ namespace XAdo.Quobs.SqlObjects
       {
          return i =>
          {
-            i.BindSingleton<ISqlObjectFactory, SqlObjectFactory>();
+            i
+               .BindSingleton<ISqlObjectFactory, SqlObjectFactory>()
+               .KeepConnectionAlive(true);
+
             initializer(i);
          };
       }

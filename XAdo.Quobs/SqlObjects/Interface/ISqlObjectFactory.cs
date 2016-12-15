@@ -9,6 +9,6 @@ namespace XAdo.Quobs.SqlObjects.Interface
       ITableSqlObject<TTable> CreateReadSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable;
       IWriteWhereSqlObject<TTable> CreateUpdateSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable;
       IWriteWhereSqlObject<TTable> CreateDeleteSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable;
-      ITableClassPersister<TTable> CreateTableClassPersister<TTable>(ISqlConnection connection) where TTable : IDbTable;
+      ITablePersister<TTable> CreateTablePersister<TTable>(ISqlConnection connection) where TTable : IDbTable;
    }
 }

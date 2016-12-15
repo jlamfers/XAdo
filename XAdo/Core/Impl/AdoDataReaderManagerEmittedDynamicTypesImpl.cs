@@ -9,7 +9,7 @@ namespace XAdo.Core.Impl
 {
    public partial class AdoDataReaderManagerEmittedDynamicTypesImpl : AdoDataReaderManagerImpl
    {
-      public AdoDataReaderManagerEmittedDynamicTypesImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory multiBinderFactory, IConcreteTypeBuilder proxyBuilder)
+      public AdoDataReaderManagerEmittedDynamicTypesImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory multiBinderFactory, IAdoConcreteTypeBuilder proxyBuilder)
          : base(binderFactory, multiBinderFactory, proxyBuilder)
       {
       }

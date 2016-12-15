@@ -26,9 +26,9 @@ namespace XAdo.Quobs.SqlObjects
          return new DeleteSqlObject<TTable>(connection);
       }
 
-      public ITableClassPersister<TTable> CreateTableClassPersister<TTable>(ISqlConnection connection) where TTable : IDbTable
+      public ITablePersister<TTable> CreateTablePersister<TTable>(ISqlConnection connection) where TTable : IDbTable
       {
-         return new TableClassPersister<TTable>(connection);
+         return new TablePersister<TTable>(connection);
       }
    }
 }

@@ -46,7 +46,7 @@ namespace XAdo.Core.Impl
         private bool
             _autoCommit;
 
-        private ISqlBatch 
+        private IAdoSqlBatch 
            _sqlBatch;
 
 
@@ -275,7 +275,7 @@ namespace XAdo.Core.Impl
        {
           EnsureNotDisposed();
           if (_sqlBatch != null) return true;
-          _sqlBatch = _binder.Get<ISqlBatch>();
+          _sqlBatch = _binder.Get<IAdoSqlBatch>();
           return true;
        }
        public virtual bool StopSqlBatch()
@@ -295,7 +295,7 @@ namespace XAdo.Core.Impl
           batch.Flush(this);
           return true;
        }
-       public virtual IAdoSession AddSqlBatchItem(BatchItem batchItem)
+       public virtual IAdoSession AddSqlBatchItem(AdoSqlBatchItem batchItem)
        {
           EnsureNotDisposed();
           var batch = _sqlBatch;

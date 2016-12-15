@@ -1,12 +1,12 @@
 using System;
 using System.Text;
 
-namespace XAdo.Core.Interface
+namespace XAdo.Core
 {
-   public class BatchItem
+   public class AdoSqlBatchItem
    {
-      private StringBuilder _sql = new StringBuilder();
-      public BatchItem(string sql, object args = null, Action<object> callback = null)
+      private readonly StringBuilder _sql = new StringBuilder();
+      public AdoSqlBatchItem(string sql, object args = null, Action<object> callback = null)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          _sql.Append(sql);
@@ -24,13 +24,5 @@ namespace XAdo.Core.Interface
             _sql.Append(sql);
          }
       }
-   }
-
-   public partial interface ISqlBatch
-   {
-      ISqlBatch Add(BatchItem item);
-      bool Flush(IAdoSession session);
-      int Count { get; }
-      bool Clear();
    }
 }

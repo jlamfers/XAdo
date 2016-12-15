@@ -5,14 +5,14 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-   public partial class SqlBatchImpl : ISqlBatch
+   public partial class AdoSqlBatchImpl : IAdoSqlBatch
    {
 
-      private readonly List<BatchItem>
-         _commands = new List<BatchItem>();
+      private readonly List<AdoSqlBatchItem>
+         _commands = new List<AdoSqlBatchItem>();
 
 
-      public virtual ISqlBatch Add(BatchItem batchItem)
+      public virtual IAdoSqlBatch Add(AdoSqlBatchItem batchItem)
       {
          if (batchItem == null) throw new ArgumentNullException("batchItem");
          var dict = batchItem.Args as IDictionary<string, object>;
@@ -39,7 +39,7 @@ namespace XAdo.Core.Impl
       {
          if (session == null) throw new ArgumentNullException("session");
 
-         List<BatchItem> commands;
+         List<AdoSqlBatchItem> commands;
          lock (_commands)
          {
             if (!_commands.Any())

@@ -53,9 +53,9 @@
     <Compile Include="SqlObjects\Core\WriteSqlObject.cs" />
     <Compile Include="SqlObjects\DeleteSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObjectFactory.cs" />
-    <Compile Include="SqlObjects\Interface\ITableClassPersister.cs" />
+    <Compile Include="SqlObjects\Interface\ITablePersister.cs" />
     <Compile Include="SqlObjects\SqlObjectFactory.cs" />
-    <Compile Include="SqlObjects\SqlObjectsContext.cs" />
+    <Compile Include="SqlObjectsContext.cs" />
     <Compile Include="SqlObjects\UpdateSqlObject.cs" />
     <Compile Include="SqlObjects\CreateSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\IFetchSqlObject.cs" />
@@ -70,7 +70,7 @@
     <Compile Include="SqlObjects\MappedSqlObject.cs" />
     <Compile Include="SqlObjects\Core\ReadSqlObject.cs" />
     <Compile Include="SqlObjects\TableSqlObject.cs" />
-    <Compile Include="SqlObjects\TableClassPersister.cs">
+    <Compile Include="SqlObjects\TablePersister.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Dialect\ISqlFormatter.cs" />

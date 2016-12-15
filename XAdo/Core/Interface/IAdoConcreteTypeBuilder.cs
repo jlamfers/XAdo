@@ -2,7 +2,7 @@
 
 namespace XAdo.Core.Interface
 {
-    public interface IConcreteTypeBuilder
+    public interface IAdoConcreteTypeBuilder
     {
         Type GetConcreteType(Type type);
     }

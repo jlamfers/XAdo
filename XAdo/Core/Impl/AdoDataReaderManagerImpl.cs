@@ -109,9 +109,9 @@ namespace XAdo.Core.Impl
 
       private readonly IAdoDataBinderFactory _binderFactory;
       private readonly IAdoGraphBinderFactory _graphBinderFactory;
-      private readonly IConcreteTypeBuilder _concreteTypeBuilder;
+      private readonly IAdoConcreteTypeBuilder _concreteTypeBuilder;
 
-      public AdoDataReaderManagerImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory graphBinderFactory, IConcreteTypeBuilder concreteTypeBuilder)
+      public AdoDataReaderManagerImpl(IAdoDataBinderFactory binderFactory, IAdoGraphBinderFactory graphBinderFactory, IAdoConcreteTypeBuilder concreteTypeBuilder)
       {
          if (binderFactory == null) throw new ArgumentNullException("binderFactory");
          if (graphBinderFactory == null) throw new ArgumentNullException("graphBinderFactory");

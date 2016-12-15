@@ -6,13 +6,13 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-   public partial class SqlBatchImpl
+   public partial class AdoSqlBatchImpl
    {
       public virtual async Task<bool> FlushAsync(IAdoSession session)
       {
          if (session == null) throw new ArgumentNullException("session");
 
-         List<BatchItem> commands;
+         List<AdoSqlBatchItem> commands;
          lock (_commands)
          {
             if (!_commands.Any())

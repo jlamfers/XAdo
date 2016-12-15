@@ -10,7 +10,7 @@ using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects
 {
-   public class TableClassPersister<TTable> : ITableClassPersister<TTable> where TTable : IDbTable
+   public class TablePersister<TTable> : ITablePersister<TTable> where TTable : IDbTable
    {
 
       private static readonly DbSchemaDescriptor.ColumnDescriptor 
@@ -27,7 +27,7 @@ namespace XAdo.Quobs.SqlObjects
 
       private static Type _t = typeof (TTable);
 
-      public TableClassPersister(ISqlConnection executer)
+      public TablePersister(ISqlConnection executer)
       {
          _executer = executer;
          _formatter = _executer.GetSqlFormatter();

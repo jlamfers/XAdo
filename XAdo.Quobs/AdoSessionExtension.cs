@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using XAdo.Core;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema.Attributes;
@@ -66,7 +67,7 @@ namespace XAdo.Quobs
 
          public void AddToSqlBatch(string sql, object args, Action<object> callback)
          {
-            _session.AddSqlBatchItem(new BatchItem(sql, args, callback));
+            _session.AddSqlBatchItem(new AdoSqlBatchItem(sql, args, callback));
          }
 
          public ISqlFormatter GetSqlFormatter()
@@ -113,7 +114,7 @@ namespace XAdo.Quobs
          return self
                     .Context
                     .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
+                    .CreateTablePersister<TTable>(new XAdoConnection(self))
                     .Update(entity, callback);
       }
       public static object Insert<TTable>(this IAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
@@ -121,7 +122,7 @@ namespace XAdo.Quobs
          return self
                     .Context
                     .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
+                    .CreateTablePersister<TTable>(new XAdoConnection(self))
                     .Insert(entity,callback);
       }
       public static int? Delete<TTable>(this IAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
@@ -129,7 +130,7 @@ namespace XAdo.Quobs
          return self
                     .Context
                     .GetInstance<ISqlObjectFactory>()
-                    .CreateTableClassPersister<TTable>(new XAdoConnection(self))
+                    .CreateTablePersister<TTable>(new XAdoConnection(self))
                     .Delete(entity, callback);
       }
 
