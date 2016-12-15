@@ -32,7 +32,7 @@ namespace XAdo.Quobs.UnitTests
                .From<Person_Person>()
                .Map(p => new Person {NameFirst = p.FirstName, NameLast = p.LastName})
                .Where(p => p.NameFirst.Contains("e"));
-            var sql = mq.CastTo<ISqlBuilder>().GetSql();
+            var sql = mq.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             //var persons = s.From<Person_Person>().AsQueryable();
@@ -60,7 +60,7 @@ namespace XAdo.Quobs.UnitTests
                .OrderByDescending(p => p.Count)
                .AddOrderBy(p => p.LastName);
 
-            sql = q.CastTo<ISqlBuilder>().GetSql();
+            sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list2 = q.FetchToList();
@@ -89,7 +89,7 @@ namespace XAdo.Quobs.UnitTests
                   Mother = p.MotherId != null ? new {p.Mother(JoinType.Left).Name} : null,
                });
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
 
             var sw = new Stopwatch();
             sw.Start();
@@ -106,14 +106,14 @@ namespace XAdo.Quobs.UnitTests
                //});
                //var q3 = q.Clone();
                var q2 = q.Clone().Where(p => p.Father.Name.Contains("K"));
-               sql = q2.CastTo<ISqlBuilder>().GetSql();
+               sql = q2.CastTo<ISqlObject>().GetSql();
 
             }
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
 
             Debug.WriteLine(sql);
-            sql = q.CastTo<ISqlBuilder>().GetSql();
+            sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -135,7 +135,7 @@ namespace XAdo.Quobs.UnitTests
                .From(() => new Person_Person { BusinessEntityID = 968577484, FirstName = "Tim", LastName = "Yep" });
 
 
-            var sql = u.CastTo<ISqlBuilder>().GetSql();
+            var sql = u.CastTo<ISqlObject>().GetSql();
 
             object result = null;
             
@@ -152,7 +152,7 @@ namespace XAdo.Quobs.UnitTests
                   .From(() => new Person_Person { BusinessEntityID = 989898989, FirstName = "Tim" })
                   .Where(p => p.FirstName.Contains("Timmetje"));
 
-               sql = u.CastTo<ISqlBuilder>().GetSql();
+               sql = u.CastTo<ISqlObject>().GetSql();
             }
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);

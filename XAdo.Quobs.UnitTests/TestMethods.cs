@@ -8,6 +8,7 @@ using NUnit.Framework;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
 {
@@ -36,7 +37,7 @@ namespace XAdo.Quobs.UnitTests
                .Where(p => p.Id > 10);
 
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -72,7 +73,7 @@ namespace XAdo.Quobs.UnitTests
                .OrderBy(p => p.BusinessEntity.ModifiedDate);
 
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -106,7 +107,7 @@ namespace XAdo.Quobs.UnitTests
                .OrderBy(p => p.BusinessEntity.ModifiedDate);
 
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -155,7 +156,7 @@ namespace XAdo.Quobs.UnitTests
                .OrderBy(p => p.BusinessEntity.ModifiedDate);
 
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -182,7 +183,7 @@ var query = from product in products
                .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -200,7 +201,7 @@ var query = from product in products
                .Map(p => new { p.ProductModel().Name, AvgPrice = Math.Round(p.ListPrice.Avg().Value, 2) })
                .OrderBy(p => p.AvgPrice);
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var @any = q.Any();
@@ -232,7 +233,7 @@ var query = from product in products
                .Distinct()
                .OrderBy(p => p.FullName);
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -257,7 +258,7 @@ var query = from product in products
                   p.BusinessEntityContact_N().BusinessEntity().BusinessEntityAddress_N().Address().City
                });
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();
@@ -298,7 +299,7 @@ var query = from product in products
                .OrderBy(p => p.BusinessEntity.BE.ModifiedDate);
 
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();

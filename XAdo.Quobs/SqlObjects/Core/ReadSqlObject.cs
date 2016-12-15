@@ -11,7 +11,7 @@ using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects.Core
 {
-   public abstract class ReadSqlObject : IReadSqlObject, ISqlBuilder
+   public abstract class ReadSqlObject : IReadSqlObject//, ISqlBuilder
    {
    
       protected ReadSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins)
@@ -48,19 +48,19 @@ namespace XAdo.Quobs.SqlObjects.Core
          }
       }
 
-      string ISqlBuilder.GetSql()
-      {
-         using (var sw = new StringWriter())
-         {
-            WriteSql(sw);
-            return sw.GetStringBuilder().ToString();
-         }
-      }
+      //string ISqlBuilder.GetSql()
+      //{
+      //   using (var sw = new StringWriter())
+      //   {
+      //      WriteSql(sw);
+      //      return sw.GetStringBuilder().ToString();
+      //   }
+      //}
 
-      IDictionary<string, object> ISqlBuilder.GetArguments()
-      {
-         return (IDictionary<string, object>) GetArguments();
-      }
+      //IDictionary<string, object> ISqlBuilder.GetArguments()
+      //{
+      //   return (IDictionary<string, object>) GetArguments();
+      //}
 
       object ISqlObject.GetArguments()
       {

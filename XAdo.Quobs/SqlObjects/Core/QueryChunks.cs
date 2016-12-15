@@ -5,6 +5,7 @@ using System.Linq;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Dialects;
 using XAdo.Quobs.Dialects.SqlServer;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.SqlObjects.Core
 {
@@ -132,7 +133,7 @@ namespace XAdo.Quobs.SqlObjects.Core
          GroupByColumns = new List<string>();
 
          HavingClausePredicates = new List<string>();
-         Unions = new List<ISqlBuilder>();
+         Unions = new List<ISqlObject>();
          OrderColumns = new List<OrderColumn>();
          Joins = new List<Join>();
       }
@@ -140,7 +141,7 @@ namespace XAdo.Quobs.SqlObjects.Core
       public List<SelectColumn> SelectColumns { get; private set; }
       public List<string> WhereClausePredicates { get; private set; }
       public List<string> HavingClausePredicates { get; private set; }
-      public List<ISqlBuilder> Unions { get; private set; }
+      public List<ISqlObject> Unions { get; private set; }
       public List<OrderColumn> OrderColumns { get; private set; }
       public List<string> GroupByColumns { get; private set; }
       public List<Join> Joins { get; private set; }
@@ -204,12 +205,20 @@ namespace XAdo.Quobs.SqlObjects.Core
          var dict = Arguments.ToDictionary(i => i.Key, i => i.Value);
          foreach (var union in Unions)
          {
-            foreach (var kv in union.GetArguments())
+            foreach (var kv in EnsureDictionary(union.GetArguments()))
             {
                dict[kv.Key] = kv.Value;
             }
          }
          return dict;
+      }
+
+      private IDictionary<string, object> EnsureDictionary(object arguments)
+      {
+         if (arguments == null) return null;
+         var dict = arguments as IDictionary<string, object>;
+         if (dict != null) return dict;
+         return arguments.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(arguments));
       }
 
       public virtual void AddJoins(IEnumerable<Join> joins)

@@ -7,6 +7,7 @@ using NUnit.Framework;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.DbSchema.Attributes;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
 {
@@ -89,7 +90,7 @@ namespace XAdo.Quobs.UnitTests
                   })
                });
 
-            var sql = q.CastTo<ISqlBuilder>().GetSql();
+            var sql = q.CastTo<ISqlObject>().GetSql();
             Debug.WriteLine(sql);
 
             var list = q.FetchToList();

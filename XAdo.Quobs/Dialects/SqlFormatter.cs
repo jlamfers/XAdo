@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.SqlObjects.Core;
+using XAdo.Quobs.SqlObjects.Interface;
 
 namespace XAdo.Quobs.Dialects
 {

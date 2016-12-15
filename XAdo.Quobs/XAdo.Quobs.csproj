@@ -40,9 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Aliases.cs" />
-    <Compile Include="Core\ISqlBuilder.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Core\SqlExpression\CString.cs" />
     <Compile Include="DbSchema\Attributes\IDbTable.cs" />
     <Compile Include="Core\Extension.cs" />
