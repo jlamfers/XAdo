@@ -5,7 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.Quobs.Core.SqlExpression.Core;
 using XAdo.Quobs.Core.SqlExpression.Sql;
-using XAdo.Quobs.Dialect;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Dialects.Core;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 

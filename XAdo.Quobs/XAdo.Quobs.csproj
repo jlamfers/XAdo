@@ -43,13 +43,13 @@
     <Compile Include="Core\CString.cs" />
     <Compile Include="Core\DbSchema\Attributes\IDbTable.cs" />
     <Compile Include="Core\DbSchema\JoinExpressionParser.cs" />
-    <Compile Include="Core\IQuob.cs" />
     <Compile Include="Core\Extension.cs" />
     <Compile Include="Core\SqlExpression\FactoryExpressionSubstituter.cs" />
     <Compile Include="Core\SqlExpression\SqlCastAttribute.cs" />
     <Compile Include="Core\SetExpressionCompiler.cs" />
     <Compile Include="Core\SqlExpression\SqlIgnoreAttribute.cs" />
     <Compile Include="AdoSessionExtension.cs" />
+    <Compile Include="Dialects\SqlServer2012\SqlServer2012Dialect.cs" />
     <Compile Include="SqlObjects\Core\WriteSqlObject.cs" />
     <Compile Include="SqlObjects\DeleteSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObjectFactory.cs" />
@@ -73,13 +73,13 @@
     <Compile Include="SqlObjects\TablePersister.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Dialect\ISqlFormatter.cs" />
-    <Compile Include="Dialect\SqlFormatter.cs" />
-    <Compile Include="Dialect\Core\StatementFormatter.cs" />
-    <Compile Include="Dialect\ISqlDialect.cs" />
-    <Compile Include="Dialect\SqlServer2012Formatter.cs" />
-    <Compile Include="Dialect\SqlServerDialect.cs" />
-    <Compile Include="Dialect\SqlServerFormatter.cs" />
+    <Compile Include="Dialects\Core\ISqlFormatter.cs" />
+    <Compile Include="Dialects\Core\SqlFormatter.cs" />
+    <Compile Include="Dialects\Core\StatementFormatter.cs" />
+    <Compile Include="Dialects\Core\ISqlDialect.cs" />
+    <Compile Include="Dialects\SqlServer2012\SqlServer2012Formatter.cs" />
+    <Compile Include="Dialects\SqlServer\SqlServerDialect.cs" />
+    <Compile Include="Dialects\SqlServer\SqlServerFormatter.cs" />
     <Compile Include="QuobException.cs" />
     <Compile Include="Core\BaseQuob.cs" />
     <Compile Include="Core\BinderExpressionCompiler.cs" />

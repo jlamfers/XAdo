@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
 
-namespace XAdo.Quobs.Dialect
+namespace XAdo.Quobs.Dialects.Core
 {
    public interface ISqlFormatter
    {

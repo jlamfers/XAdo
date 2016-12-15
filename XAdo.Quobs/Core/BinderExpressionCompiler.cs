@@ -8,7 +8,8 @@ using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
 using XAdo.Quobs.Core.SqlExpression;
 using XAdo.Quobs.Core.SqlExpression.Core;
-using XAdo.Quobs.Dialect;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Dialects.Core;
 
 namespace XAdo.Quobs.Core
 {

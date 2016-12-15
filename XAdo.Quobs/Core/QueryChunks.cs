@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Dialect;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Dialects.Core;
+using XAdo.Quobs.Dialects.SqlServer;
 
 namespace XAdo.Quobs.Core
 {

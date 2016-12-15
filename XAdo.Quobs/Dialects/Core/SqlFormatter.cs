@@ -6,9 +6,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.SqlExpression;
-using XAdo.Quobs.Dialect.Core;
 
-namespace XAdo.Quobs.Dialect
+namespace XAdo.Quobs.Dialects.Core
 {
    public class SqlFormatter : ISqlFormatter
    {
@@ -417,21 +416,21 @@ namespace XAdo.Quobs.Dialect
             descriptor.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
             descriptor.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
       }
-      public virtual void WritePagedSelect(TextWriter writer, QueryChunks descriptor)
+      public virtual void WritePagedSelect(TextWriter writer, QueryChunks chunks)
       {
          string sqlSelect;
          using (var w = new StringWriter())
          {
-            WriteSelect(w, descriptor, true);
+            WriteSelect(w, chunks, true);
             sqlSelect = w.GetStringBuilder().ToString();
          }
          WritePagedQuery(
             writer,
             sqlSelect,
-            descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
-            descriptor.SelectColumns.Select(c => c.Alias),
-            descriptor.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
-            descriptor.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
+            chunks.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
+            chunks.SelectColumns.Select(c => c.Alias),
+            chunks.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
+            chunks.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
       }
 
 

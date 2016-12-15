@@ -5,8 +5,9 @@ using XAdo.Core;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.DbSchema;
 using XAdo.Quobs.Core.DbSchema.Attributes;
-using XAdo.Quobs.Dialect;
+using XAdo.Quobs.Dialects;
 using XAdo.Quobs.SqlObjects.Interface;
+using ISqlFormatter = XAdo.Quobs.Dialects.Core.ISqlFormatter;
 
 namespace XAdo.Quobs.SqlObjects
 {

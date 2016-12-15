@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using XAdo.Quobs.Dialect.Core;
+using XAdo.Quobs.Dialects.Core;
 
 namespace XAdo.Quobs.UnitTests
 {

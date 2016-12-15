@@ -1,5 +1,6 @@
 ﻿using XAdo.Core.Impl;
-using XAdo.Quobs.Dialect;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Dialects.SqlServer2012;
 using XAdo.Quobs.SqlObjects;
 
 namespace XAdo.Quobs.UnitTests

@@ -1,18 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using XAdo.Quobs.Dialects.SqlServer;
 
-namespace XAdo.Quobs.Dialect
+namespace XAdo.Quobs.Dialects.SqlServer2012
 {
    public class SqlServer2012Formatter : SqlServerFormatter
    {
-      private class SqlServer2012Dialect : SqlServerDialect
-      {
-         public override string Concat
-         {
-            get { return "CONCAT({0,...})"; }
-         }
-      }
 
       public SqlServer2012Formatter()
          : base(new SqlServer2012Dialect())
@@ -22,6 +16,19 @@ namespace XAdo.Quobs.Dialect
 
       protected override void WritePagedQuery(TextWriter writer, string sqlSelectWithoutOrder, IEnumerable<string> orderByClause, IEnumerable<string> selectNames, string skip, string take)
       {
+         if (skip == null && take == null)
+         {
+            writer.WriteLine(sqlSelectWithoutOrder.TrimEnd());
+            writer.Write("   ORDER BY ");
+            writer.Write(string.Join(", ", orderByClause.ToArray()));
+            return;
+         }
+
+         if (orderByClause == null || !orderByClause.Any())
+         {
+            throw new QuobException("For SQL paging at least one order column must be specified.");
+         }
+
          var count = selectNames.FirstOrDefault() == "COUNT(1)";
          if (count)
          {
@@ -30,11 +37,8 @@ namespace XAdo.Quobs.Dialect
          skip = skip ?? "0";
          take = take ?? ("" + (int.MaxValue - 10));
          writer.WriteLine(sqlSelectWithoutOrder);
-         if (orderByClause != null && orderByClause.Any())
-         {
-            writer.Write("ORDER BY ");
-            writer.WriteLine(string.Join(", ", orderByClause.ToArray()));
-         }
+         writer.Write("ORDER BY ");
+         writer.WriteLine(string.Join(", ", orderByClause.ToArray()));
          writer.WriteLine("OFFSET {0} ROWS FETCH NEXT {1} ROWS ONLY", skip, take);
          if (count)
          {
