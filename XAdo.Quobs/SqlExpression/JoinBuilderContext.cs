@@ -73,6 +73,10 @@ namespace XAdo.SqlObjects.SqlExpression
                      {
                         join.RightTableAlias = Aliases.Table(++_tableAliasIndex);
                      }
+                     if (join.LeftTableAlias == null)
+                     {
+                        join.LeftTableAlias = Aliases.Table(0);
+                     }
                   }
                   else
                   {
@@ -94,6 +98,10 @@ namespace XAdo.SqlObjects.SqlExpression
          if (joinPath != null)
          {
             alias = joinPath.Joins.Last().RightTableAlias;
+         }
+         else
+         {
+            alias = Aliases.Table(0);
          }
          descriptor.Format(Writer,Formatter, alias);
       }

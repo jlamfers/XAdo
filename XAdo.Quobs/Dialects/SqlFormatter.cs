@@ -340,7 +340,7 @@ namespace XAdo.SqlObjects.Dialects
                            descriptor.SelectColumns.Select(
                               t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
          }
-         writer.WriteLine("FROM {0}", descriptor.FromTableName);
+         writer.WriteLine("FROM {0} AS {1}", descriptor.FromTableName, this.FormatIdentifier(Aliases.Table(0)));
          if (descriptor.Joins.Any())
          {
             writer.WriteLine("   " +

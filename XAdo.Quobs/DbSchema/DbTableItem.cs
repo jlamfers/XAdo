@@ -16,14 +16,16 @@ namespace XAdo.SqlObjects.DbSchema
       [NonSerialized]
       private IList<DbColumnItem> _fkeyColumns;
 
-      public DbTableItem(DbSchema schema, string owner, string name, bool isView)
+      public DbTableItem(DbSchema schema, string owner, string name, string database, bool isView)
       {
          Schema = schema;
          IsView = isView;
          Name = name;
          Owner = owner;
+         Database = database;
       }
 
+      public string Database { get; private set; }
       public string Owner { get; private set; }
       public string Name { get; private set; }
       public bool IsView { get; private set; }

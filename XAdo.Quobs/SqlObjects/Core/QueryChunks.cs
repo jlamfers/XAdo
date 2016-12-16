@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.Dialects.SqlServer;
+using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects.Core
@@ -235,7 +236,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          {
             if (c.Alias == null)
             {
-               c.Alias = "_c_" + i;
+               c.Alias = Aliases.Column(i);
             }
             i++;
          }

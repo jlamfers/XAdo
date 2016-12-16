@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects.Core
@@ -141,7 +142,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter), Formatter.FormatIdentifier(c.Member.Name)));
+               Chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter,Aliases.Table(0)), Formatter.FormatIdentifier(c.Member.Name)));
             }
          }
       }

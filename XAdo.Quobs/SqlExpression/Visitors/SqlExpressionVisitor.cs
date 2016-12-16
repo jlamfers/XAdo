@@ -169,6 +169,11 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
                break;
 
             case ExpressionType.Convert:
+               if (IsNullConstant(exp.Operand))
+               {
+                  _writer.Write("NULL");
+                  break;
+               }
                _formatter.WriteTypeCast(_writer, exp.Type, ParameterizeWriter(() => Visit(exp.Operand),this));
                break;
 
@@ -341,15 +346,8 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
 
       protected virtual string GetParameterName(MemberExpression exp)
       {
-         if (exp == null)
-         {
-            return null;
-         }
-         if (exp.Expression == null)
-         {
-            return string.Format("{0}_{1}", exp.Member.ReflectedType.Name, exp.Member.Name);
-         }
-         return exp.Member.Name;
+         var index = Context.LatestArgumentsIndex++;
+         return exp == null ? Aliases.Parameter(index) : exp.Member.Name + "_" + index;
       }
 
       #region Handle String Compare

@@ -10,9 +10,6 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class WriteExpressionVisitor : ExpressionVisitor
    {
-      private static readonly ConcurrentDictionary<Type,int>
-         ArgumentKeys = new ConcurrentDictionary<Type, int>();
-
       private readonly ISqlFormatter _formatter;
       private bool _argumentsAsLiterals;
 
@@ -21,7 +18,6 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       private List<Tuple<DbSchemaDescriptor.ColumnDescriptor, string>> _keyConstraint;
       private string _tableName;
       private Type _tableType;
-      private int _key;
 
       public class CompileResult
       {
@@ -53,7 +49,6 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          _keyConstraint = new List<Tuple<DbSchemaDescriptor.ColumnDescriptor, string>>();
          _tableType = expression.Body.Type;
          _tableName = _tableType.GetTableDescriptor().Format(_formatter);  
-         _key = ArgumentKeys.GetOrAdd(_tableType, t => ArgumentKeys.Count + 1);
 
          Visit(expression);
 
@@ -99,7 +94,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             {
                return _formatter.FormatValue(value);
             }
-            var name = member.Name + "_" + _key + "_";
+            var name = member.Name;
             _arguments.Add(name, value);
             return _formatter.FormatParameter(name);
          }

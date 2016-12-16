@@ -54,17 +54,22 @@ namespace XAdo.SqlObjects.SqlObjects
 
       public virtual IMappedSqlObject<TMapped> Map<TMapped>(Expression<Func<TTable, TMapped>> mapExpression)
       {
-         var result = PrepareMapExpression<TMapped>(mapExpression);
-         return new MappedSqlObject<TMapped>(Formatter, Connection, result.BinderExpression.Compile(), Chunks, result, Joins);
+         var chunks = Chunks.Clone();
+         var result = PrepareMapExpression<TMapped>(mapExpression, chunks);
+         return new MappedSqlObject<TMapped>(Formatter, Connection, result.BinderExpression.Compile(), chunks, result, Joins);
       }
 
-      private BinderExpressionVisitor.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression)
+      private BinderExpressionVisitor.CompileResult<TMapped> PrepareMapExpression<TMapped>(LambdaExpression mapExpression, QueryChunks chunks)
       {
          var compiler = new BinderExpressionVisitor(Formatter);
          var result = compiler.Compile<TMapped>(mapExpression, Joins);
-         Chunks.AddJoins(result.Joins);
-         Chunks.SelectColumns.AddRange(result.Columns.Select(c => new QueryChunks.SelectColumn(c.Sql, c.Alias)).Distinct());
-         Chunks.EnsureSelectColumnsAreAliased();
+         chunks.AddJoins(result.Joins);
+         chunks.SelectColumns.AddRange(result.Columns.Select(c => new QueryChunks.SelectColumn(c.Sql, c.Alias)).Distinct());
+         foreach (var c in chunks.OrderColumns.Where(c => !chunks.SelectColumns.Any(sc => sc.Expression == c.Expression)))
+         {
+            chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Expression, null));
+         }
+         chunks.EnsureSelectColumnsAreAliased();
          return result;
       }
 

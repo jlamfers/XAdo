@@ -126,7 +126,7 @@ namespace XAdo.SqlObjects.DbSchema
             var ds = new DataSet();
             adapter.FillSchema(ds, SchemaType.Mapped, tablename);
 
-            var dbTable = new DbTableItem(schema, table.TABLE_SCHEMA, table.TABLE_NAME, table.TABLE_TYPE == "VIEW");
+            var dbTable = new DbTableItem(schema, table.TABLE_SCHEMA, table.TABLE_NAME,cn.Database, table.TABLE_TYPE == "VIEW");
             schema.Tables.Add(dbTable);
 
             foreach (DataColumn dataColumn in ds.Tables[0].Columns)

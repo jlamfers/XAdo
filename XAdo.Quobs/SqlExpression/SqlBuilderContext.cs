@@ -22,6 +22,7 @@ namespace XAdo.SqlObjects.SqlExpression
       public IDictionary<string, object> Arguments { get; set; }
       public IDictionary<object, object> Items { get; set; }
       public bool ArgumentsAsLiterals { get; set; }
+      public int LatestArgumentsIndex { get; set; }
 
       public virtual void WriteFormattedColumn(MemberExpression exp)
       {

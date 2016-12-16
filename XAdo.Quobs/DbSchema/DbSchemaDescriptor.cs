@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using XAdo.SqlObjects.DbSchema.Attributes;
 using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.Dialects.SqlServer;
 using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlExpression.Visitors;
 
@@ -41,6 +42,14 @@ namespace XAdo.SqlObjects.DbSchema
             {
                Name = type.Name;
             }
+
+            var outerType = GetOuterType(Type);
+            var dbAtt = outerType.GetAnnotation<DatabaseAttribute>();
+            if (dbAtt != null)
+            {
+               Database = dbAtt.Name;
+            }
+
             var viewAtt = type.GetAnnotation<DbViewAttribute>();
             IsView = viewAtt != null;
             IsReadOnly = viewAtt != null && viewAtt.IsReadOnly;
@@ -60,10 +69,21 @@ namespace XAdo.SqlObjects.DbSchema
             }
          }
 
+         private Type GetOuterType(Type type)
+         {
+            if (type == null) return null;
+            while (type.DeclaringType != null)
+            {
+               type = type.DeclaringType;
+            }
+            return type;
+         }
+
          public Type Type { get; private set; }
          public int Id { get; private set; }
          public string Schema { get; private set; }
          public string Name { get; private set; }
+         public string Database { get; private set; }
          public bool IsView { get; private set; }
          public bool IsReadOnly { get; private set; }
 
@@ -71,12 +91,12 @@ namespace XAdo.SqlObjects.DbSchema
 
          public override string ToString()
          {
-            return Schema != null ? string.Format("[{0}].[{1}]",Schema, Name) : "["+ Name+"]";
+            return new SqlFormatter(new SqlServerDialect()).FormatIdentifier(Database, Schema, Name);
          }
 
          public void Format(TextWriter w, ISqlFormatter formatter, string alias = null)
          {
-            formatter.FormatIdentifier(w, Schema, Name);
+            formatter.FormatIdentifier(w, Database, Schema, Name);
             if (alias != null)
             {
                w.Write(" AS ");

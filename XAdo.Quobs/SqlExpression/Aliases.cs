@@ -14,5 +14,13 @@
       {
          return "tt" + index;
       }
+      public static string InParameter(int index)
+      {
+         return "in" + index + "_";
+      }
+      public static string Parameter(int index)
+      {
+         return "p" + index;
+      }
    }
 }
