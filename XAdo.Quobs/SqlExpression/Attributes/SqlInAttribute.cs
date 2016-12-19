@@ -46,7 +46,7 @@ namespace XAdo.SqlObjects.SqlExpression.Attributes
                var member = m.Arguments[0].GetMemberInfo();
                var list = (IEnumerable) result;
                var comma = "";
-               var parName = Aliases.InParameter(_ids.GetOrAdd(member, x => _ids.Count + 1));
+               var parName = context.Aliases.InParameter(_ids.GetOrAdd(member, x => _ids.Count + 1));
                var index = 0;
                foreach (var v in list)
                {

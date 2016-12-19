@@ -123,8 +123,10 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          }
       }
 
-      public QueryChunks()
+      public QueryChunks(IAliases aliases)
       {
+         if (aliases == null) throw new ArgumentNullException("aliases");
+
          SelectColumns = new List<SelectColumn>();
 
          WhereClausePredicates = new List<string>();
@@ -136,6 +138,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          Unions = new List<ISqlObject>();
          OrderColumns = new List<OrderColumn>();
          Joins = new List<Join>();
+         Aliases = aliases;
       }
 
       public List<SelectColumn> SelectColumns { get; private set; }
@@ -145,7 +148,8 @@ namespace XAdo.SqlObjects.SqlObjects.Core
       public List<OrderColumn> OrderColumns { get; private set; }
       public List<string> GroupByColumns { get; private set; }
       public List<Join> Joins { get; private set; }
-      public string FromTableName { get; set; }
+      public string TableName { get; set; }
+      public IAliases Aliases { get; set; }
       public bool Distict { get; set; }
       public IDictionary<string, object> Arguments { get; private set; }
 
@@ -183,13 +187,13 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual QueryChunks Clone(bool reset = false)
       {
-         var clone = new QueryChunks();
+         var clone = new QueryChunks(Aliases);
          clone.SelectColumns.AddRange(SelectColumns.Select(c => c.Clone()));
          clone.HavingClausePredicates.AddRange(HavingClausePredicates);
          clone.OrderColumns.AddRange(OrderColumns.Select(c => c.Clone()));
          clone.GroupByColumns.AddRange(GroupByColumns);
          clone.Joins.AddRange(Joins.Select(c => c.Clone()));
-         clone.FromTableName = FromTableName;
+         clone.TableName = TableName;
          clone.Distict = Distict;
          clone.Unions = Unions.ToList();
          if (!reset)

@@ -1,25 +1,56 @@
 ﻿namespace XAdo.SqlObjects.SqlExpression
 {
-   internal static class Aliases
+   public class Aliases : IAliases
    {
-      public static string Column(int index)
+      private readonly IAliases _parent;
+
+      public Aliases()
       {
+         
+      }
+      public Aliases(IAliases parent)
+      {
+         _parent = parent;
+      }
+
+      public string Column(int index)
+      {
+         if (_parent != null)
+         {
+            return "c" + _parent.Column(index);
+         }
          return "c" + index;
       }
-      public static string Table(int index)
+      public string Table(int index)
       {
+         if (_parent != null)
+         {
+            return "t" + _parent.Table(index);
+         }
          return "t" + index;
       }
-      public static string TempTable(int index)
+      public string TempTable(int index)
       {
-         return "tt" + index;
+         if (_parent != null)
+         {
+            return "x" + _parent.TempTable(index);
+         }
+         return "x" + index;
       }
-      public static string InParameter(int index)
+      public string InParameter(int index)
       {
+         if (_parent != null)
+         {
+            return "i" + _parent.InParameter(index);
+         }
          return "in" + index + "_";
       }
-      public static string Parameter(int index)
+      public string Parameter(int index)
       {
+         if (_parent != null)
+         {
+            return "p" + _parent.Parameter(index);
+         }
          return "p" + index;
       }
    }

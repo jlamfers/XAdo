@@ -43,10 +43,12 @@
     <Compile Include="SqlExpression\Aliases.cs" />
     <Compile Include="SqlExpression\CString.cs" />
     <Compile Include="DbSchema\IDbTable.cs" />
+    <Compile Include="SqlExpression\IAliases.cs" />
+    <Compile Include="SqlExpression\Visitors\StrongBoxVisiter.cs" />
     <Compile Include="SqlObjects\Extensions.cs" />
     <Compile Include="SqlExpression\Visitors\CreateExpressionSubstituteVisitor.cs" />
     <Compile Include="SqlExpression\Attributes\SqlCastAttribute.cs" />
-    <Compile Include="SqlExpression\Visitors\WriteExpressionVisitor.cs" />
+    <Compile Include="SqlExpression\Visitors\PersistExpressionVisitor.cs" />
     <Compile Include="SqlExpression\Attributes\SqlIgnoreAttribute.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Dialects\SqlServer2012\SqlServer2012Dialect.cs" />
@@ -116,6 +118,8 @@
     <Compile Include="SqlExpression\Attributes\SqlWeekNumberAttribute.cs" />
     <Compile Include="SqlExpression\Attributes\CustomSqlExpressionBuilderAttribute.cs" />
     <Compile Include="SqlExpression\ICustomSqlExpressionBuilder.cs" />
+    <Compile Include="SqlObjects\SubQuery\ISubQuery.cs" />
+    <Compile Include="SqlObjects\SubQuery\SubQuery.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAdo\XAdo.csproj">

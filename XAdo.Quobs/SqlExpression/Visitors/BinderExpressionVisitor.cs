@@ -101,12 +101,14 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       {
          private int _hashcode;
          private MemberInfo _mappedMember;
+         private readonly IAliases _aliases;
 
-         public ColumnInfo(string sql, int index, MemberInfo mappedMember)
+         public ColumnInfo(string sql, int index, MemberInfo mappedMember, IAliases aliases)
          {
             Sql = sql;
             Index = index;
             _mappedMember = mappedMember;
+            _aliases = aliases;
             InitHashCode();
          }
 
@@ -126,7 +128,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          public int Index { get; private set; }
          public string Alias
          {
-            get { return Aliases.Column(Index); }
+            get { return _aliases.Column(Index); }
          }
 
          public MemberInfo MappedMember
@@ -174,9 +176,14 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       private ParameterExpression
          _origParameter;
 
+      private readonly IAliases
+         _aliases;
+
+
       public BinderExpressionVisitor(ISqlFormatter formatter)
       {
          _formatter = formatter;
+         _aliases = new Aliases();
       }
 
       public CompileResult<T> Compile<T>(LambdaExpression expression,List<DbSchemaDescriptor.JoinPath> joins)
@@ -198,6 +205,8 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          };
       }
 
+      
+
       protected override Expression VisitParameter(ParameterExpression node)
       {
          return node == _origParameter ? _parameter : node;
@@ -218,12 +227,12 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
                else
                {
                   var b = new SqlExpressionVisitor();
-                  var ctx = new JoinBuilderContext(_formatter, _joins);
+                  var ctx = new JoinBuilderContext(_formatter, _aliases,_joins);
                   b.BuildSql(ctx, node.Arguments[i]);
                   var sql = ctx.ToString();
                   var index = AddOrGetColumnIndex(sql,members[i]);
                   arguments.Add(GetReaderExpression(members[i].GetMemberType(), index));
-                  _memberMap[members[i]] = new MappedMemberInfo(members[i],node.Arguments[i],sql,Aliases.Column(index));
+                  _memberMap[members[i]] = new MappedMemberInfo(members[i],node.Arguments[i],sql,_aliases.Column(index));
                }
             }
             return Expression.New(node.Constructor,arguments,node.Members);
@@ -239,12 +248,12 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             return base.VisitMemberAssignment(node);
          }
          var b = new SqlExpressionVisitor();
-         var ctx = new JoinBuilderContext(_formatter, _joins);
+         var ctx = new JoinBuilderContext(_formatter,_aliases, _joins);
          b.BuildSql(ctx, e);
          var sql = ctx.ToString();
          var index = AddOrGetColumnIndex(ctx.ToString(),node.Member);
          e = GetReaderExpression(node.Member.GetMemberType(), index);
-         _memberMap[node.Member] = new MappedMemberInfo(node.Member, node.Expression, sql, Aliases.Column(index));
+         _memberMap[node.Member] = new MappedMemberInfo(node.Member, node.Expression, sql, _aliases.Column(index));
          return node.Update(e);
       }
 
@@ -273,7 +282,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          }
 
          var b = new SqlExpressionVisitor();
-         var ctx = new JoinBuilderContext(_formatter, _joins);
+         var ctx = new JoinBuilderContext(_formatter, _aliases, _joins);
          b.BuildSql(ctx, node);
          var index = AddOrGetColumnIndex(ctx.ToString(), node.Member);
          return GetReaderExpression(node.Member.GetMemberType(), index);
@@ -310,7 +319,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             return currentColumnInfo.Index;
          }
          var newIndex = index ?? (_columns.Count == 0 ? 0 : _columns.Keys.Select(c => c.Index).Max() + 1);
-         var columnInfo = new ColumnInfo(sqlExpression, newIndex, mappedMember);
+         var columnInfo = new ColumnInfo(sqlExpression, newIndex, mappedMember,_aliases);
          ColumnInfo found;
          if(_columns.TryGetValue(columnInfo,out found))
          {

@@ -30,7 +30,7 @@ namespace XAdo.SqlObjects.SqlObjects
       {
          if (expression == null) return this;
          var sqlBuilder = new MappedSqlExpressionVisitor(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
-         var context = new SqlBuilderContext(Formatter) { ArgumentsAsLiterals = false };
+         var context = new SqlBuilderContext(Formatter,Chunks.Aliases) { ArgumentsAsLiterals = false };
 
          sqlBuilder.BuildSql(context, expression);
          Chunks.WhereClausePredicates.Add(context.ToString());

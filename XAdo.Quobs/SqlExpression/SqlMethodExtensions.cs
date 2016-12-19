@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using XAdo.Core.Interface;
 using XAdo.SqlObjects.SqlExpression.Attributes;
+using XAdo.SqlObjects.SqlObjects.Interface;
+using XAdo.SqlObjects.SqlObjects.SubQuery;
 
 namespace XAdo.SqlObjects.SqlExpression
 {
@@ -208,12 +211,26 @@ namespace XAdo.SqlObjects.SqlExpression
          throw NotImplemented();
       }
 
+
       [SqlIgnore]
       public static CString ToCString(this string self)
       {
          return new CString(self);
       }
 
+      private static Exception NotImplemented()
+      {
+         return new NotImplementedException("This method is a quob query method");
+      }
+
+   }
+
+   public static class Q
+   {
+      public static bool Exists(Func<ISubQuery,IReadSqlObject> expression)
+      {
+         throw NotImplemented();
+      }
       private static Exception NotImplemented()
       {
          return new NotImplementedException("This method is a quob query method");

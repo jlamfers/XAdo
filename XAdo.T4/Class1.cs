@@ -2,7 +2,7 @@
 
 namespace DbSchema
 {
-   [Database("FLS_UserDB_t")]
+   //[Database("FLS_UserDB_t")]
    public static partial class Udb
    {
    }

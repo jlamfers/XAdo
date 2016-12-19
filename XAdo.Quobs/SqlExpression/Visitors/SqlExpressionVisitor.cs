@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression.Attributes;
+using XAdo.SqlObjects.SqlObjects.Interface;
+using XAdo.SqlObjects.SqlObjects.SubQuery;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
@@ -87,16 +89,17 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
 
       private TextWriter _writer;
       private ISqlFormatter _formatter;
+      private LambdaExpression _lambda;
 
       protected SqlBuilderContext Context { get; private set; }
       public SqlBuilderContext BuildSql(SqlBuilderContext context, Expression expression)
       {
          if (context == null) throw new ArgumentNullException("context");
          if (expression == null) return context;
-         var lambda = expression as LambdaExpression;
-         if (lambda != null && lambda.Body.NodeType == ExpressionType.Constant && lambda.Body.Type == typeof (Boolean))
+         _lambda = expression as LambdaExpression;
+         if (_lambda != null && _lambda.Body.NodeType == ExpressionType.Constant && _lambda.Body.Type == typeof(Boolean))
          {
-            expression = NormalizeSqlConstantBooleanCompare((ConstantExpression)lambda.Body);
+            expression = NormalizeSqlConstantBooleanCompare((ConstantExpression)_lambda.Body);
          }
          Context = context;
          _writer = Context.Writer;
@@ -139,6 +142,21 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             return Visit(exp.Object);
          }
 
+         if (exp.Method == KnownMembers.SqlMethods.Exists)
+         {
+            var subQuery = new SubQuery(_formatter, new Aliases(Context.Aliases), WriteExpressionCallback);
+            var subExpression = exp.Arguments[0].CastTo<Expression<Func<ISubQuery, IReadSqlObject>>>();
+            var p = _lambda.Parameters[0];
+            var exp2 = Expression.Lambda(subExpression.Body, p, subExpression.Parameters[0]);
+            var @delegate = exp2.Compile();
+            var delegateReuslt = @delegate.DynamicInvoke(null, subQuery).CastTo<ISqlObject>();
+            var sql = delegateReuslt.GetSql();
+            Context.Writer.Write("EXISTS(");
+            Context.Writer.Write(sql);
+            Context.Writer.Write(")");
+            return exp;
+         }
+
          Func<SqlExpressionVisitor, MethodCallExpression, Expression> Writer;
          if (MethodWriterMap.TryGetValue(exp.Method, out Writer))
          {
@@ -146,6 +164,19 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          }
 
          throw new SqlObjectsException(string.Format("The method '{0}' is not supported", exp.Method.Name));
+      }
+
+      private void WriteExpressionCallback(Expression exp, SqlBuilderContext context)
+      {
+         var p = _lambda.Parameters[0];
+         var e = new StrongBoxVisitor(p).Visit(exp);
+         var prevContext = Context;
+         var prevAliases = context.Aliases;
+         context.Aliases = Context.Aliases;
+         Context = context;
+         Visit(e);
+         Context = prevContext;
+         context.Aliases = prevAliases;
       }
 
       protected override Expression VisitUnary(UnaryExpression exp)
@@ -281,11 +312,6 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             return exp;
          }
 
-         //if (exp.Expression.NodeType == ExpressionType.Convert)
-         //{
-         //   exp = Expression.MakeMemberAccess(((UnaryExpression) exp.Expression).Operand, exp.Member);
-         //}
-
          switch (exp.Expression.NodeType)
          {
             case ExpressionType.Convert:
@@ -296,6 +322,16 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
                object result;
                if (exp.TryEvaluate(out result))
                {
+                  if (Equals(result, Extensions.InstanceValue.Null))
+                  {
+                     if (Context.ParentWriter != null)
+                     {
+                        Context.ParentWriter(exp, Context);
+                        return exp;
+                     }
+                     throw new InvalidOperationException("Expression has null reference: " + exp);
+
+                  }
                   HandleArgumentMember(exp, result);
                }
                else
@@ -347,7 +383,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       protected virtual string GetParameterName(MemberExpression exp)
       {
          var index = Context.LatestArgumentsIndex++;
-         return exp == null ? Aliases.Parameter(index) : exp.Member.Name + "_" + index;
+         return exp == null ? Context.Aliases.Parameter(index) : exp.Member.Name + "_" + index;
       }
 
       #region Handle String Compare

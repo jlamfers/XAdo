@@ -45,7 +45,7 @@ namespace XAdo.SqlObjects.SqlObjects
          if (WhereExpression != null)
          {
             var sqlBuilder = new SqlExpressionVisitor();
-            var context = new SqlBuilderContext(Formatter)
+            var context = new SqlBuilderContext(Formatter,null)
             {
                ArgumentsAsLiterals = literals
             };

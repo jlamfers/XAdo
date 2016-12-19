@@ -73,8 +73,9 @@ namespace XAdo.SqlObjects.SqlExpression
       {
          public static readonly MethodInfo
             DefaultIfEmpty = MemberInfoFinder.GetMethodInfo(() => "".DefaultIfEmpty(s => "")).GetGenericMethodDefinition(),
-            DefaultIfEmpty2 = MemberInfoFinder.GetMethodInfo(() => ((object)null).DefaultIfEmpty(() => "")).GetGenericMethodDefinition(),
-            Create = MemberInfoFinder.GetMethodInfo(() => "".Create(s => "")).GetGenericMethodDefinition();
+            DefaultIfEmpty2 = MemberInfoFinder.GetMethodInfo(() => SqlMethodExtensions.DefaultIfEmpty((null),() => "")).GetGenericMethodDefinition(),
+            Create = MemberInfoFinder.GetMethodInfo(() => "".Create(s => "")).GetGenericMethodDefinition(),
+            Exists = MemberInfoFinder.GetMethodInfo(() => Q.Exists(null));
       }
 
       public static bool EqualMethods(this MethodInfo self, MethodInfo other)

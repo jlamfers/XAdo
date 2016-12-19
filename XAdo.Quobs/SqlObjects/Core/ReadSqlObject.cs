@@ -5,17 +5,18 @@ using System.IO;
 using System.Linq.Expressions;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
+using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects.Core
 {
-   public abstract class ReadSqlObject : IReadSqlObject//, ISqlBuilder
+   public abstract class ReadSqlObject : IReadSqlObject
    {
    
       protected ReadSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins)
       {
          if (formatter == null) throw new ArgumentNullException("formatter");
-         if (connection == null) throw new ArgumentNullException("connection");
+         //if (connection == null) throw new ArgumentNullException("connection"); can be null
          if (chunks == null) throw new ArgumentNullException("chunks");
          Chunks = chunks;
          Formatter = formatter;
@@ -45,20 +46,6 @@ namespace XAdo.SqlObjects.SqlObjects.Core
             Formatter.WriteSelect(writer, Chunks);
          }
       }
-
-      //string ISqlBuilder.GetSql()
-      //{
-      //   using (var sw = new StringWriter())
-      //   {
-      //      WriteSql(sw);
-      //      return sw.GetStringBuilder().ToString();
-      //   }
-      //}
-
-      //IDictionary<string, object> ISqlBuilder.GetArguments()
-      //{
-      //   return (IDictionary<string, object>) GetArguments();
-      //}
 
       object ISqlObject.GetArguments()
       {
@@ -163,10 +150,17 @@ namespace XAdo.SqlObjects.SqlObjects.Core
       }
       protected abstract IEnumerable FetchToEnumerable();
 
-      IReadSqlObject IReadSqlObject.Attach(ISqlConnection executer)
+      IReadSqlObject IReadSqlObject.Attach(ISqlConnection connection)
       {
-         return Attach(executer);
+         return Attach(connection);
       }
+
+      IAliases IReadSqlObject.Aliases
+      {
+         get { return Chunks.Aliases; }
+         set { Chunks.Aliases = value; }
+      }
+
       protected virtual IReadSqlObject Attach(ISqlConnection executer)
       {
          if (executer == null) throw new ArgumentNullException("executer");

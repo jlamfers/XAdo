@@ -17,8 +17,8 @@ namespace XAdo.SqlObjects.SqlExpression
       private int _tableAliasIndex;
 
 
-      public JoinBuilderContext(ISqlFormatter formatter, List<DbSchemaDescriptor.JoinPath> joins = null)
-         : base(formatter)
+      public JoinBuilderContext(ISqlFormatter formatter, IAliases aliases, List<DbSchemaDescriptor.JoinPath> joins = null)
+         : base(formatter,aliases)
       {
          _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
          _tableAliasIndex = Enumerable.Count(_joins.SelectMany(j => j.Joins));

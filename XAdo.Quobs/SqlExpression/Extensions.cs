@@ -75,6 +75,12 @@ namespace XAdo.SqlObjects.SqlExpression
                      return false;
                   }
                }
+               if (obj == null && !memberExpr.Member.IsStaticField())
+               {
+                  result = InstanceValue.Null;
+                  return true;
+
+               }
                result = memberExpr.Member.GetValue(obj);
                return true;
             default:
@@ -82,6 +88,19 @@ namespace XAdo.SqlObjects.SqlExpression
                return false;
          }
          
+      }
+
+      public enum InstanceValue
+      {
+         Null
+      }
+
+      public static bool IsStaticField(this MemberInfo member)
+      {
+         var pi = member as PropertyInfo;
+         if (pi != null) return pi.GetGetMethod(true).IsStatic;
+         var fi = member as FieldInfo;
+         return fi != null && fi.IsStatic;
       }
 
       public static bool TryEvaluateCallExpression(this MethodCallExpression callExpression, out object result)

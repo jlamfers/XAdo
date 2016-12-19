@@ -8,7 +8,7 @@ using XAdo.SqlObjects.Dialects;
 
 namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
-   public class WriteExpressionVisitor : ExpressionVisitor
+   public class PersistExpressionVisitor : ExpressionVisitor
    {
       private readonly ISqlFormatter _formatter;
       private bool _argumentsAsLiterals;
@@ -35,7 +35,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          public string TableName { get; private set; }
       }
 
-      public WriteExpressionVisitor(ISqlFormatter formatter)
+      public PersistExpressionVisitor(ISqlFormatter formatter)
       {
          _formatter = formatter;
          
@@ -99,7 +99,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             return _formatter.FormatParameter(name);
          }
          var b = new SqlExpressionVisitor();
-         var c = new SqlBuilderContext(_formatter)
+         var c = new SqlBuilderContext(_formatter,null)
          {
             Arguments = _arguments,
             ArgumentsAsLiterals = _argumentsAsLiterals

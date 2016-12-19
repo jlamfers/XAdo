@@ -20,7 +20,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       protected ISqlFormatter Formatter { get; private set; }
       protected ISqlConnection Connection { get; private set; }
-      protected WriteExpressionVisitor.CompileResult CompileResult { get; private set; }
+      protected PersistExpressionVisitor.CompileResult CompileResult { get; private set; }
       protected LambdaExpression Expression { get; private set; }
       protected bool HasIdentityReturn { get; private set; }
 
@@ -41,7 +41,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
       {
          if (Expression == null) return;
 
-         var compiler = new WriteExpressionVisitor(Formatter);
+         var compiler = new PersistExpressionVisitor(Formatter);
          CompileResult = compiler.Compile(Expression, literals);
          Expression = null;
 

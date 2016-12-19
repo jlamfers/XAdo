@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Linq.Expressions;
+using XAdo.SqlObjects.SqlExpression;
 
 namespace XAdo.SqlObjects.SqlObjects.Interface
 {
@@ -16,6 +17,7 @@ namespace XAdo.SqlObjects.SqlObjects.Interface
       IReadSqlObject Take(int take);
       IEnumerable FetchToEnumerable();
       IReadSqlObject Attach(ISqlConnection executer);
+      IAliases Aliases { get; set; }
 
    }
 }

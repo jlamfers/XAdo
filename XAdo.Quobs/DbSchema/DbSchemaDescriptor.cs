@@ -213,7 +213,7 @@ namespace XAdo.SqlObjects.DbSchema
             private readonly Type _leftTableType;
 
             public JoinBuilderContext(ISqlFormatter formatter, Type leftTableType)
-               : base(formatter)
+               : base(formatter,null)
             {
                _leftTableType = leftTableType;
                ArgumentsAsLiterals = true;

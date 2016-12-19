@@ -1,7 +1,10 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlExpression.Visitors;
 using XAdo.SqlObjects.SqlObjects.Core;
@@ -12,20 +15,29 @@ namespace XAdo.SqlObjects.SqlObjects
    public class TableSqlObject<TTable> : FetchSqlObject<TTable>, ITableSqlObject<TTable> 
       where TTable : IDbTable
    {
-
+      public TableSqlObject(ISqlFormatter formatter)
+         : base(formatter, null, new QueryChunks(new Aliases()) { TableName = typeof(TTable).GetTableDescriptor().Format(formatter) }, null)
+      {
+         
+      }
       public TableSqlObject(ISqlConnection connection)
-         : base(connection.GetSqlFormatter(), connection, new QueryChunks { FromTableName = typeof(TTable).GetTableDescriptor().Format(connection.GetSqlFormatter()) }, null)
+         : base(connection.GetSqlFormatter(), connection, new QueryChunks(new Aliases()) { TableName = typeof(TTable).GetTableDescriptor().Format(connection.GetSqlFormatter()) }, null)
       {
       }
+
+      internal Action<Expression, SqlBuilderContext> ParentMemberWriter;
 
       protected override IReadSqlObject Where(Expression expression)
       {
          if (expression == null) return this;
          var sqlBuilder = new SqlExpressionVisitor();
-         var context = new JoinBuilderContext(Formatter, Joins);
+         var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){ParentWriter = ParentMemberWriter};
 
          sqlBuilder.BuildSql(context, expression);
+
          Chunks.WhereClausePredicates.Add(context.ToString());
+         Chunks.AddJoins(context.JoinChunks);
+
          foreach (var arg in context.Arguments)
          {
             Chunks.Arguments[arg.Key] = arg.Value;
@@ -42,7 +54,7 @@ namespace XAdo.SqlObjects.SqlObjects
          foreach (var expression in expressions)
          {
             var sqlBuilder = new SqlExpressionVisitor();
-            var context = new JoinBuilderContext(Formatter, Joins);
+            var context = new JoinBuilderContext(Formatter, Chunks.Aliases,Joins);
 
             sqlBuilder.BuildSql(context, expression);
             Chunks.AddJoins(context.JoinChunks);
@@ -119,7 +131,7 @@ namespace XAdo.SqlObjects.SqlObjects
          foreach (var expression in expressions)
          {
             var sqlBuilder = new SqlExpressionVisitor();
-            var context = new JoinBuilderContext(Formatter, Joins);
+            var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){ParentWriter = ParentMemberWriter};
 
             sqlBuilder.BuildSql(context, expression);
             Chunks.AddJoins(context.JoinChunks);
@@ -144,7 +156,7 @@ namespace XAdo.SqlObjects.SqlObjects
       public virtual ITableSqlObject<TTable> Having(Expression<Func<TTable, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionVisitor();
-         var context = new JoinBuilderContext(Formatter, Joins) { ArgumentsAsLiterals = false };
+         var context = new JoinBuilderContext(Formatter, Chunks.Aliases,Joins) { ArgumentsAsLiterals = false, ParentWriter = ParentMemberWriter};
 
          sqlBuilder.BuildSql(context, havingClause);
          Chunks.AddJoins(context.JoinChunks);
@@ -160,7 +172,7 @@ namespace XAdo.SqlObjects.SqlObjects
       protected override ReadSqlObject CloneSqlReadObject()
       {
          //we need to clone joins as well here
-         return new TableSqlObject<TTable>(Connection) { Chunks = Chunks.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList() };
+         return new TableSqlObject<TTable>(Connection) { Chunks = Chunks.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList()};
       }
 
 

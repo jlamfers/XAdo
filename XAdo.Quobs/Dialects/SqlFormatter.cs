@@ -321,14 +321,14 @@ namespace XAdo.SqlObjects.Dialects
          writer.Write(SqlDialect.SelectLastIdentityTyped, sqlType);
       }
 
-      public virtual void WriteSelect(TextWriter writer, QueryChunks descriptor, bool ignoreOrder = false)
+      public virtual void WriteSelect(TextWriter writer, QueryChunks chuncks, bool ignoreOrder = false)
       {
 
-         var distinct = descriptor.Distict ? "DISTINCT " : "";
+         var distinct = chuncks.Distict ? "DISTINCT " : "";
 
-         descriptor.EnsureOrderByColumnsAreAliased();
+         chuncks.EnsureOrderByColumnsAreAliased();
 
-         if (!descriptor.SelectColumns.Any())
+         if (!chuncks.SelectColumns.Any())
          {
             writer.WriteLine("SELECT {0}*", distinct);
          }
@@ -337,46 +337,46 @@ namespace XAdo.SqlObjects.Dialects
             writer.WriteLine("SELECT {0}", distinct);
             writer.WriteLine("   " +
                         String.Join(",\r\n   ",
-                           descriptor.SelectColumns.Select(
+                           chuncks.SelectColumns.Select(
                               t => String.IsNullOrEmpty(t.Alias) ? t.Expression : t.Expression + " AS " + t.Alias)));
          }
-         writer.WriteLine("FROM {0} AS {1}", descriptor.FromTableName, this.FormatIdentifier(Aliases.Table(0)));
-         if (descriptor.Joins.Any())
+         writer.WriteLine("FROM {0} AS {1}", chuncks.TableName, this.FormatIdentifier(chuncks.Aliases.Table(0)));
+         if (chuncks.Joins.Any())
          {
             writer.WriteLine("   " +
                         String.Join("\r\n   ",
-                           descriptor.Joins.Select(j => j.ToString()).ToArray()));
+                           chuncks.Joins.Select(j => j.ToString()).ToArray()));
          }
-         if (descriptor.WhereClausePredicates.Any())
+         if (chuncks.WhereClausePredicates.Any())
          {
             writer.WriteLine("WHERE");
             writer.WriteLine("   " +
                         String.Join("\r\n   AND ",
-                           descriptor.WhereClausePredicates
+                           chuncks.WhereClausePredicates
                               .Select(s => "(" + s + ")")
                               .ToArray()));
          }
-         if (descriptor.GroupByColumns.Any())
+         if (chuncks.GroupByColumns.Any())
          {
             writer.WriteLine("GROUP BY");
-            writer.WriteLine("   " + String.Join(",\r\n   ", descriptor.GroupByColumns.ToArray()));
+            writer.WriteLine("   " + String.Join(",\r\n   ", chuncks.GroupByColumns.ToArray()));
          }
-         if (descriptor.HavingClausePredicates.Any())
+         if (chuncks.HavingClausePredicates.Any())
          {
             writer.WriteLine("HAVING");
             writer.WriteLine("   " +
                         String.Join("\r\n   AND ",
-                           descriptor.HavingClausePredicates.Select(s => "(" + s + ")").ToArray()));
+                           chuncks.HavingClausePredicates.Select(s => "(" + s + ")").ToArray()));
          }
-         foreach (var union in descriptor.Unions)
+         foreach (var union in chuncks.Unions)
          {
             writer.WriteLine("UNION");
             writer.WriteLine(union.GetSql());
          }
-         if (!ignoreOrder && descriptor.OrderColumns.Any())
+         if (!ignoreOrder && chuncks.OrderColumns.Any())
          {
             writer.WriteLine("ORDER BY");
-            writer.WriteLine("   " + String.Join(",\r\n   ", descriptor.OrderColumns.Select(c => c.ToString()).ToArray()));
+            writer.WriteLine("   " + String.Join(",\r\n   ", chuncks.OrderColumns.Select(c => c.ToString()).ToArray()));
          }
       }
       public virtual void WriteCount(TextWriter writer, QueryChunks descriptor)
@@ -385,37 +385,37 @@ namespace XAdo.SqlObjects.Dialects
          WriteSelect(writer, descriptor, true);
          writer.Write(") AS __pt_inner");
       }
-      public virtual void WritePagedCount(TextWriter writer, QueryChunks descriptor)
+      public virtual void WritePagedCount(TextWriter writer, QueryChunks chunks)
       {
-         if (!descriptor.IsPaged())
+         if (!chunks.IsPaged())
          {
-            WriteCount(writer, descriptor);
+            WriteCount(writer, chunks);
             return;
          }
 
          string sqlSelect;
          using (var w = new StringWriter())
          {
-            var selectOrderColumns = !descriptor.SelectColumns.Any();
+            var selectOrderColumns = !chunks.SelectColumns.Any();
             if (selectOrderColumns)
             {
                var index = 0;
-               descriptor.SelectColumns.AddRange(descriptor.OrderColumns.Select(c => new QueryChunks.SelectColumn(c.Expression, Aliases.Column(index++))));
+               chunks.SelectColumns.AddRange(chunks.OrderColumns.Select(c => new QueryChunks.SelectColumn(c.Expression, chunks.Aliases.Column(index++))));
             }
-            WriteSelect(w, descriptor, true);
+            WriteSelect(w, chunks, true);
             if (selectOrderColumns)
             {
-               descriptor.SelectColumns.Clear();
+               chunks.SelectColumns.Clear();
             }
             sqlSelect = w.GetStringBuilder().ToString();
          }
          WritePagedQuery(
             writer,
             sqlSelect,
-            descriptor.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
+            chunks.OrderColumns.Select(c => c.Alias + (c.Descending ? " DESC" : "")),
             new[] { "COUNT(1)" },
-            descriptor.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
-            descriptor.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
+            chunks.Skip != null ? this.FormatParameter(QueryChunks.Constants.ParNameSkip) : null,
+            chunks.Take != null ? this.FormatParameter(QueryChunks.Constants.ParNameTake) : null);
       }
       public virtual void WritePagedSelect(TextWriter writer, QueryChunks chunks)
       {

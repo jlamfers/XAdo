@@ -142,7 +142,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          {
             foreach (var c in typeof(T).GetTableDescriptor().Columns)
             {
-               Chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter,Aliases.Table(0)), Formatter.FormatIdentifier(c.Member.Name)));
+               Chunks.SelectColumns.Add(new QueryChunks.SelectColumn(c.Format(Formatter,Chunks.Aliases.Table(0)), Formatter.FormatIdentifier(c.Member.Name)));
             }
          }
       }
