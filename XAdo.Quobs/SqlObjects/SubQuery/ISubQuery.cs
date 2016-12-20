@@ -5,6 +5,6 @@ namespace XAdo.SqlObjects.SqlObjects.SubQuery
 {
    public interface ISubQuery
    {
-      ITableSqlObject<TTable> From<TTable>() where TTable : IDbTable;
+      QuerySqlObject<TTable> From<TTable>() where TTable : IDbTable;
    }
 }

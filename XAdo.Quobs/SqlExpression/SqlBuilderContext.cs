@@ -23,7 +23,7 @@ namespace XAdo.SqlObjects.SqlExpression
       public TextWriter Writer { get; set; }
       public IDictionary<string, object> Arguments { get; set; }
       public IAliases Aliases { get; set; }
-      public Action<Expression, SqlBuilderContext> ParentWriter;
+      public Action<Expression, SqlBuilderContext> CallbackWriter;
       public IDictionary<object, object> Items { get; set; }
       public bool ArgumentsAsLiterals { get; set; }
       public int LatestArgumentsIndex { get; set; }

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Remoting.Contexts;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.DbSchema.Attributes;
 using XAdo.SqlObjects.Dialects;
@@ -257,6 +258,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          return node.Update(e);
       }
 
+
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
          Expression substitute;
@@ -285,12 +287,8 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          var ctx = new JoinBuilderContext(_formatter, _aliases, _joins);
          b.BuildSql(ctx, node);
          var index = AddOrGetColumnIndex(ctx.ToString(), node.Member);
+         //_forceLeftJoin = false;
          return GetReaderExpression(node.Member.GetMemberType(), index);
-
-
-         //var expression = _formatter.FormatColumn(node.Member.GetColumnDescriptor());
-         //var index = AddOrGetColumnIndex(expression,null);
-         //return GetReaderExpression(node.Member.GetMemberType(), index);
       }
 
       private int AddOrGetColumnIndex(string sqlExpression,MemberInfo mappedMember)

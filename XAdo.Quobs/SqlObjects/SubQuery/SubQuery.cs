@@ -1,7 +1,5 @@
 ﻿using System;
-using System.IO;
 using System.Linq.Expressions;
-using System.Reflection;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression;
@@ -13,19 +11,18 @@ namespace XAdo.SqlObjects.SqlObjects.SubQuery
    {
       private readonly ISqlFormatter _formatter;
       private readonly IAliases _aliases;
-      private readonly Action<Expression, SqlBuilderContext> _parentMemberWriter;
+      private readonly Action<Expression, SqlBuilderContext> _callbackWriter;
 
-      public SubQuery(ISqlFormatter formatter, IAliases aliases, Action<Expression,SqlBuilderContext> parentMemberWriter)
+      public SubQuery(ISqlFormatter formatter, IAliases aliases, Action<Expression,SqlBuilderContext> callbackWriter)
       {
          _formatter = formatter;
          _aliases = aliases;
-         _parentMemberWriter = parentMemberWriter;
+         _callbackWriter = callbackWriter;
       }
 
-      public ITableSqlObject<TTable> From<TTable>() where TTable : IDbTable
+      public QuerySqlObject<TTable> From<TTable>() where TTable : IDbTable
       {
-         var sqlObject = new TableSqlObject<TTable>(_formatter);
-         sqlObject.ParentMemberWriter = _parentMemberWriter;
+         var sqlObject = new QuerySqlObject<TTable>(_formatter) {CallbackWriter = _callbackWriter};
          sqlObject.CastTo<IReadSqlObject>().Aliases = _aliases;
          return sqlObject;
       }

@@ -7,6 +7,7 @@ using XAdo.Core.Interface;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects
@@ -75,7 +76,7 @@ namespace XAdo.SqlObjects
          }
       }
 
-      public static ITableSqlObject<TTable> From<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static QuerySqlObject<TTable> From<TTable>(this IAdoSession self) where TTable : IDbTable
       {
          return self
             .Context
@@ -86,21 +87,21 @@ namespace XAdo.SqlObjects
       {
          return (TMappedSqlObject)mappedSqlObject.Attach(new XAdoConnection(self));
       }
-      public static IWriteWhereSqlObject<TTable> Update<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static UpdateSqlObject<TTable> Update<TTable>(this IAdoSession self) where TTable : IDbTable
       {
          return self
             .Context
             .GetInstance<ISqlObjectFactory>()
             .CreateUpdateSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static IWriteFromSqlObject<TTable> Insert<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static CreateSqlObject<TTable> Insert<TTable>(this IAdoSession self) where TTable : IDbTable
       {
          return self
             .Context
             .GetInstance<ISqlObjectFactory>()
             .CreateCreateSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static IWriteWhereSqlObject<TTable> Delete<TTable>(this IAdoSession self) where TTable : IDbTable
+      public static DeleteSqlObject<TTable> Delete<TTable>(this IAdoSession self) where TTable : IDbTable
       {
          return self
             .Context

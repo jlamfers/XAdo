@@ -15,7 +15,6 @@ namespace XAdo.SqlObjects.SqlObjects.Interface
       IReadSqlObject Distinct();
       IReadSqlObject Skip(int skip);
       IReadSqlObject Take(int take);
-      IEnumerable FetchToEnumerable();
       IReadSqlObject Attach(ISqlConnection executer);
       IAliases Aliases { get; set; }
 

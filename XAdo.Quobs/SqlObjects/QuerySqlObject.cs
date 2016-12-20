@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression;
@@ -12,26 +10,26 @@ using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects
 {
-   public class TableSqlObject<TTable> : FetchSqlObject<TTable>, ITableSqlObject<TTable> 
+   public class QuerySqlObject<TTable> : FetchSqlObject<TTable>, IQuerySqlObject
       where TTable : IDbTable
    {
-      public TableSqlObject(ISqlFormatter formatter)
+      public QuerySqlObject(ISqlFormatter formatter)
          : base(formatter, null, new QueryChunks(new Aliases()) { TableName = typeof(TTable).GetTableDescriptor().Format(formatter) }, null)
       {
          
       }
-      public TableSqlObject(ISqlConnection connection)
+      public QuerySqlObject(ISqlConnection connection)
          : base(connection.GetSqlFormatter(), connection, new QueryChunks(new Aliases()) { TableName = typeof(TTable).GetTableDescriptor().Format(connection.GetSqlFormatter()) }, null)
       {
       }
 
-      internal Action<Expression, SqlBuilderContext> ParentMemberWriter;
+      internal Action<Expression, SqlBuilderContext> CallbackWriter;
 
       protected override IReadSqlObject Where(Expression expression)
       {
          if (expression == null) return this;
          var sqlBuilder = new SqlExpressionVisitor();
-         var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){ParentWriter = ParentMemberWriter};
+         var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){CallbackWriter = CallbackWriter};
 
          sqlBuilder.BuildSql(context, expression);
 
@@ -64,7 +62,7 @@ namespace XAdo.SqlObjects.SqlObjects
          return this;
       }
 
-      public virtual IMappedSqlObject<TMapped> Map<TMapped>(Expression<Func<TTable, TMapped>> mapExpression)
+      public virtual MappedSqlObject<TMapped> Map<TMapped>(Expression<Func<TTable, TMapped>> mapExpression)
       {
          var chunks = Chunks.Clone();
          var result = PrepareMapExpression<TMapped>(mapExpression, chunks);
@@ -86,52 +84,52 @@ namespace XAdo.SqlObjects.SqlObjects
       }
 
 
-      public virtual new ITableSqlObject<TTable> Distinct()
+      public virtual new QuerySqlObject<TTable> Distinct()
       {
-         return (ITableSqlObject<TTable>)base.Distinct();
+         return (QuerySqlObject<TTable>)base.Distinct();
       }
 
-      public virtual new ITableSqlObject<TTable> Skip(int skip)
+      public virtual new QuerySqlObject<TTable> Skip(int skip)
       {
-         return (ITableSqlObject<TTable>)base.Skip(skip);
+         return (QuerySqlObject<TTable>)base.Skip(skip);
       }
 
-      public virtual new ITableSqlObject<TTable> Take(int take)
+      public virtual new QuerySqlObject<TTable> Take(int take)
       {
-         return (ITableSqlObject<TTable>)base.Take(take);
+         return (QuerySqlObject<TTable>)base.Take(take);
       }
 
-      public virtual ITableSqlObject<TTable> OrderBy(params Expression<Func<TTable, object>>[] expressions)
+      public virtual QuerySqlObject<TTable> OrderBy(params Expression<Func<TTable, object>>[] expressions)
       {
-         return (ITableSqlObject<TTable>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
+         return (QuerySqlObject<TTable>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ITableSqlObject<TTable> OrderByDescending(params Expression<Func<TTable, object>>[] expressions)
+      public virtual QuerySqlObject<TTable> OrderByDescending(params Expression<Func<TTable, object>>[] expressions)
       {
-         return (ITableSqlObject<TTable>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
+         return (QuerySqlObject<TTable>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ITableSqlObject<TTable> AddOrderBy(params Expression<Func<TTable, object>>[] expressions)
+      public virtual QuerySqlObject<TTable> AddOrderBy(params Expression<Func<TTable, object>>[] expressions)
       {
-         return (ITableSqlObject<TTable>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
+         return (QuerySqlObject<TTable>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual ITableSqlObject<TTable> AddOrderByDescending(params Expression<Func<TTable, object>>[] expressions)
+      public virtual QuerySqlObject<TTable> AddOrderByDescending(params Expression<Func<TTable, object>>[] expressions)
       {
-         return (ITableSqlObject<TTable>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
+         return (QuerySqlObject<TTable>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public new virtual ITableSqlObject<TTable> Union(IReadSqlObject sqlReadObject)
+      public new virtual QuerySqlObject<TTable> Union(IReadSqlObject sqlReadObject)
       {
-         return (ITableSqlObject<TTable>)base.Union(sqlReadObject);
+         return (QuerySqlObject<TTable>)base.Union(sqlReadObject);
       }
 
-      public virtual ITableSqlObject<TTable> GroupBy(params Expression<Func<TTable, object>>[] expressions)
+      public virtual QuerySqlObject<TTable> GroupBy(params Expression<Func<TTable, object>>[] expressions)
       {
          foreach (var expression in expressions)
          {
             var sqlBuilder = new SqlExpressionVisitor();
-            var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){ParentWriter = ParentMemberWriter};
+            var context = new JoinBuilderContext(Formatter, Chunks.Aliases, Joins){CallbackWriter = CallbackWriter};
 
             sqlBuilder.BuildSql(context, expression);
             Chunks.AddJoins(context.JoinChunks);
@@ -141,22 +139,22 @@ namespace XAdo.SqlObjects.SqlObjects
          return this;
       }
 
-      public virtual ITableSqlObject<TTable> Clone()
+      public virtual QuerySqlObject<TTable> Clone()
       {
-         return (ITableSqlObject<TTable>)CloneSqlReadObject();
+         return (QuerySqlObject<TTable>)CloneSqlReadObject();
       }
 
-      public virtual ITableSqlObject<TTable> Where(Expression<Func<TTable, bool>> whereClause)
+      public virtual QuerySqlObject<TTable> Where(Expression<Func<TTable, bool>> whereClause)
       {
          if (whereClause == null) return this;
          this.CastTo<IReadSqlObject>().Where(whereClause);
          return this;
       }
 
-      public virtual ITableSqlObject<TTable> Having(Expression<Func<TTable, bool>> havingClause)
+      public virtual QuerySqlObject<TTable> Having(Expression<Func<TTable, bool>> havingClause)
       {
          var sqlBuilder = new SqlExpressionVisitor();
-         var context = new JoinBuilderContext(Formatter, Chunks.Aliases,Joins) { ArgumentsAsLiterals = false, ParentWriter = ParentMemberWriter};
+         var context = new JoinBuilderContext(Formatter, Chunks.Aliases,Joins) { CallbackWriter = CallbackWriter};
 
          sqlBuilder.BuildSql(context, havingClause);
          Chunks.AddJoins(context.JoinChunks);
@@ -172,7 +170,7 @@ namespace XAdo.SqlObjects.SqlObjects
       protected override ReadSqlObject CloneSqlReadObject()
       {
          //we need to clone joins as well here
-         return new TableSqlObject<TTable>(Connection) { Chunks = Chunks.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList()};
+         return new QuerySqlObject<TTable>(Connection) { Chunks = Chunks.Clone(), Joins = Joins.Select(j => new DbSchemaDescriptor.JoinPath(j.Joins.Select(x => new DbSchemaDescriptor.JoinDescriptor(x.JoinInfo, x.JoinType)))).ToList()};
       }
 
 

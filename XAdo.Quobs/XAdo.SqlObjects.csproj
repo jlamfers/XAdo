@@ -64,14 +64,14 @@
     <Compile Include="SqlObjects\Interface\IMappedSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObject.cs" />
     <Compile Include="SqlObjects\Interface\IReadSqlObject.cs" />
-    <Compile Include="SqlObjects\Interface\ITableSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\IQuerySqlObject.cs" />
     <Compile Include="SqlObjects\Interface\IWriteFromSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\IWriteSqlObject.cs" />
     <Compile Include="SqlObjects\Interface\IWriteWhereSqlObject.cs" />
     <Compile Include="SqlObjects\Core\FetchSqlObject.cs" />
     <Compile Include="SqlObjects\MappedSqlObject.cs" />
     <Compile Include="SqlObjects\Core\ReadSqlObject.cs" />
-    <Compile Include="SqlObjects\TableSqlObject.cs" />
+    <Compile Include="SqlObjects\QuerySqlObject.cs" />
     <Compile Include="SqlObjects\TablePersister.cs">
       <SubType>Code</SubType>
     </Compile>

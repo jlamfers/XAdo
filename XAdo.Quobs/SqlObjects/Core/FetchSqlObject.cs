@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
-using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects.Core
@@ -24,7 +22,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual List<T> FetchToList()
       {
-         return FetchToEnumerable().Cast<T>().ToList();
+         return FetchToEnumerable().ToList();
       }
 
       public virtual T[] FetchToArray(out int count)
@@ -34,7 +32,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual T[] FetchToArray()
       {
-         return FetchToEnumerable().Cast<T>().ToArray();
+         return FetchToEnumerable().ToArray();
       }
 
       public virtual IDictionary<TKey, TValue> FetchToDictionary<TKey, TValue>(Func<T, TKey> keySelector, Func<T, TValue> elementSelector, out int count)
@@ -44,7 +42,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual IDictionary<TKey, TValue> FetchToDictionary<TKey, TValue>(Func<T, TKey> keySelector, Func<T, TValue> elementSelector)
       {
-         return FetchToEnumerable().Cast<T>().ToDictionary(keySelector, elementSelector);
+         return FetchToEnumerable().ToDictionary(keySelector, elementSelector);
       }
 
       public virtual IDictionary<TKey, List<TValue>> FetchToGroupedDictionary<TKey, TValue>(Func<T, TKey> groupKeySelector, Func<T, TValue> listElementSelector)
@@ -52,7 +50,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          var dictionary = new Dictionary<TKey, List<TValue>>();
          var current = default(TKey);
          List<TValue> list = null;
-         foreach (var row in FetchToEnumerable().Cast<T>())
+         foreach (var row in FetchToEnumerable())
          {
             var key = groupKeySelector(row);
             if (!Equals(current, key))
@@ -93,17 +91,17 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual T FetchSingleOrDefault()
       {
-         return FetchToEnumerable().Cast<T>().SingleOrDefault();
+         return FetchToEnumerable().SingleOrDefault();
       }
 
       public virtual T FetchSingle()
       {
-         return FetchToEnumerable().Cast<T>().Single();
+         return FetchToEnumerable().Single();
       }
 
       IEnumerable<T> IFetchSqlObject<T>.FetchToEnumerable()
       {
-         return FetchToEnumerable().Cast<T>();
+         return FetchToEnumerable();
       }
 
       public virtual IEnumerable<T> FetchToEnumerable(out int count)
@@ -125,7 +123,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          }
       }
 
-      protected override IEnumerable FetchToEnumerable()
+      public virtual IEnumerable<T> FetchToEnumerable()
       {
          EnsureColumnsSelected();
          using (var sw = new StringWriter())

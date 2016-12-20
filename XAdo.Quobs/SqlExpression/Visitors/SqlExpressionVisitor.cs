@@ -149,8 +149,8 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
             var p = _lambda.Parameters[0];
             var exp2 = Expression.Lambda(subExpression.Body, p, subExpression.Parameters[0]);
             var @delegate = exp2.Compile();
-            var delegateReuslt = @delegate.DynamicInvoke(null, subQuery).CastTo<ISqlObject>();
-            var sql = delegateReuslt.GetSql();
+            var delegateResult = @delegate.DynamicInvoke(null, subQuery).CastTo<ISqlObject>();
+            var sql = delegateResult.GetSql();
             Context.Writer.Write("EXISTS(");
             Context.Writer.Write(sql);
             Context.Writer.Write(")");
@@ -324,9 +324,9 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
                {
                   if (Equals(result, Extensions.InstanceValue.Null))
                   {
-                     if (Context.ParentWriter != null)
+                     if (Context.CallbackWriter != null)
                      {
-                        Context.ParentWriter(exp, Context);
+                        Context.CallbackWriter(exp, Context);
                         return exp;
                      }
                      throw new InvalidOperationException("Expression has null reference: " + exp);

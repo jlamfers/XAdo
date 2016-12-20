@@ -5,22 +5,22 @@ namespace XAdo.SqlObjects.SqlObjects
 {
    public class SqlObjectFactory : ISqlObjectFactory
    {
-      public virtual IWriteFromSqlObject<TTable> CreateCreateSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
+      public virtual CreateSqlObject<TTable> CreateCreateSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
       {
          return new CreateSqlObject<TTable>(connection);
       }
 
-      public virtual ITableSqlObject<TTable> CreateReadSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
+      public virtual QuerySqlObject<TTable> CreateReadSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
       {
-         return new TableSqlObject<TTable>(connection);
+         return new QuerySqlObject<TTable>(connection);
       }
 
-      public virtual IWriteWhereSqlObject<TTable> CreateUpdateSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
+      public virtual UpdateSqlObject<TTable> CreateUpdateSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
       {
          return new UpdateSqlObject<TTable>(connection);
       }
 
-      public virtual IWriteWhereSqlObject<TTable> CreateDeleteSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
+      public virtual DeleteSqlObject<TTable> CreateDeleteSqlObject<TTable>(ISqlConnection connection) where TTable : IDbTable
       {
          return new DeleteSqlObject<TTable>(connection);
       }

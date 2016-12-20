@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -14,7 +13,7 @@ using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects
 {
-   public class MappedSqlObject<TMapped> : FetchSqlObject<TMapped>, IMappedSqlObject<TMapped> {
+   public class MappedSqlObject<TMapped> : FetchSqlObject<TMapped>, IMappedSqlObject {
 
       private readonly Func<IDataRecord, TMapped> _binder;
       private readonly BinderExpressionVisitor.CompileResult<TMapped> _binderCompileResult;
@@ -41,9 +40,9 @@ namespace XAdo.SqlObjects.SqlObjects
          return this;
       }
 
-      public virtual new IMappedSqlObject<TMapped> Union(IReadSqlObject sqlObject)
+      public virtual new MappedSqlObject<TMapped> Union(IReadSqlObject sqlObject)
       {
-         return (IMappedSqlObject<TMapped>)base.Union(sqlObject);
+         return (MappedSqlObject<TMapped>)base.Union(sqlObject);
       }
 
       protected override IReadSqlObject OrderBy(bool keepOrder, bool @descending, params Expression[] expressions)
@@ -61,52 +60,52 @@ namespace XAdo.SqlObjects.SqlObjects
          return this;
       }
 
-      public virtual new IMappedSqlObject<TMapped> Distinct()
+      public virtual new MappedSqlObject<TMapped> Distinct()
       {
-         return (IMappedSqlObject<TMapped>)base.Distinct();
+         return (MappedSqlObject<TMapped>)base.Distinct();
       }
 
-      public virtual new IMappedSqlObject<TMapped> Skip(int skip)
+      public virtual new MappedSqlObject<TMapped> Skip(int skip)
       {
-         return (IMappedSqlObject<TMapped>)base.Skip(skip);
+         return (MappedSqlObject<TMapped>)base.Skip(skip);
       }
 
-      public virtual new IMappedSqlObject<TMapped> Take(int take)
+      public virtual new MappedSqlObject<TMapped> Take(int take)
       {
-         return (IMappedSqlObject<TMapped>)base.Take(take);
+         return (MappedSqlObject<TMapped>)base.Take(take);
       }
 
-      public virtual IMappedSqlObject<TMapped> OrderBy(params Expression<Func<TMapped, object>>[] expressions)
+      public virtual MappedSqlObject<TMapped> OrderBy(params Expression<Func<TMapped, object>>[] expressions)
       {
-         return (IMappedSqlObject<TMapped>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
+         return (MappedSqlObject<TMapped>)OrderBy(false, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual IMappedSqlObject<TMapped> OrderByDescending(params Expression<Func<TMapped, object>>[] expressions)
+      public virtual MappedSqlObject<TMapped> OrderByDescending(params Expression<Func<TMapped, object>>[] expressions)
       {
-         return (IMappedSqlObject<TMapped>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
+         return (MappedSqlObject<TMapped>)OrderBy(false, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual IMappedSqlObject<TMapped> AddOrderBy(params Expression<Func<TMapped, object>>[] expressions)
+      public virtual MappedSqlObject<TMapped> AddOrderBy(params Expression<Func<TMapped, object>>[] expressions)
       {
-         return (IMappedSqlObject<TMapped>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
+         return (MappedSqlObject<TMapped>)OrderBy(true, false, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual IMappedSqlObject<TMapped> AddOrderByDescending(params Expression<Func<TMapped, object>>[] expressions)
+      public virtual MappedSqlObject<TMapped> AddOrderByDescending(params Expression<Func<TMapped, object>>[] expressions)
       {
-         return (IMappedSqlObject<TMapped>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
+         return (MappedSqlObject<TMapped>)OrderBy(true, true, expressions.Cast<Expression>().ToArray());
       }
 
-      public virtual new IMappedSqlObject<TMapped> Attach(ISqlConnection executer)
+      public virtual new MappedSqlObject<TMapped> Attach(ISqlConnection executer)
       {
-         return (IMappedSqlObject<TMapped>)base.Attach(executer);
+         return (MappedSqlObject<TMapped>)base.Attach(executer);
       }
 
-      public virtual IMappedSqlObject<TMapped> Clone()
+      public virtual MappedSqlObject<TMapped> Clone()
       {
-         return (IMappedSqlObject<TMapped>)CloneSqlReadObject();
+         return (MappedSqlObject<TMapped>)CloneSqlReadObject();
       }
 
-      public virtual IMappedSqlObject<TMapped> Where(Expression<Func<TMapped, bool>> whereClause)
+      public virtual MappedSqlObject<TMapped> Where(Expression<Func<TMapped, bool>> whereClause)
       {
          this.CastTo<IReadSqlObject>().Where(whereClause);
          return this;
@@ -117,7 +116,7 @@ namespace XAdo.SqlObjects.SqlObjects
          return new MappedSqlObject<TMapped>(Formatter, Connection, _binder, Chunks.Clone(), _binderCompileResult, Joins);
       }
 
-      protected override IEnumerable FetchToEnumerable()
+      public override IEnumerable<TMapped> FetchToEnumerable()
       {
          EnsureColumnsSelected();
          using (var sw = new StringWriter())

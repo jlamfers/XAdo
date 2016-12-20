@@ -1,15 +1,25 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using XAdo.SqlObjects.DbSchema;
+using XAdo.SqlObjects.DbSchema.Attributes;
 
 namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    internal class CreateExpressionSubstituteVisitor : ExpressionVisitor
    {
+      private readonly bool _forceLeftJoins;
       private ParameterExpression _newParameter;
       private Type _joinClassType;
       private ParameterExpression _parameter;
       private Expression _substitute;
       private bool _registerFirstMember = true;
+
+      public CreateExpressionSubstituteVisitor(bool forceLeftJoins = false)
+      {
+         _forceLeftJoins = forceLeftJoins;
+      }
 
       public MemberExpression FirstMember { get; private set; }
 
@@ -19,6 +29,10 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          _substitute = substitute;
          _newParameter = newParameter;
          _joinClassType = expression.Parameters[0].Type;
+         if (_forceLeftJoins)
+         {
+            _substitute = Visit(substitute);
+         }
          return Visit(expression);
       }
 
@@ -41,9 +55,21 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
          Expression substitute;
+         if (_forceLeftJoins && node.IsJoinMethod() && node.Method.GetParameters().Length == 1)
+         {
+            return Expression.Call(null, GetJoinMethodOverload(node.Method), node.Arguments[0],Expression.Constant(JoinType.Left));
+         }
          return TrySubstituteFactoryMethod(node, _newParameter, out substitute) 
             ? Visit(substitute) 
             : base.VisitMethodCall(node);
+      }
+
+      private MethodInfo GetJoinMethodOverload(MethodInfo method)
+      {
+         var methods = method.DeclaringType.GetMethods(BindingFlags.Public | BindingFlags.Static);
+         var overloads = methods.Where(m => m.Name == method.Name);
+         var result = overloads.SingleOrDefault(m => m.GetParameters().Length == 2);
+         return result;
       }
 
       protected override Expression VisitMember(MemberExpression node)
@@ -61,7 +87,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          if (node.Method.EqualMethods(KnownMembers.SqlMethods.DefaultIfEmpty))
          {
             var newExpression = (LambdaExpression) node.Arguments[1];
-            var substituter = new CreateExpressionSubstituteVisitor();
+            var substituter = new CreateExpressionSubstituteVisitor(true);
             var arg2 = substituter.Substitute(newExpression, newExpression.Parameters[0], node.Arguments[0],newParameter);
             var arg1 = Expression.Convert(substituter.FirstMember, typeof (object));
             var m = KnownMembers.SqlMethods.DefaultIfEmpty2.MakeGenericMethod(node.Method.GetGenericArguments()[1]);

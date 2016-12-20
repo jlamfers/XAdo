@@ -100,9 +100,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
       }
       protected virtual IReadSqlObject Union(IReadSqlObject sqlReadObject)
       {
-         //TODO
-         //throw new NotImplementedException();
-         Chunks.Unions.Add((ReadSqlObject)sqlReadObject);
+         Chunks.Unions.Add(sqlReadObject);
          return this;
       }
 
@@ -143,12 +141,6 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          Chunks.Take = take;
          return this;
       }
-
-      IEnumerable IReadSqlObject.FetchToEnumerable()
-      {
-         return FetchToEnumerable();
-      }
-      protected abstract IEnumerable FetchToEnumerable();
 
       IReadSqlObject IReadSqlObject.Attach(ISqlConnection connection)
       {

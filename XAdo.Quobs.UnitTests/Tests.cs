@@ -7,6 +7,7 @@ using XAdo.Core.Interface;
 using XAdo.SqlObjects;
 using XAdo.SqlObjects.DbSchema.Attributes;
 using XAdo.SqlObjects.SqlExpression;
+using XAdo.SqlObjects.SqlObjects;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.Quobs.UnitTests
@@ -24,7 +25,7 @@ namespace XAdo.Quobs.UnitTests
       [Test]
       public void MoneyTest()
       {
-         IMappedSqlObject<Person> mq = null;
+         MappedSqlObject<Person> mq = null;
          using (var s = Db.Northwind.CreateSession())
          {
             mq = s
@@ -66,8 +67,8 @@ namespace XAdo.Quobs.UnitTests
          }
          using (var s = Db.Northwind.CreateSession())
          {
-            mq = s.From(mq);
-            mq.FetchToList();
+            var mq2 = s.From(mq);
+            mq2.FetchToList();
          }
 
       }

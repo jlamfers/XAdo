@@ -14,7 +14,7 @@ namespace XAdo.SqlObjects.SqlObjects.Interface
       IDictionary<TKey, List<TValue>> FetchToGroupedDictionary<TKey, TValue>(Func<T, TKey> groupKeySelector, Func<T, TValue> listElementSelector);
       T FetchSingleOrDefault();
       T FetchSingle();
-      new IEnumerable<T> FetchToEnumerable();
+      IEnumerable<T> FetchToEnumerable();
       IEnumerable<T> FetchToEnumerable(out int count);
    }
 }

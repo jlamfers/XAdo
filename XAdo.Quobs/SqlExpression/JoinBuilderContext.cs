@@ -10,7 +10,6 @@ namespace XAdo.SqlObjects.SqlExpression
 {
    public class JoinBuilderContext : SqlBuilderContext
    {
-
       private readonly List<DbSchemaDescriptor.JoinPath>
          _joins;
 
