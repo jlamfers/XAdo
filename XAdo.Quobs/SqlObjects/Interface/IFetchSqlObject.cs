@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace XAdo.SqlObjects.SqlObjects.Interface
 {
-   public interface IFetchSqlObject<T> : IReadSqlObject
+   public partial interface IFetchSqlObject<T> : IReadSqlObject
    {
       List<T> FetchToList(out int count);
       List<T> FetchToList();
@@ -17,4 +17,5 @@ namespace XAdo.SqlObjects.SqlObjects.Interface
       IEnumerable<T> FetchToEnumerable();
       IEnumerable<T> FetchToEnumerable(out int count);
    }
+
 }

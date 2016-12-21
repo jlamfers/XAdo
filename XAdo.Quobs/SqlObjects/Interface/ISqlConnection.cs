@@ -5,7 +5,7 @@ using XAdo.SqlObjects.Dialects;
 
 namespace XAdo.SqlObjects.SqlObjects.Interface
 {
-   public interface ISqlConnection
+   public partial interface ISqlConnection
    {
       T ExecuteScalar<T>(string sql, object args);
 
@@ -22,4 +22,6 @@ namespace XAdo.SqlObjects.SqlObjects.Interface
 
       ISqlFormatter GetSqlFormatter();
    }
+
+
 }

@@ -1,4 +1,4 @@
-﻿namespace XHour.Contract.Search
+﻿namespace XAdo.SqlObjects.Search
 {
    public class Paging
    {

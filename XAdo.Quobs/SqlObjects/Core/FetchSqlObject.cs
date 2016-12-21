@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects.SqlObjects.Core
 {
-   public abstract class FetchSqlObject<T> : ReadSqlObject, IFetchSqlObject<T>
+   public abstract partial class FetchSqlObject<T> : ReadSqlObject, IFetchSqlObject<T>
    {
       protected FetchSqlObject(ISqlFormatter formatter, ISqlConnection connection, QueryChunks chunks, List<DbSchemaDescriptor.JoinPath> joins) 
          : base(formatter, connection, chunks, joins)
@@ -47,10 +48,14 @@ namespace XAdo.SqlObjects.SqlObjects.Core
 
       public virtual IDictionary<TKey, List<TValue>> FetchToGroupedDictionary<TKey, TValue>(Func<T, TKey> groupKeySelector, Func<T, TValue> listElementSelector)
       {
+         return FetchToGroupedDictionary(FetchToEnumerable(), groupKeySelector, listElementSelector);
+      }
+      private IDictionary<TKey, List<TValue>> FetchToGroupedDictionary<TKey, TValue>(IEnumerable<T> enumerable, Func<T, TKey> groupKeySelector, Func<T, TValue> listElementSelector)
+      {
          var dictionary = new Dictionary<TKey, List<TValue>>();
          var current = default(TKey);
          List<TValue> list = null;
-         foreach (var row in FetchToEnumerable())
+         foreach (var row in enumerable)
          {
             var key = groupKeySelector(row);
             if (!Equals(current, key))
@@ -70,7 +75,7 @@ namespace XAdo.SqlObjects.SqlObjects.Core
                current = key;
             }
             var v = listElementSelector(row);
-            if (!Equals(v,null) && list != null)
+            if (!Equals(v, null) && list != null)
             {
                list.Add(v);
             }

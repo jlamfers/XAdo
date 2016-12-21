@@ -6,9 +6,9 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
 {
    public class MappedSqlExpressionVisitor : SqlExpressionVisitor
    {
-      private readonly IDictionary<MemberInfo, string> _sqlMap;
+      private readonly IDictionary<string, string> _sqlMap;
 
-      public MappedSqlExpressionVisitor(IDictionary<MemberInfo, string> sqlMap)
+      public MappedSqlExpressionVisitor(IDictionary<string, string> sqlMap)
       {
          _sqlMap = sqlMap;
       }
@@ -16,7 +16,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       protected override Expression VisitMember(MemberExpression exp)
       {
          string sql;
-         if (_sqlMap.TryGetValue(exp.Member, out sql))
+         if (_sqlMap.TryGetValue(exp.Member.Name, out sql))
          {
             Context.Writer.Write(sql);
             return exp;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace XHour.Contract.Search.Typed
+namespace XAdo.SqlObjects.Search.Typed
 {
    public class OrderByFieldExpressionList<TEntity> : IEnumerable<OrderByFieldExpression>
    {

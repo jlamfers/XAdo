@@ -1,4 +1,4 @@
-﻿namespace XHour.Contract.Search.Typed
+﻿namespace XAdo.SqlObjects.Search.Typed
 {
    public class OrderByFieldExpression
    {

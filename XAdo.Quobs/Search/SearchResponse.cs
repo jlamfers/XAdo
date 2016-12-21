@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace XHour.Contract.Search
+namespace XAdo.SqlObjects.Search
 {
    public class SearchResponse<TEntity>
    {

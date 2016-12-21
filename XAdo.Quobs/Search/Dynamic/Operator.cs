@@ -1,4 +1,4 @@
-namespace XHour.Contract.Search.Dynamic
+namespace XAdo.SqlObjects.Search.Dynamic
 {
    internal enum Operator
    {

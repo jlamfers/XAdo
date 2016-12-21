@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using XAdo.Core;
 using XAdo.Core.Interface;
 using XAdo.SqlObjects.DbSchema;
@@ -74,6 +75,55 @@ namespace XAdo.SqlObjects
          {
             return _session.GetSqlFormatter();
          }
+
+         #region Async
+
+         public async Task<T> ExecuteScalarAsync<T>(string sql, object args)
+         {
+            return await _session.ExecuteScalarAsync<T>(sql, args);
+         }
+
+         public async Task<List<T>> ExecuteQueryAsync<T>(string sql, object args)
+         {
+            return await _session.QueryAsync<T>(sql, args);
+         }
+
+         public async Task<List<T>> ExecuteQueryAsync<T>(string sql, Func<IDataRecord, T> binder, object args)
+         {
+            return await _session.QueryAsync<T>(sql, binder, args);
+         }
+
+         public async Task<AsyncPagedResult<T>> ExecutePagedQueryAsync<T>(string sql, object args)
+         {
+            var reader = await _session.QueryMultipleAsync(sql, args);
+            var count = (await reader.ReadAsync<int>()).Single();
+            var collection = await reader.ReadAsync<T>();
+            return new AsyncPagedResult<T>
+            {
+               Collection = collection,
+               TotalCount = count
+            };
+         }
+
+         public async Task<AsyncPagedResult<T>> ExecutePagedQueryAsync<T>(string sql, Func<IDataRecord, T> binder, object args)
+         {
+            var countBinder = new Func<IDataRecord, int>(r => r.GetInt32(0));
+            var factories = new Delegate[] { countBinder, binder };
+            var result = await _session.QueryMultipleAsync(sql, factories, args);
+            var count = (await result.ReadAsync<int>()).Single();
+            var collection = await result.ReadAsync<T>();
+            return new AsyncPagedResult<T>
+            {
+               Collection = collection,
+               TotalCount = count
+            };
+         }
+
+         public async Task<int> ExecuteAsync(string sql, object args)
+         {
+            return await _session.ExecuteAsync(sql, args);
+         }
+         #endregion
       }
 
       public static QuerySqlObject<TTable> From<TTable>(this IAdoSession self) where TTable : IDbTable
@@ -83,7 +133,7 @@ namespace XAdo.SqlObjects
             .GetInstance<ISqlObjectFactory>()
             .CreateReadSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static TMappedSqlObject From<TMappedSqlObject>(this IAdoSession self, TMappedSqlObject mappedSqlObject) where TMappedSqlObject : IMappedSqlObject
+      public static TMappedSqlObject Attach<TMappedSqlObject>(this IAdoSession self, TMappedSqlObject mappedSqlObject) where TMappedSqlObject : IMappedSqlObject
       {
          return (TMappedSqlObject)mappedSqlObject.Attach(new XAdoConnection(self));
       }

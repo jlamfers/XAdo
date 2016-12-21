@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression;
@@ -54,7 +55,7 @@ namespace XAdo.SqlObjects.SqlObjects
          foreach (var expression in expressions)
          {
             var m = expression.GetMemberInfo();
-            var mappedColumnInfo = _binderCompileResult.MemberMap[m];
+            var mappedColumnInfo = _binderCompileResult.MemberMap[m.Name];
             Chunks.OrderColumns.Add(new QueryChunks.OrderColumn(mappedColumnInfo.Sql, mappedColumnInfo.Alias, descending));
          }
          return this;
@@ -142,6 +143,35 @@ namespace XAdo.SqlObjects.SqlObjects
                Formatter.WriteSelect(w, Chunks);
             }
             return Connection.ExecuteQuery(w.GetStringBuilder().ToString(), _binder, GetArguments(), out count);
+         }
+      }
+
+      public async override Task<List<TMapped>> FetchToListAsync()
+      {
+         EnsureColumnsSelected();
+         using (var sw = new StringWriter())
+         {
+            WriteSql(sw);
+            return await Connection.ExecuteQueryAsync<TMapped>(sw.GetStringBuilder().ToString(), _binder, GetArguments());
+         }
+      }
+
+      public async override Task<AsyncPagedResult<TMapped>> FetchPagedToListAsync()
+      {
+         EnsureColumnsSelected();
+         using (var w = new StringWriter())
+         {
+            Formatter.WriteCount(w, Chunks);
+            w.Write(Formatter.SqlDialect.StatementSeperator);
+            if (Chunks.IsPaged())
+            {
+               Formatter.WritePagedSelect(w, Chunks);
+            }
+            else
+            {
+               Formatter.WriteSelect(w, Chunks);
+            }
+            return await Connection.ExecutePagedQueryAsync<TMapped>(w.GetStringBuilder().ToString(), _binder, GetArguments());
          }
       }
    }

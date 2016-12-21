@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace XHour.Contract.Search.Dynamic
+namespace XAdo.SqlObjects.Search.Dynamic
 {
    public class OrderByFieldNameList : IEnumerable<OrderByFieldName>
    {

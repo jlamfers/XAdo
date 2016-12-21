@@ -40,23 +40,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbSchema\Attributes\DatabaseAttribute.cs" />
-    <Compile Include="Search\Dynamic\Criterium.cs" />
-    <Compile Include="Search\Dynamic\DynamicSearchRequest.cs" />
-    <Compile Include="Search\Dynamic\Extensions.cs" />
-    <Compile Include="Search\Dynamic\Filter.cs" />
-    <Compile Include="Search\Dynamic\Operator.cs" />
-    <Compile Include="Search\Dynamic\OrderByFieldName.cs" />
-    <Compile Include="Search\Dynamic\OrderByFieldNameList.cs" />
-    <Compile Include="Search\Paging.cs" />
-    <Compile Include="Search\SearchResponse.cs" />
-    <Compile Include="Search\Typed\OrderByFieldExpression.cs" />
-    <Compile Include="Search\Typed\OrderByFieldExpressionList.cs" />
-    <Compile Include="Search\Typed\SearchRequest.cs" />
     <Compile Include="SqlExpression\Aliases.cs" />
     <Compile Include="SqlExpression\CString.cs" />
     <Compile Include="DbSchema\IDbTable.cs" />
     <Compile Include="SqlExpression\IAliases.cs" />
     <Compile Include="SqlExpression\Visitors\StrongBoxVisiter.cs" />
+    <Compile Include="SqlObjects\Core\FetchSqlObject.Async.cs" />
     <Compile Include="SqlObjects\Extensions.cs" />
     <Compile Include="SqlExpression\Visitors\CreateExpressionSubstituteVisitor.cs" />
     <Compile Include="SqlExpression\Attributes\SqlCastAttribute.cs" />
@@ -66,6 +55,9 @@
     <Compile Include="Dialects\SqlServer2012\SqlServer2012Dialect.cs" />
     <Compile Include="SqlObjects\Core\WriteSqlObject.cs" />
     <Compile Include="SqlObjects\DeleteSqlObject.cs" />
+    <Compile Include="SqlObjects\Interface\AsyncPagedResult.cs" />
+    <Compile Include="SqlObjects\Interface\IFetchSqlObject.Async.cs" />
+    <Compile Include="SqlObjects\Interface\ISqlConnection.Async.cs" />
     <Compile Include="SqlObjects\Interface\ISqlObjectFactory.cs" />
     <Compile Include="SqlObjects\Interface\ITablePersister.cs" />
     <Compile Include="SqlObjects\SqlObjectFactory.cs" />

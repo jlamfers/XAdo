@@ -6,9 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using XHour.Contract.Search.Typed;
+using XAdo.SqlObjects.Search.Typed;
 
-namespace XHour.Contract.Search.Dynamic
+namespace XAdo.SqlObjects.Search.Dynamic
 {
    public static class Extensions
    {
