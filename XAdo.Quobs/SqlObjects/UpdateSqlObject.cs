@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.SqlExpression;
 using XAdo.SqlObjects.SqlExpression.Visitors;
@@ -54,6 +55,22 @@ namespace XAdo.SqlObjects.SqlObjects
          }
 
          base.Apply(literals, callback);
+      }
+
+      public async override Task ApplyAsync(bool literals = false, Action<object> callback = null)
+      {
+         if (WhereExpression != null)
+         {
+            var sqlBuilder = new SqlExpressionVisitor();
+            var context = new SqlBuilderContext(Formatter, null)
+            {
+               ArgumentsAsLiterals = literals
+            };
+            SqlBuilderContext = sqlBuilder.BuildSql(context, WhereExpression);
+            WhereExpression = null;
+         }
+
+         await base.ApplyAsync(literals, callback);
       }
 
       protected override void WriteSql(TextWriter sw)

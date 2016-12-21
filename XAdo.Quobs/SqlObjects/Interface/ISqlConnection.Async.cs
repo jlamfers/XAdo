@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using XAdo.SqlObjects.Dialects;
 
 namespace XAdo.SqlObjects.SqlObjects.Interface
 {

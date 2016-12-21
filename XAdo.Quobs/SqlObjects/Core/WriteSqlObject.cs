@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using XAdo.SqlObjects.DbSchema;
 using XAdo.SqlObjects.Dialects;
 using XAdo.SqlObjects.SqlExpression.Visitors;
@@ -53,6 +54,34 @@ namespace XAdo.SqlObjects.SqlObjects.Core
          if (!Connection.HasSqlBatch)
          {
             var result = HasIdentityReturn ? Connection.ExecuteScalar<object>(sql, args) : Connection.Execute(sql, args);
+            if (callback != null)
+            {
+               callback(result);
+            }
+         }
+         else
+         {
+            Connection.AddToSqlBatch(sql, args, callback);
+         }
+
+         CompileResult = null;
+      }
+      public async virtual Task ApplyAsync(bool literals = false, Action<object> callback = null)
+      {
+         if (Expression == null) return;
+
+         var compiler = new PersistExpressionVisitor(Formatter);
+         CompileResult = compiler.Compile(Expression, literals);
+         Expression = null;
+
+         HasIdentityReturn = IdentityColumn != null && !string.IsNullOrEmpty(Formatter.SqlDialect.SelectLastIdentity) && callback != null;
+
+         var sql = GetSql();
+         var args = GetArguments();
+
+         if (!Connection.HasSqlBatch)
+         {
+            var result = HasIdentityReturn ? await Connection.ExecuteScalarAsync<object>(sql, args) : await Connection.ExecuteAsync(sql, args);
             if (callback != null)
             {
                callback(result);

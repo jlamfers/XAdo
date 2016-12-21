@@ -204,7 +204,7 @@ namespace XAdo.Core.Impl
              {
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                   while (await reader.NextResultAsync())
+                   while (await reader.ReadAsync())
                    {
                       result.Add(factory(reader));
                    }
