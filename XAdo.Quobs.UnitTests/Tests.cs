@@ -67,8 +67,8 @@ namespace XAdo.Quobs.UnitTests
          }
          using (var s = Db.Northwind.CreateSession())
          {
-            var mq2 = s.From(mq);
-            mq2.FetchToList();
+            //var mq2 = s.From<>()
+            //mq2.FetchToList();
          }
 
       }
