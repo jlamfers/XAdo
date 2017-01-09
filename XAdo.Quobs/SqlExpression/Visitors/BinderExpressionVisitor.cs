@@ -157,7 +157,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       {
          public List<ColumnInfo> Columns { get; set; }
          public List<QueryChunks.Join> Joins { get; set; }
-         public Dictionary<string, MappedMemberInfo> MemberMap { get; set; }
+         public Dictionary<MemberInfo, MappedMemberInfo> MemberMap { get; set; }
          public ParameterExpression OrigParameter { get; set; }
          public Expression<Func<IDataRecord, T>> BinderExpression { get; set; }
       }
@@ -171,7 +171,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
       private List<DbSchemaDescriptor.JoinPath>
          _joins;
 
-      private Dictionary<string, MappedMemberInfo>
+      private Dictionary<MemberInfo, MappedMemberInfo>
          _memberMap;
 
       private ParameterExpression
@@ -192,7 +192,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          _parameter = Expression.Parameter(typeof(IDataRecord), "rdr");
          _columns = new Dictionary<ColumnInfo, ColumnInfo>();
          _joins = joins ?? new List<DbSchemaDescriptor.JoinPath>();
-         _memberMap = new Dictionary<string, MappedMemberInfo>();
+         _memberMap = new Dictionary<MemberInfo, MappedMemberInfo>(new MemberInfoEqualityComparer());
          _origParameter = expression.Parameters.Single();
          var body = Visit(expression.Body);
          var binderExpression = Expression.Lambda<Func<IDataRecord, T>>(body, _parameter);
@@ -233,7 +233,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
                   var sql = ctx.ToString();
                   var index = AddOrGetColumnIndex(sql,members[i]);
                   arguments.Add(GetReaderExpression(members[i].GetMemberType(), index));
-                  _memberMap[members[i].Name] = new MappedMemberInfo(members[i],node.Arguments[i],sql,_aliases.Column(index));
+                  _memberMap[members[i]] = new MappedMemberInfo(members[i],node.Arguments[i],sql,_aliases.Column(index));
                }
             }
             return Expression.New(node.Constructor,arguments,node.Members);
@@ -254,7 +254,7 @@ namespace XAdo.SqlObjects.SqlExpression.Visitors
          var sql = ctx.ToString();
          var index = AddOrGetColumnIndex(ctx.ToString(),node.Member);
          e = GetReaderExpression(node.Member.GetMemberType(), index);
-         _memberMap[node.Member.Name] = new MappedMemberInfo(node.Member, node.Expression, sql, _aliases.Column(index));
+         _memberMap[node.Member] = new MappedMemberInfo(node.Member, node.Expression, sql, _aliases.Column(index));
          return node.Update(e);
       }
 

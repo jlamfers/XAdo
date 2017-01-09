@@ -44,6 +44,7 @@
     <Compile Include="SqlExpression\CString.cs" />
     <Compile Include="DbSchema\IDbTable.cs" />
     <Compile Include="SqlExpression\IAliases.cs" />
+    <Compile Include="SqlExpression\Visitors\MemberInfoEqualityComparer.cs" />
     <Compile Include="SqlExpression\Visitors\StrongBoxVisiter.cs" />
     <Compile Include="SqlObjects\Core\FetchSqlObject.Async.cs" />
     <Compile Include="SqlObjects\Extensions.cs" />

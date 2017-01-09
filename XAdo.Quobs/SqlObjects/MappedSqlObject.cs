@@ -29,7 +29,7 @@ namespace XAdo.SqlObjects.SqlObjects
       protected override IReadSqlObject Where(Expression expression)
       {
          if (expression == null) return this;
-         var sqlBuilder = new MappedSqlExpressionVisitor(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql));
+         var sqlBuilder = new MappedSqlExpressionVisitor(_binderCompileResult.MemberMap.ToDictionary(m => m.Key, m => m.Value.Sql, new MemberInfoEqualityComparer()));
          var context = new SqlBuilderContext(Formatter,Chunks.Aliases) { ArgumentsAsLiterals = false };
 
          sqlBuilder.BuildSql(context, expression);
@@ -55,7 +55,7 @@ namespace XAdo.SqlObjects.SqlObjects
          foreach (var expression in expressions)
          {
             var m = expression.GetMemberInfo();
-            var mappedColumnInfo = _binderCompileResult.MemberMap[m.Name];
+            var mappedColumnInfo = _binderCompileResult.MemberMap[m];
             Chunks.OrderColumns.Add(new QueryChunks.OrderColumn(mappedColumnInfo.Sql, mappedColumnInfo.Alias, descending));
          }
          return this;
