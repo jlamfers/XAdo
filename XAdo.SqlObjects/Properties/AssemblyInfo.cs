@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("XAdo")]
+[assembly: AssemblyTitle("XAdo.SqlObjects")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: Guid("0556734a-0ae5-48e9-9a83-2d4b8a31a4c7")]
+[assembly: Guid("61e79ef8-68b9-4dbc-b776-74d48158dc28")]

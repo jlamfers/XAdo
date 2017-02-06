@@ -3,6 +3,7 @@
 Thumbs.db
 #Ignore files build by Visual Studio
 *.obj
+*.dll
 *.exe
 *.pdb
 *.user
@@ -23,8 +24,12 @@ Thumbs.db
 [Dd]ebug*/
 *.lib
 *.sbr
+*.nupkg
 obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
 _nopush*/
+\packages/*
+!packages/repositories.config
+!nuget/nuget.exe
