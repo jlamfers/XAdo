@@ -127,11 +127,29 @@
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
+    <Compile Include="Sql\Core\Annotator.cs" />
+    <Compile Include="Sql\Core\SqlDialect.cs" />
+    <Compile Include="Sql\Core\ColumnInfo.cs" />
+    <Compile Include="Sql\Core\CString.cs" />
+    <Compile Include="Sql\Core\ExpressionExtensions.cs" />
+    <Compile Include="Sql\Core\KnownMembers.cs" />
+    <Compile Include="Sql\Core\MemberInfoFinder.cs" />
+    <Compile Include="Sql\Core\SelectInfo.cs" />
+    <Compile Include="Sql\Core\SelectParser.cs" />
+    <Compile Include="Sql\SqlMethods.cs" />
+    <Compile Include="Sql\Core\SqlTemplateFormatter.cs" />
+    <Compile Include="Sql\Core\StatementFormatter.cs" />
+    <Compile Include="Sql\Core\ISqlDialect.cs" />
+    <Compile Include="Sql\Providers\SqlServerDialect.cs" />
+    <Compile Include="Sql\SqlBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\AdoSqlBatchItem.cs" />
     <Compile Include="Core\Impl\AdoSqlBatchImpl.cs" />
+    <Compile Include="Sql\SqlFormatAttribute.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Sql\Providers\system.data.sqlclient.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetPath) $(SolutionDir)Nuget</PostBuildEvent>

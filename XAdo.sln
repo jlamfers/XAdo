@@ -14,6 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{3B81CF51
 		NuGet\XAdo.SqlObjects.nuspec = NuGet\XAdo.SqlObjects.nuspec
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{95FEDA17-B37D-4FE4-88A7-0A8E29001AEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.UnitTest", "XAdo.UnitTest\XAdo.UnitTest.csproj", "{88B3F56A-9B70-41EA-A949-D2CC9703814B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,8 +32,15 @@ Global
 		{B1D11F2B-BEC5-426D-9705-EE9AF4CDC3F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1D11F2B-BEC5-426D-9705-EE9AF4CDC3F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1D11F2B-BEC5-426D-9705-EE9AF4CDC3F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B3F56A-9B70-41EA-A949-D2CC9703814B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B3F56A-9B70-41EA-A949-D2CC9703814B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B3F56A-9B70-41EA-A949-D2CC9703814B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B3F56A-9B70-41EA-A949-D2CC9703814B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{88B3F56A-9B70-41EA-A949-D2CC9703814B} = {95FEDA17-B37D-4FE4-88A7-0A8E29001AEC}
 	EndGlobalSection
 EndGlobal
