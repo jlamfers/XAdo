@@ -101,8 +101,10 @@ namespace XAdo.Sql.Core
       public virtual string ParameterFormat { get; protected set; }
       public virtual string DateTimeFormat { get; protected set; }
       public virtual string CharFormat { get; protected set; }
+      public virtual string ExistsFormat { get; protected set; }
+      public virtual string CountFormat { get; protected set; }
 
-      public virtual string Exists { get; protected set; }
+
       public virtual string TypeCast { get; protected set; }
       public virtual string Coalesce { get; protected set; }
       public virtual string Modulo { get; protected set; }

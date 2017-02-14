@@ -6,7 +6,7 @@ using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
-    // This basic IOC implementation provides enough to serve this framework's needs.
+    // This basic 150 code lines IOC implementation provides enough to serve this framework's needs.
     // It supports transient and singleton registrations. Open generic types, as well
     // as default arguments are supported.
     // Scope management is not supported, nor multiple same service type registrations. 
@@ -45,7 +45,16 @@ namespace XAdo.Core.Impl
             _singletons.Add(serviceType);
             return this;
         }
-        public virtual bool CanResolve(Type serviceType)
+
+       public IAdoClassBinder BindSingleton(Type serviceType, Func<IAdoClassBinder, object> factory)
+       {
+          object instance = null;
+          _factories[serviceType] = () => instance ?? (instance = factory(this));
+          _singletons.Add(serviceType);
+          return this;
+       }
+
+       public virtual bool CanResolve(Type serviceType)
         {
             return _bindings.ContainsKey(serviceType) || _factories.ContainsKey(serviceType) || (serviceType.IsGenericType && _bindings.ContainsKey(serviceType.GetGenericTypeDefinition()));
         }

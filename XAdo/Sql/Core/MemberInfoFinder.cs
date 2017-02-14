@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -7,6 +8,14 @@ namespace XAdo.Sql.Core
    public static class MemberInfoFinder
    {
 
+      public static MemberInfo GetFieldOrProperty(this Type self, string name)
+      {
+         var members =
+            self.GetMember(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+               .Where(m => m.MemberType == MemberTypes.Property || m.MemberType == MemberTypes.Field)
+               .ToArray();
+         return members.Length > 1 ? self.GetMember(name, BindingFlags.Public | BindingFlags.Instance).SingleOrDefault() : members.SingleOrDefault();
+      }
       public static MethodInfo GetMethodInfo(this Expression<Action> expression)
       {
          return (MethodInfo)GetMemberInfo(expression);

@@ -44,11 +44,11 @@ SELECT
 //   --$OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
    
 
-         var p = new SelectParser();
-         var tokens = p.ParseSelectColumns(sql);
+         var p = new SqlSelectParser();
+         var tokens = p.Parse(sql);
 
          var result = sql.FormatSqlTemplate(new Args { Order = "name asc" });
-         tokens = p.ParseSelectColumns(result);
+         tokens = p.Parse(result);
 
          var sw = new Stopwatch();
          sw.Start();

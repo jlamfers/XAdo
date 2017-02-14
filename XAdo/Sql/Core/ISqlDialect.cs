@@ -25,8 +25,9 @@ namespace XAdo.Sql.Core
       string ParameterFormat { get; }
       string DateTimeFormat { get; }
       string CharFormat { get; }
+      string ExistsFormat { get; }
+      string CountFormat { get; }
 
-      string Exists { get; }
       string TypeCast { get; }
       string Coalesce { get; }
       string Modulo { get; }
@@ -84,15 +85,15 @@ namespace XAdo.Sql.Core
 
    public static class SqlDialectExtension
    {
-      private static readonly HashSet<Type> 
-         InitializedSet = new HashSet<Type>();
+      private static readonly HashSet<string>
+         InitializedSet = new HashSet<string>();
 
       public static ISqlDialect EnsureAnnotated(this ISqlDialect self)
       {
          lock (InitializedSet)
          {
-            if (InitializedSet.Contains(self.GetType())) return self;
-            InitializedSet.Add(self.GetType());
+            if (InitializedSet.Contains(self.ProviderName)) return self;
+            InitializedSet.Add(self.ProviderName);
          }
 
          //todo: enum/flag handling
@@ -145,7 +146,7 @@ namespace XAdo.Sql.Core
       {
          if (!string.IsNullOrEmpty(format))
          {
-            member.Annotate(new SqlFormatAttribute(format,self.GetType()));
+            member.Annotate(new SqlFormatAttribute(format,self.ProviderName));
          }
       }
 

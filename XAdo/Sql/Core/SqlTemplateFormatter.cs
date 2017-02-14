@@ -18,10 +18,10 @@ namespace XAdo.Sql.Core
          PlaceholderRegex = new Regex(@"\{[^\}]*\}", RegexOptions.Compiled),
 
          // finds anything that starts with --$ until end of line
-         TemplateRegex = new Regex(@"\-\-\$.*(\r\n?|\n)", RegexOptions.Compiled | RegexOptions.Multiline);
+         TemplateRegex = new Regex(@"\-\-\s?\$.*(\r\n?|\n)", RegexOptions.Compiled | RegexOptions.Multiline);
 
-      private static readonly ConcurrentDictionary<Tuple<string,Type>,object>
-         _cache = new ConcurrentDictionary<Tuple<string, Type>, object>();
+      private static readonly LRUCache<Tuple<string,Type>,object>
+         _cache = new LRUCache<Tuple<string, Type>, object>();
 
       public static string FormatSqlTemplate<T>(this string template, T args)
       {
@@ -52,7 +52,7 @@ namespace XAdo.Sql.Core
                writers.Add((w,a) => w.Write(literal));
             }
             index = match.Index + match.Value.Length;
-            var formatString = match.Value.Substring(3); // strip --$
+            var formatString = match.Value.Substring(match.Value.IndexOf('$')+1); // strip --$
             List<Func<TArgs, object>> arguments;
             if (TryTransformFormatString(ref formatString, out arguments))
             {
@@ -96,24 +96,38 @@ namespace XAdo.Sql.Core
             var literal = formatstring.Substring(index, match.Index - index);
             index = (match.Index + match.Length);
             sb.Append(literal);
-            if (!name.StartsWith("?"))
-            {
-               sb
-                  .Append("{")
-                  .Append(placeholderindex++)
-                  .Append("}");
-            }
-            else
+            var notExists = false;
+            if (name.StartsWith("?"))
             {
                // exists operator, do not create a placeholder
                // trim operator from member name
                placeholderindex++;
                name = name.Substring(1);
             }
+            else if (name.StartsWith("!"))
+            {
+               notExists = true;
+               // not exists operator, do not create a placeholder
+               // trim operator from member name
+               placeholderindex++;
+               name = name.Substring(1);
+            }
+            else
+            {
+               sb
+                  .Append("{")
+                  .Append(placeholderindex++)
+                  .Append("}");
+            }
 
             var members = typeof(T).GetMember(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
             if (!members.Any())
             {
+               if (notExists)
+               {
+                  arguments.Add(obj => new object());
+                  return true;
+               }
                return false;
             }
             if (members.Count() > 1)
@@ -123,13 +137,27 @@ namespace XAdo.Sql.Core
             var m = members[0];
             if (m.MemberType == MemberTypes.Field)
             {
-               var f = (FieldInfo)m;
-               arguments.Add(obj => f.GetValue(obj));
+               var f = (FieldInfo) m;
+               if (notExists)
+               {
+                  arguments.Add(obj => f.GetValue(obj) == null ? new object() : null);
+               }
+               else
+               {
+                  arguments.Add(obj => f.GetValue(obj));
+               }
             }
             else
             {
-               var p = (PropertyInfo)m;
-               arguments.Add(obj => p.GetValue(obj));
+               var p = (PropertyInfo) m;
+               if (notExists)
+               {
+                  arguments.Add(obj => p.GetValue(obj) == null ? new object() : null);
+               }
+               else
+               {
+                  arguments.Add(obj => p.GetValue(obj));
+               }
             }
          }
          if (index < formatstring.Length)

@@ -27,6 +27,11 @@ namespace XAdo.Sql.Core
 
       }
 
+      public static Expression Convert(this Expression self, Type type)
+      {
+         return (self.Type == type ? self : Expression.Convert(self, type));
+      }
+
       public static bool IsNullConstant(this Expression self)
       {
          var constant = self.Trim() as ConstantExpression;
@@ -123,35 +128,32 @@ namespace XAdo.Sql.Core
          return self != null && Nullable.GetUnderlyingType(self) != null;
       }
 
-      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, Type providerType)
+      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, string providerName)
       {
-         return self
-            .GetAnnotations<SqlFormatAttribute>()
-            .Where(a => a.Provider == null || providerType.IsAssignableFrom(a.Provider.GetType()))
-            .OrderBy(a => CountBaseTypes(a.Provider))
-            .FirstOrDefault();
+         return self.GetAnnotations<SqlFormatAttribute>().FirstOrDefault(a => a.ProviderName == null || a.ProviderName == providerName);
       }
       public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, ISqlDialect dialect)
       {
-         return self.GetSqlFormatAttribute(dialect.GetType());
-      }
-
-      private static int CountBaseTypes(object instance)
-      {
-         if (instance == null) return int.MaxValue;
-         var type = instance.GetType();
-         var count = 0;
-         while (type != null && type != typeof (object))
-         {
-            count++;
-            type = type.BaseType;
-         }
-         return count;
+         return self.GetSqlFormatAttribute(dialect.ProviderName);
       }
 
       public static IEnumerable<Expression> GetAllArguments(this MethodCallExpression node)
       {
          return node.Object != null ? new[] {node.Object}.Concat(node.Arguments) : node.Arguments;
+      }
+
+      public static IDictionary<TKey, TValue> AddRange<TKey, TValue>(this IDictionary<TKey, TValue> self, IDictionary<TKey, TValue> other)
+      {
+         foreach (var kv in other)
+         {
+            self.Add(kv);
+         }
+         return self;
+      }
+
+      public static string FormatWith(this string format, params object[] args)
+      {
+         return format == null ? null : string.Format(format, args);
       }
    }
 }

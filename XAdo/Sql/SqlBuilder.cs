@@ -44,6 +44,8 @@ namespace XAdo.Sql
       private readonly ISqlDialect
          _dialect;
 
+      private readonly string _parameterPrefix;
+
       private readonly bool _noargs;
 
       private IDictionary<string,object> 
@@ -55,9 +57,10 @@ namespace XAdo.Sql
       private IDictionary<string, string> 
          _memberToColumnMap;
 
-      public SqlBuilder(ISqlDialect dialect, bool noargs = false)
+      public SqlBuilder(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
       {
          _dialect = dialect;
+         _parameterPrefix = parameterPrefix;
          _noargs = noargs;
          _dialect.EnsureAnnotated();
       }
@@ -271,7 +274,7 @@ namespace XAdo.Sql
          }
          else
          {
-            var parameterName = "p_" + _arguments.Count;
+            var parameterName = _parameterPrefix + _arguments.Count;
             _writer.Write(_dialect.ParameterFormat, parameterName);
             _arguments[parameterName] = value;
          }

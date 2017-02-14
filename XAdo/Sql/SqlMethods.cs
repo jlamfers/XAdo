@@ -8,13 +8,13 @@ namespace XAdo.Sql
    public static class SqlMethods
    {
 
-      [SqlFormat("p => p.DateTimeGetWeekNumber")]
+      [SqlFormat("dialect => dialect.DateTimeGetWeekNumber")]
       public static int? WeekNumber(this DateTime? self)
       {
          return self == null ? (int?)null : self.Value.WeekNumber();
       }
 
-      [SqlFormat("p => p.DateTimeGetWeekNumber")]
+      [SqlFormat("dialect => dialect.DateTimeGetWeekNumber")]
       public static int WeekNumber(this DateTime self)
       {
          var cal = CultureInfo.InvariantCulture.Calendar;
@@ -41,7 +41,7 @@ namespace XAdo.Sql
          return val.CompareTo(lower) >= 0 && val.CompareTo(upper) <= 0;
       }
 
-      [SqlFormat("p => p.TypeCast")]
+      [SqlFormat("dialect => dialect.TypeCast")]
       public static T Convert<T>(this object self)
       {
          return self == null ? default(T) : (T)self;

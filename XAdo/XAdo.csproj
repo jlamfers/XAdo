@@ -127,7 +127,17 @@
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
+    <Compile Include="Model\Person.cs" />
+    <Compile Include="Sql\AsyncCountListResult.cs" />
+    <Compile Include="Sql\Core\LRUCache.cs" />
+    <Compile Include="Sql\Core\QueryContext.cs" />
+    <Compile Include="Sql\IQuob.cs" />
+    <Compile Include="Sql\SessionExtensions.cs" />
+    <Compile Include="Sql\Quob.cs" />
     <Compile Include="Sql\Core\Annotator.cs" />
+    <Compile Include="Sql\Core\DbReaderException.cs" />
+    <Compile Include="Sql\Core\FactoryBuilder.cs" />
+    <Compile Include="Sql\Core\DataRecordGetters.cs" />
     <Compile Include="Sql\Core\SqlDialect.cs" />
     <Compile Include="Sql\Core\ColumnInfo.cs" />
     <Compile Include="Sql\Core\CString.cs" />
@@ -135,7 +145,7 @@
     <Compile Include="Sql\Core\KnownMembers.cs" />
     <Compile Include="Sql\Core\MemberInfoFinder.cs" />
     <Compile Include="Sql\Core\SelectInfo.cs" />
-    <Compile Include="Sql\Core\SelectParser.cs" />
+    <Compile Include="Sql\Core\SqlSelectParser.cs" />
     <Compile Include="Sql\SqlMethods.cs" />
     <Compile Include="Sql\Core\SqlTemplateFormatter.cs" />
     <Compile Include="Sql\Core\StatementFormatter.cs" />
@@ -148,7 +158,7 @@
     <Compile Include="Sql\SqlFormatAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Sql\Providers\system.data.sqlclient.json" />
+    <None Include="Sql\Providers\sql-server.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

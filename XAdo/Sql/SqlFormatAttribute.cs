@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using XAdo.Core;
 using XAdo.Sql.Core;
 
 namespace XAdo.Sql
@@ -24,18 +23,18 @@ namespace XAdo.Sql
       {
       }
 
-      public SqlFormatAttribute(string formatSpec, Type providerType)
+      public SqlFormatAttribute(string formatSpec, string providerName)
       {
          if (formatSpec == null) throw new ArgumentNullException("formatSpec");
 
          if (formatSpec.Contains("=>"))
          {
             // syntactic sugar
-            _formatProperty = (providerType ?? typeof(ISqlDialect)).GetProperty(formatSpec.Split('.').Last());
+            _formatProperty = typeof(ISqlDialect).GetProperty(formatSpec.Split('.').Last());
 
             if (_formatProperty == null)
             {
-               throw new Exception("property could not be resolved on type " + (providerType ?? typeof(ISqlDialect)).Name + ": " + formatSpec);
+               throw new Exception("property could not be resolved on type " + typeof(ISqlDialect).Name + ": " + formatSpec);
             }
          }
          else
@@ -43,13 +42,10 @@ namespace XAdo.Sql
             _formatValue = formatSpec;
          }
 
-         if (providerType != null)
-         {
-            Provider = Cache.GetOrAdd(providerType, Activator.CreateInstance(providerType).CastTo<ISqlDialect>());
-         }
+         ProviderName = providerName;
       }
 
-      public ISqlDialect Provider { get; private set; }
+      public string ProviderName { get; private set; }
 
       public string GetFormat()
       {
@@ -61,9 +57,9 @@ namespace XAdo.Sql
       }
       public string GetFormat(ISqlDialect provider)
       {
-         if (Provider != null && !Provider.GetType().IsAssignableFrom(provider.GetType()))
+         if (ProviderName != null && ProviderName != provider.ProviderName)
          {
-            throw new Exception("Invalid provider: this attribute is bound to " + Provider.GetType().Name+" and cannot be requested for provider " + provider.GetType().Name);
+            throw new Exception("Invalid provider: this attribute is bound to " + ProviderName + " and cannot be requested for provider " + provider.ProviderName);
          }
          return _formatValue ?? (string) _formatProperty.GetValue(provider);
       }

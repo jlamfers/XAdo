@@ -17,14 +17,16 @@ namespace XAdo.Sql.Providers
       public override string IdentifierDelimiterRight { get { return "]"; } }
       public override string StringDelimiter { get { return "'"; } }
       public override string EscapedStringDelimiter { get { return "''"; } }
+
       public override string ParameterFormat { get { return "@{0}"; } }
       public override string DateTimeFormat { get { return "{0:yyyy-MM-dd HH:mm:ss.fff}"; } }
       public override string CharFormat { get { return "CHAR({0})"; } }
+      public override string ExistsFormat { get { return "SELECT CAST( CASE WHEN EXISTS({0}\r\n) THEN 1 ELSE 0 END AS BIT)"; } }
+      public override string CountFormat { get { return "SELECT COUNT(1) FROM ({0}\r\n) AS __tt_count"; } }
 
       public override string DateTimeNow { get { return "GETDATE()"; } }
       public override string DateTimeToday { get { return "CONVERT(DATE, GETDATE())"; } }
       public override string DateTimeUtcNow { get { return "GETUTCDATE()"; } }
-      public override string Exists { get { return "SELECT CAST( CASE WHEN EXISTS({0}) THEN 1 ELSE 0 END AS BIT)"; } }
       public override string TypeCast { get { return "CAST({0} AS {1})"; } }
 
       public override string Modulo { get { return "{0} % {1}"; } }

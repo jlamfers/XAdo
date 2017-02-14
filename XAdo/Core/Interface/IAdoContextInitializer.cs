@@ -17,6 +17,7 @@ namespace XAdo.Core.Interface
         IAdoContextInitializer Bind(Type serviceType, Type implementationType);
         IAdoContextInitializer Bind(Type serviceType, Func<IAdoClassBinder, object> factory);
         IAdoContextInitializer BindSingleton(Type serviceType, Type implementationType);
+        IAdoContextInitializer BindSingleton(Type serviceType, Func<IAdoClassBinder, object> factory);
         IAdoContextInitializer SetItem(object key, object value);
         IAdoContextInitializer SetSqlStatementSeperator(string seperator);
     }
@@ -40,6 +41,11 @@ namespace XAdo.Core.Interface
         {
             self.BindSingleton(typeof(TService), typeof(TImpl));
             return self;
+        }
+        public static IAdoContextInitializer BindSingleton<TService>(this IAdoContextInitializer self, Func<IAdoClassBinder, TService> factory)
+        {
+           self.BindSingleton(typeof(TService), b => factory(b));
+           return self;
         }
     }
 }

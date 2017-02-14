@@ -134,6 +134,12 @@ namespace XAdo
             return this;
          }
 
+         public IAdoContextInitializer BindSingleton(Type serviceType, Func<IAdoClassBinder, object> factory)
+         {
+            _context._binder.BindSingleton(serviceType, factory);
+            return this;
+         }
+
          public IAdoContextInitializer SetItem(object key, object value)
          {
             _context.Items[key] = value;
