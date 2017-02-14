@@ -47,6 +47,8 @@ namespace XAdo.Sql
 
       public string ProviderName { get; private set; }
 
+      public bool IncludeGenericParameters { get; set; }
+
       public string GetFormat()
       {
          if (_formatValue == null)

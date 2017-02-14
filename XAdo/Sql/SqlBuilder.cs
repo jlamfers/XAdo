@@ -102,7 +102,11 @@ namespace XAdo.Sql
       {
          if (node.Value == null || node.Value == DBNull.Value)
          {
-            _writer.Write("NULL");
+            _writer.Write(" NULL");
+         }
+         else if ((node.Value as Type) != null)
+         {
+            _writer.Write(" "+_dialect.TypeMap[(Type)node.Value]);
          }
          else
          {

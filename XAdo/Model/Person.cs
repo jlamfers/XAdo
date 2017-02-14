@@ -1,17 +1,7 @@
-﻿using System;
-using XAdo.Sql.Core;
+﻿using XAdo.Sql;
 
 namespace XAdo.Model
 {
-   public class SqlSelectAttribute : Attribute
-   {
-      public SqlSelectAttribute(string sqlSelect)
-      {
-         SqlSelect = sqlSelect;
-      }
-      public string SqlSelect { get; private set; }
-   }
-
    [SqlSelect("select id+,firstname!,middlename,lastname! from person.person")]
    public class Person
    {

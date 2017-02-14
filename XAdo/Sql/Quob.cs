@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using XAdo.Core.Interface;
 using XAdo.Sql.Core;
@@ -24,7 +26,7 @@ namespace XAdo.Sql
          _binder;
       private QueryContext
          _context;
-      private Dictionary<string, string> 
+      private IDictionary<string, string> 
          _map;
       private string 
          _sqlCount;
@@ -32,6 +34,20 @@ namespace XAdo.Sql
       private Quob(bool localonly)
       {
          
+      }
+
+      public Quob(ISqlDialect dialect = null)
+      {
+         var att = typeof(TEntity).GetAnnotation<SqlSelectAttribute>();
+         //todo: add convention based sql generator
+         if (att == null)
+         {
+            throw new Exception("No SqlSelectAttribute annotation found for type " + typeof(TEntity).Name);
+         }
+         _sql = att.SqlSelect;
+         _dialect = dialect;
+         Initialize();
+         VerifyCreateTemplate();
       }
 
       public Quob(string sqlSelect, ISqlDialect dialect = null)
@@ -46,6 +62,7 @@ namespace XAdo.Sql
          if (_dialect == null)
          {
             _dialect = session.Context.GetInstance<ISqlDialect>();
+            VerifyCreateTemplate();
          }
          var target = CloneOrSelf();
          target._context.Session = session;
@@ -212,7 +229,9 @@ namespace XAdo.Sql
          _selectInfo = new SqlSelectParser().Parse(_sql);
          _sql = _selectInfo.Sql;
          _binder = _selectInfo.BuildFactory<TEntity>().Compile();
-         _map = _selectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m.Expression,StringComparer.OrdinalIgnoreCase);
+         _map = new ReadOnlyDictionary<string,string>(
+            _selectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m.Expression,StringComparer.OrdinalIgnoreCase)
+          );
          _sqlCount = _selectInfo.AsInnerQuery();
       }
       private Quob<TEntity> CloneOrSelf()
@@ -241,7 +260,7 @@ namespace XAdo.Sql
             var m = (MemberExpression)e.Body.Trim();
             m.IsParameterDependent(sb);
             var path = sb.ToString();
-            var info = _selectInfo.Columns.Single(c => c.FullName == path);
+            var info = _selectInfo.Columns.Single(c => c.FullName.Equals(path,StringComparison.OrdinalIgnoreCase));//TODO: reconsider case insensitve compares, move to _selectinfo?
             _context.OrderColumns.Add(string.Format("{0} {1}", info.IsAggregate ? info.Alias : info.Expression, order));
          }
          return this;
@@ -290,5 +309,32 @@ namespace XAdo.Sql
          return dictionary;
       }
 
+      private bool _templateCreated;
+      private void VerifyCreateTemplate()
+      {
+         if (_templateCreated || _dialect == null)
+         {
+            return;
+         }
+         _templateCreated = true;
+         if (_sql.Contains("--$") || _sql.Contains("-- $"))
+         {
+            //if any custom placeholder exist then do not create the default template
+            return;
+         }
+         var template = _dialect.SelectTemplate;
+         template = Regexes.RegexSelect.Replace(template, m => _sql);
+         template = Regexes.RegexSelectColumns.Replace(template, m =>  _sql.Substring(0, _selectInfo.FromPosition));
+         template = Regexes.RegexFrom.Replace(template, m => _sql.Substring(_selectInfo.FromPosition));
+         _sql = template;
+      }
+   }
+
+   internal class Regexes
+   {
+      public static Regex
+         RegexSelect = new Regex(@"\$\(SELECT\)", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+         RegexSelectColumns = new Regex(@"\$\(SELECT-COLUMNS\)", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+         RegexFrom = new Regex(@"\$\(FROM\.\.\.\)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
    }
 }

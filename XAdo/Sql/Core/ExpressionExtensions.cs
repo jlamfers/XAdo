@@ -139,7 +139,20 @@ namespace XAdo.Sql.Core
 
       public static IEnumerable<Expression> GetAllArguments(this MethodCallExpression node)
       {
-         return node.Object != null ? new[] {node.Object}.Concat(node.Arguments) : node.Arguments;
+         var argsEnumerable = node.Object != null ? new[] {node.Object}.Concat(node.Arguments) : node.Arguments;
+        
+         if (!node.Method.IsGenericMethod)
+         {
+            return argsEnumerable;
+         }
+         var att = node.Method.GetCustomAttribute<SqlFormatAttribute>();
+         if (att == null || !att.IncludeGenericParameters)
+         {
+            return argsEnumerable;
+         }
+         var args = argsEnumerable.ToList();
+         args.AddRange(node.Method.GetGenericArguments().Select(Expression.Constant));
+         return args;
       }
 
       public static IDictionary<TKey, TValue> AddRange<TKey, TValue>(this IDictionary<TKey, TValue> self, IDictionary<TKey, TValue> other)

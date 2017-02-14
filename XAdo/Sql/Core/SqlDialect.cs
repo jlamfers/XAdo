@@ -85,6 +85,8 @@ namespace XAdo.Sql.Core
 
       }
 
+      public virtual string SelectTemplate { get; protected set; }
+
       public virtual string ProviderName { get; protected set; }
 
       public virtual string LiteralTrue { get { return _literalTrue; } protected set { _literalTrue = value; } }

@@ -41,8 +41,8 @@ namespace XAdo.Sql
          return val.CompareTo(lower) >= 0 && val.CompareTo(upper) <= 0;
       }
 
-      [SqlFormat("dialect => dialect.TypeCast")]
-      public static T Convert<T>(this object self)
+      [SqlFormat("dialect => dialect.TypeCast",IncludeGenericParameters = true)]
+      public static T DbConvert<T>(this object self)
       {
          return self == null ? default(T) : (T)self;
       }

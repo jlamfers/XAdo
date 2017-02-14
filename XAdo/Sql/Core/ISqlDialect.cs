@@ -9,6 +9,8 @@ namespace XAdo.Sql.Core
    {
       void FormatValue(TextWriter writer, object value);
 
+      string SelectTemplate { get; }
+
       string ProviderName { get; }
 
       string LiteralTrue { get; }

@@ -21,6 +21,15 @@ namespace XAdo.UnitTest
       public Address Address { get; set; }
    }
 
+   [SqlSelect(@"SELECT 
+       [AddressID]* as id
+      ,[AddressLine1]! as line1
+      ,[AddressLine2] as line2
+      ,[City]
+      ,[PostalCode]!
+      ,[ModifiedDate] as modifiedat
+  FROM [AdventureWorks2012].[Person].[Address]
+  ")]
    public class Address
    {
       public int Id { get; protected set; }
@@ -42,65 +51,6 @@ namespace XAdo.UnitTest
    public class AWTest
    {
 
-      public const string Query2_old = @"
-SELECT        
-   p.BusinessEntityID as [/Id*],
-   p.PersonType as [!], 
-   p.Title, 
-   p.FirstName as [!], 
-   p.MiddleName, 
-   p.LastName as [!],  
-   p.ModifiedDate as ModifiedAt, 
-   a.AddressID as [/Address/Id*?], 
-   a.AddressLine1 as [./Line1!], 
-   a.AddressLine2 as [./Line2], 
-   a.PostalCode as [!], 
-   a.ModifiedDate as [./ModifiedAt],
-   at.AddressTypeID as [./AddressType/Id*?],
-   at.Name as [!],
-   a.City as [../City!]
-
-FROM Person.BusinessEntity AS be 
-
-INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
-INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
-INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
-INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
---$WHERE {where}
---$ORDER BY {order} --?? ORDER BY p.BusinessEntityID -- TODO: default order, default value in general
---$OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
-
-";
-
-      public const string Query3_old = @"
-SELECT        
-   p.BusinessEntityID, --> /Id*
-   p.PersonType, -->! 
-   p.Title, 
-   p.FirstName, -->! 
-   p.MiddleName, 
-   p.LastName, -->! 
-   p.ModifiedDate, -->ModifiedAt 
-   a.AddressID, --> /Address/Id*? 
-   a.AddressLine1, -->./Line1! 
-   a.AddressLine2, -->./Line2 
-   a.PostalCode, -->! 
-   a.ModifiedDate, -->./ModifiedAt
-   at.AddressTypeID, -->./AddressType/Id*?
-   at.Name, -->!
-   a.City -->../City!
-
-FROM Person.BusinessEntity AS be 
-
-INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
-INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
-INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
-INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
---$WHERE {where}
---$ORDER BY {order} --?? ORDER BY p.BusinessEntityID -- TODO: default order, default value in general
---$OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
-
-";
       public const string Query3 = @"
 SELECT        
    p.BusinessEntityID as id, -->*
@@ -159,36 +109,37 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       {
          var selectParser = new SqlSelectParser();
          var selectInfo = selectParser.Parse(Query3);
-         var sw = new Stopwatch();
-         sw.Start();
-         for (var i = 0; i < 1000; i++)
-         {
-            selectParser.Parse(Query3);
-         }
-         sw.Stop();
-         Debug.WriteLine(sw.ElapsedMilliseconds);
-         var factory = selectInfo.BuildFactory<Person>();
-         sw = new Stopwatch();
-         sw.Start();
-         for (var i = 0; i < 1000; i++)
-         {
-            selectInfo.BuildFactory<Person>();
-         }
-         sw.Stop();
-         Debug.WriteLine(sw.ElapsedMilliseconds);
-         var ctor = factory.Compile();
-         sw = new Stopwatch();
-         sw.Start();
-         for (var i = 0; i < 1000; i++)
-         {
-            factory.Compile();
-         }
-         sw.Stop();
-         Debug.WriteLine(sw.ElapsedMilliseconds);
+         //var sw = new Stopwatch();
+         //sw.Start();
+         //for (var i = 0; i < 1000; i++)
+         //{
+         //   selectParser.Parse(Query3);
+         //}
+         //sw.Stop();
+         //Debug.WriteLine(sw.ElapsedMilliseconds);
+         //var factory = selectInfo.BuildFactory<Person>();
+         //sw = new Stopwatch();
+         //sw.Start();
+         //for (var i = 0; i < 1000; i++)
+         //{
+         //   selectInfo.BuildFactory<Person>();
+         //}
+         //sw.Stop();
+         //Debug.WriteLine(sw.ElapsedMilliseconds);
+         //var ctor = factory.Compile();
+         //sw = new Stopwatch();
+         //sw.Start();
+         //for (var i = 0; i < 1000; i++)
+         //{
+         //   factory.Compile();
+         //}
+         //sw.Stop();
+         //Debug.WriteLine(sw.ElapsedMilliseconds);
 
          var context = new AdoContext(cfg => cfg
             .SetConnectionStringName("AW")
             .BindSingleton<ISqlDialect,SqlServerDialect>()
+            .BindSingleton(typeof(IQuob<>),typeof(Quob<>))
             .BindSingleton<IQuob<Person>>(b => new Quob<Person>(Query3))
          );
 
@@ -196,12 +147,49 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          {
             int count;
             var list = sn.Query<Person>()
-               .Where(p => p.Address.Line2 == null || p.Address.Line2.AsComparable() > "")
+               .Where(p => p.Address.Line2 == null || p.Address.Line2.DbConvert<string>().AsComparable() > "")
                .Take(10)
                .Skip(5)
                .OrderBy(p => p.Address.City)
                .ToList(out count);
          }
+      }
+
+      [Test]
+      public void MonkeyTest3()
+      {
+         var context = new AdoContext(cfg => cfg
+                     .SetConnectionStringName("AW")
+                     .BindSingleton<ISqlDialect, SqlServerDialect>()
+                     .BindSingleton(typeof(IQuob<>), typeof(Quob<>))
+                     .BindSingleton<IQuob<Person>>(b => new Quob<Person>(Query3))
+                  );
+
+         using (var sn = context.CreateSession())
+         {
+            int count;
+            var list = sn.Query<Address>()
+               .Where(p => p.Line2 == null || p.Line2.DbConvert<string>().AsComparable() > "")
+               .Take(10)
+               .Skip(5)
+               .OrderBy(p => p.Id)
+               .ToList(out count);
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 10; i++)
+            {
+               list = sn.Query<Address>()
+                  .Where(p => p.Line2 == null || p.Line2.DbConvert<string>().AsComparable() > "")
+                  .Take(10)
+                  .Skip(5)
+               .OrderBy(p => p.Id)
+               .ToList(out count);
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+            list = sn.Query<Address>().ToList(out count);
+            list = sn.Query<Address>().ToList();
+         }         
       }
    }
 }

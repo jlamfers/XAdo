@@ -87,7 +87,7 @@ namespace XAdo.Sql.Core
       public IDictionary<string, object> GetArguments()
       {
          var args = WhereArguments == null || HavingArguments == null
-            ? (WhereArguments ?? HavingArguments)
+            ? (WhereArguments ?? HavingArguments) ?? new Dictionary<string, object>()
             : new Dictionary<string, object>()
                .AddRange(WhereArguments)
                .AddRange(HavingArguments);

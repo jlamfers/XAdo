@@ -11,6 +11,33 @@ namespace XAdo.Sql.Providers
 
       public override string ProviderName { get { return "System.Data.SqlClient"; } }
 
+      public  string SelectTemplate2
+      {
+         get { return @"
+$(SELECT)
+--$WHERE {where}
+--$HAVING {having}
+--$ORDER BY {order}
+--$OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
+"; }
+      }
+      public override string SelectTemplate
+      {
+         get
+         {
+            return @"
+--${?skip}{?take}SELECT * FROM (
+   $(SELECT-COLUMNS) 
+     --${?skip}{?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum
+   $(FROM...) 
+   --$WHERE {where}
+   --$HAVING {having}
+   --${!skip}{!take}ORDER BY {order}
+--$) AS __outer WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum
+";
+         }
+      }
+
       public override string IdentifierSeperator { get { return "."; } }
       public override string StatementSeperator { get { return ";"; } }
       public override string IdentifierDelimiterLeft { get { return "["; } }

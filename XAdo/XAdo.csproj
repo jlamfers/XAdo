@@ -128,6 +128,7 @@
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
     <Compile Include="Model\Person.cs" />
+    <Compile Include="Sql\SqlSelectAttribute.cs" />
     <Compile Include="Sql\AsyncCountListResult.cs" />
     <Compile Include="Sql\Core\LRUCache.cs" />
     <Compile Include="Sql\Core\QueryContext.cs" />

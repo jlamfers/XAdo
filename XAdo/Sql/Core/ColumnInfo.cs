@@ -150,13 +150,19 @@ namespace XAdo.Sql.Core
                   continue;
                case '*':
                   IsKey = true;
+                  Persistency &= ~PersistencyType.Create;
+                  Persistency &= ~PersistencyType.Update;
                   break;
                case '@':
                   IsAggregate = true;
+                  Persistency &= ~PersistencyType.Create;
+                  Persistency &= ~PersistencyType.Update;
                   break;
                case '+':
-                  Persistency &= ~PersistencyType.Create;
                   IsAutoIncrement = true;
+                  IsKey = true;
+                  Persistency &= ~PersistencyType.Create;
+                  Persistency &= ~PersistencyType.Update;
                   break;
                case '?':
                   IsOuterJoinColumn = true;
