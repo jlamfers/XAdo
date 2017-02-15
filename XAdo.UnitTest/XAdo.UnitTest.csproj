@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWTest.cs" />
+    <Compile Include="DtoTest.cs" />
     <Compile Include="Examples.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectParserTest.cs" />

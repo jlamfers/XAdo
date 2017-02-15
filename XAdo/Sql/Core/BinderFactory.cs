@@ -43,18 +43,25 @@ namespace XAdo.Sql.Core
    }
     * */
 
-   public static class FactoryBuilder
+   public static class BinderFactory
    {
+
       private static MethodInfo _isDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
 
-      public static Expression<Func<IDataRecord, T>> BuildFactory<T>(this SelectInfo info)
+      public static Expression<Func<IDataRecord, T>> CreateBinder<T>(this SelectInfo info)
       {
          var p = Expression.Parameter(typeof (IDataRecord), "row");
-         var expression = info.GetRefExpression(typeof (T), "", p, new HashSet<string>(), false);
+         var expression = info.GetBinderExpression(typeof (T), "", p, new HashSet<string>(), false);
          return Expression.Lambda<Func<IDataRecord, T>>(expression, p);
       }
+      public static Expression<Func<IDataRecord, object>> CreateBinder(this SelectInfo info, Type entityType)
+      {
+         var p = Expression.Parameter(typeof(IDataRecord), "row");
+         var expression = info.GetBinderExpression(entityType, "", p, new HashSet<string>(), false);
+         return Expression.Lambda<Func<IDataRecord, object>>(Expression.Convert(expression,typeof(object)), p);
+      }
 
-      private static Expression GetRefExpression(this SelectInfo info, Type refType, string path, ParameterExpression p, HashSet<string> handledPathes, bool optional )
+      private static Expression GetBinderExpression(this SelectInfo info, Type refType, string path, ParameterExpression p, HashSet<string> handledPathes, bool optional )
       {
          var ctor = refType.GetConstructor(Type.EmptyTypes);
          if (ctor == null)
@@ -75,7 +82,7 @@ namespace XAdo.Sql.Core
             {
                try
                {
-                  expressions.Add(GetRecordGetter(refType.GetFieldOrProperty(m.Name), m.Index, p, m.NotNull));
+                  expressions.Add(GetMemberBinder(refType.GetFieldOrProperty(m.Name), m.Index, p, m.NotNull));
                }
                catch (Exception ex)
                {
@@ -89,7 +96,7 @@ namespace XAdo.Sql.Core
                   try
                   {
                      var refMember = refType.GetFieldOrProperty(m.Path.Split('.').Last());
-                     var newExpression = info.GetRefExpression(refMember.GetMemberType(), m.Path, p, handledPathes,
+                     var newExpression = info.GetBinderExpression(refMember.GetMemberType(), m.Path, p, handledPathes,
                         m.IsOuterJoinColumn);
                      expressions.Add(Expression.Bind(refMember, newExpression));
                      handledPathes.Add(m.Path);
@@ -105,12 +112,18 @@ namespace XAdo.Sql.Core
          return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, _isDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
       }
 
-      private static MemberBinding GetRecordGetter(MemberInfo m, int index, ParameterExpression p, bool isRequired)
+      internal static MemberAssignment GetMemberBinder(MemberInfo m, int index, ParameterExpression p, bool isRequired)
+      {
+         if (m == null) throw new ArgumentNullException("m");
+         return Expression.Bind(m, GetRecordGetter(m,index,p,isRequired));
+      }
+
+      internal static Expression GetRecordGetter(MemberInfo m, int index, ParameterExpression p, bool isRequired)
       {
          if (m == null) throw new ArgumentNullException("m");
          var method = GetGetterMethod(m.GetMemberType(), isRequired);
          var getter = method.IsStatic ? Expression.Call(method, p, Expression.Constant(index)) : Expression.Call(p, method, Expression.Constant(index));
-         return Expression.Bind(m, getter.Convert(m.GetMemberType()));
+         return getter.Convert(m.GetMemberType());
       }
 
       private static MethodInfo GetGetterMethod(Type type,bool isRequired)

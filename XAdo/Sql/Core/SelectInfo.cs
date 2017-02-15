@@ -10,6 +10,8 @@ namespace XAdo.Sql.Core
    {
       private string _innerQuery;
 
+      private SelectInfo() { }
+
       public SelectInfo(string sql, IList<ColumnInfo> columns, IDictionary<string, string> tables, bool distinct, int selectColumnsPosition, int fromPosition)
       {
          for (var index = 0; index < columns.Count; index++)
@@ -58,6 +60,31 @@ namespace XAdo.Sql.Core
                + Sql.Substring(FromPosition);
          }
          return _innerQuery;
+      }
+
+      public SelectInfo Map(List<ColumnInfo> columns)
+      {
+         var result = new SelectInfo
+         {
+            Columns = columns.Select((c, i) =>
+            {
+               c.Index = i;
+               return c;
+            }).ToList().AsReadOnly(),
+            Tables = Tables,
+            Distinct = Distinct,
+            SelectColumnsPosition = SelectColumnsPosition,
+            Sql = Sql.Substring(0, SelectColumnsPosition)
+                  + Environment.NewLine
+                  + "   " +
+                  string.Join("," + Environment.NewLine + "   ",
+                     columns.Select(c => c.Expression + (c.Alias != null ? " AS " + c.Alias : "")))
+                  + Environment.NewLine
+         };
+
+         result.FromPosition = result.Sql.Length;
+         result.Sql += Sql.Substring(FromPosition);
+         return result;
       }
    }
 }

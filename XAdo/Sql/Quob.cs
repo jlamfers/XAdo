@@ -15,6 +15,9 @@ namespace XAdo.Sql
    public class Quob<TEntity> : IQuob<TEntity>
    {
 
+      private static LRUCache<Type, object> _mappedCache = new LRUCache<Type, object>(50);
+
+
       private string 
          _sql;
 
@@ -22,11 +25,14 @@ namespace XAdo.Sql
          _dialect;
       private SelectInfo 
          _selectInfo;
+      private BinderInfo
+         _binderInfo;
+
       private Func<IDataRecord, TEntity> 
          _binder;
       private QueryContext
          _context;
-      private IDictionary<string, string> 
+      private IDictionary<string, ColumnInfo> 
          _map;
       private string 
          _sqlCount;
@@ -47,57 +53,64 @@ namespace XAdo.Sql
          _sql = att.SqlSelect;
          _dialect = dialect;
          Initialize();
-         VerifyCreateTemplate();
       }
-
       public Quob(string sqlSelect, ISqlDialect dialect = null)
       {
          _sql = sqlSelect;
          _dialect = dialect;
          Initialize();
       }
+
       public virtual Quob<TEntity> Attach(IAdoSession session)
       {
          _context = null;
          if (_dialect == null)
          {
             _dialect = session.Context.GetInstance<ISqlDialect>();
-            VerifyCreateTemplate();
+            EnsureTemplated();
          }
-         var target = CloneOrSelf();
+         var target = EnsureContext();
          target._context.Session = session;
          return target;
+      }
+
+      public virtual IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> binder)
+      {
+         var mapped = (Quob<TMapped>)(typeof(TMapped).IsRuntimeGenerated() 
+            ? _mappedCache.GetOrAdd(typeof(TMapped), t => CreateMappedQuob(binder)) 
+            : CreateMappedQuob(binder));
+         mapped.Attach(_context.Session);
+         mapped._context = _context.Clone();
+         return mapped;
       }
 
       public virtual IQuob<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
       {
          if (predicate == null) throw new ArgumentNullException("predicate");
-         var target = CloneOrSelf();
-         var compileResult = new SqlBuilder(_dialect,"wp_").Parse(predicate,_map);
-         target._context.Where = compileResult.Sql;
-         target._context.WhereArguments = compileResult.Arguments;
+         var target = EnsureContext();
+         var compileResult = new SqlBuilder(_dialect, "p_").Parse(predicate, _map, target._context.Arguments);
+         target._context.WhereClauses.Add(compileResult.Sql);
          return target;
 
       }
       public virtual IQuob<TEntity> Having(Expression<Func<TEntity, bool>> predicate)
       {
          if (predicate == null) throw new ArgumentNullException("predicate");
-         var target = CloneOrSelf();
-         var compileResult = new SqlBuilder(_dialect, "hp_").Parse(predicate, _map);
-         target._context.Having = compileResult.Sql;
-         target._context.HavingArguments = compileResult.Arguments;
+         var target = EnsureContext();
+         var compileResult = new SqlBuilder(_dialect, "hp_").Parse(predicate, _map, target._context.Arguments);
+         target._context.HavingClauses.Add(compileResult.Sql);
          return target;
       }
       public virtual IQuob<TEntity> Skip(int? skip)
       {
-         var target = CloneOrSelf();
-         target._context.SkipValue = skip;
+         var target = EnsureContext();
+         target._context.Skip = skip;
          return target;
       }
       public virtual IQuob<TEntity> Take(int? take)
       {
-         var target = CloneOrSelf();
-         target._context.TakeValue = take;
+         var target = EnsureContext();
+         target._context.Take = take;
          return target;
       }
 
@@ -120,16 +133,16 @@ namespace XAdo.Sql
 
       public virtual IEnumerable<TEntity> ToEnumerable()
       {
-         var sql = _sql.FormatSqlTemplate(_context);
+         var sql = _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
          return _context.Session.Query(sql, _binder, _context.GetArguments(), false);
       }
       public virtual IEnumerable<TEntity> ToEnumerable(out int count)
       {
          var sql =
-            _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true))
+            _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true).GetSqlTemplateArgs())
             + Environment.NewLine 
             + _dialect.StatementSeperator 
-            + _sql.FormatSqlTemplate(_context);
+            + _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
@@ -190,7 +203,7 @@ namespace XAdo.Sql
             _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true))
             + Environment.NewLine
             + _dialect.StatementSeperator
-            + _sql.FormatSqlTemplate(_context);
+            + _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
@@ -228,18 +241,22 @@ namespace XAdo.Sql
       {
          _selectInfo = new SqlSelectParser().Parse(_sql);
          _sql = _selectInfo.Sql;
-         _binder = _selectInfo.BuildFactory<TEntity>().Compile();
-         _map = new ReadOnlyDictionary<string,string>(
-            _selectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m.Expression,StringComparer.OrdinalIgnoreCase)
+         var binderExpression = _selectInfo.CreateBinder<TEntity>();
+         _binder = binderExpression.Compile();
+         _binderInfo = new BinderInfo(binderExpression);
+         _map = new ReadOnlyDictionary<string,ColumnInfo>(
+            _selectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m,StringComparer.OrdinalIgnoreCase)
           );
          _sqlCount = _selectInfo.AsInnerQuery();
+         EnsureTemplated();
       }
-      private Quob<TEntity> CloneOrSelf()
+      private Quob<TEntity> EnsureContext()
       {
          return _context != null ? this : new Quob<TEntity>(true)
          {
             _sql = _sql,
             _sqlCount = _sqlCount,
+            _binderInfo = _binderInfo,
             _binder = _binder,
             _context = new QueryContext(_dialect),
             _dialect = _dialect,
@@ -251,7 +268,7 @@ namespace XAdo.Sql
       {
          if (reset)
          {
-            _context.OrderColumns.Clear();
+            _context.Order.Clear();
          }
          var sb = new StringBuilder();
          foreach (var e in expressions)
@@ -261,7 +278,7 @@ namespace XAdo.Sql
             m.IsParameterDependent(sb);
             var path = sb.ToString();
             var info = _selectInfo.Columns.Single(c => c.FullName.Equals(path,StringComparison.OrdinalIgnoreCase));//TODO: reconsider case insensitve compares, move to _selectinfo?
-            _context.OrderColumns.Add(string.Format("{0} {1}", info.IsAggregate ? info.Alias : info.Expression, order));
+            _context.Order.Add(string.Format("{0} {1}", info.IsCalculated ? info.Alias : info.Expression, order));
          }
          return this;
       }
@@ -310,28 +327,53 @@ namespace XAdo.Sql
       }
 
       private bool _templateCreated;
-      private void VerifyCreateTemplate()
+      private void EnsureTemplated()
       {
          if (_templateCreated || _dialect == null)
          {
             return;
          }
          _templateCreated = true;
-         if (_sql.Contains("--$") || _sql.Contains("-- $"))
+         _sql = CreateTemplate(_sql);
+      }
+      private string CreateTemplate(string sql)
+      {
+         if (sql.Contains("--$") || sql.Contains("-- $"))
          {
             //if any custom placeholder exist then do not create the default template
-            return;
+            return sql;
          }
          var template = _dialect.SelectTemplate;
-         template = Regexes.RegexSelect.Replace(template, m => _sql);
-         template = Regexes.RegexSelectColumns.Replace(template, m =>  _sql.Substring(0, _selectInfo.FromPosition));
-         template = Regexes.RegexFrom.Replace(template, m => _sql.Substring(_selectInfo.FromPosition));
-         _sql = template;
+         template = Regexes.RegexSelect.Replace(template, m => sql);
+         template = Regexes.RegexSelectColumns.Replace(template, m => sql.Substring(0, _selectInfo.FromPosition));
+         template = Regexes.RegexFrom.Replace(template, m => sql.Substring(_selectInfo.FromPosition));
+         return template;
       }
+      private Quob<TMapped> CreateMappedQuob<TMapped>(Expression<Func<TEntity, TMapped>> binder)
+      {
+         SelectInfo mappedSelectInfo;
+         var mappedBinder = (Expression<Func<IDataRecord, TMapped>>)_binderInfo.Map(binder, _selectInfo, out mappedSelectInfo);
+         var mapped = new Quob<TMapped>(true)
+         {
+            _sql = mappedSelectInfo.Sql,
+            _dialect = _dialect,
+            _selectInfo = mappedSelectInfo,
+            _binderInfo = new BinderInfo(mappedBinder),
+            _binder = mappedBinder.Compile(),
+            _map = new ReadOnlyDictionary<string, ColumnInfo>(
+               mappedSelectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m,
+                  StringComparer.OrdinalIgnoreCase)
+               ),
+            _sqlCount = mappedSelectInfo.AsInnerQuery()
+         };
+         return mapped;
+      }
+
    }
 
    internal class Regexes
    {
+      // moved these fields outside the generic class
       public static Regex
          RegexSelect = new Regex(@"\$\(SELECT\)", RegexOptions.IgnoreCase | RegexOptions.Compiled),
          RegexSelectColumns = new Regex(@"\$\(SELECT-COLUMNS\)", RegexOptions.IgnoreCase | RegexOptions.Compiled),

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace XAdo.Sql.Core
@@ -18,14 +19,23 @@ namespace XAdo.Sql.Core
    {
       private PersistencyType? _persistencyType;
 
-      public ColumnInfo(string expression, string @alias, string map)
+      private ColumnInfo()
+      {
+         
+      }
+
+      public ColumnInfo(string expression, string alias, string map)
       {
          if (expression == null) throw new ArgumentNullException("expression");
-         @alias = string.IsNullOrEmpty(@alias) ? null : @alias;
+         alias = string.IsNullOrEmpty(alias) ? null : alias;
 
          if (!string.IsNullOrEmpty(map))
          {
             map = FindTags(map);
+         }
+         else if (!string.IsNullOrEmpty(alias))
+         {
+            alias = FindTags(alias);
          }
          else
          {
@@ -35,7 +45,7 @@ namespace XAdo.Sql.Core
          map = NormalizeMap(expression, alias, map);
 
          Expression = expression;
-         Alias = @alias;
+         Alias = alias;
          Map = map;
 
          var dotpos = map.LastIndexOf('/');
@@ -79,8 +89,10 @@ namespace XAdo.Sql.Core
       public string FullName { get; private set; }
       public int Index { get; internal set; }
 
+      internal MemberInfo MappedMember { get; set; }
+
       public bool IsKey { get; private set; }
-      public bool IsAggregate { get; private set; }
+      public bool IsCalculated { get; private set; }
       public bool IsAutoIncrement { get; private set; }
       public bool IsOuterJoinColumn { get; private set; }
       public bool NotNull { get; private set; }
@@ -94,7 +106,27 @@ namespace XAdo.Sql.Core
       public override string ToString()
       {
          var dot = string.IsNullOrEmpty(Path) ? "" : ".";
-         return string.Format("{0}{1}{2} => {3}", Path, dot, Name, Expression);
+         return string.Format("{3} -> {0}{1}{2}", Path, dot, Name, Expression);
+      }
+
+      public ColumnInfo Clone()
+      {
+         return new ColumnInfo
+         {
+            Path = Path,
+            Name = Name,
+            Index = Index,
+            IsKey = IsKey,
+            Expression = Expression,
+            Alias = Alias,
+            FullName = FullName,
+            Map = Map,
+            IsAutoIncrement = IsAutoIncrement,
+            IsCalculated = IsCalculated,
+            IsOuterJoinColumn = IsOuterJoinColumn,
+            NotNull = NotNull,
+            _persistencyType = _persistencyType
+         };
       }
 
       private string ResolvePath(string previousPath, string path)
@@ -150,11 +182,10 @@ namespace XAdo.Sql.Core
                   continue;
                case '*':
                   IsKey = true;
-                  Persistency &= ~PersistencyType.Create;
                   Persistency &= ~PersistencyType.Update;
                   break;
                case '@':
-                  IsAggregate = true;
+                  IsCalculated = true;
                   Persistency &= ~PersistencyType.Create;
                   Persistency &= ~PersistencyType.Update;
                   break;

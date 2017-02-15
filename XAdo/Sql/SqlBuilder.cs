@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using XAdo.Core;
 using XAdo.Sql.Core;
@@ -54,7 +55,9 @@ namespace XAdo.Sql
       private TextWriter
          _writer;
 
-      private IDictionary<string, string> 
+      private IDictionary<string, ColumnInfo> 
+         _fullnameToColumnMap;
+      private Dictionary<MemberInfo, string> 
          _memberToColumnMap;
 
       public SqlBuilder(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
@@ -65,15 +68,16 @@ namespace XAdo.Sql
          _dialect.EnsureAnnotated();
       }
 
-      public ParseResult Parse(LambdaExpression expression, IDictionary<string, string> memberToColumnMap)
+      public ParseResult Parse(LambdaExpression expression, IDictionary<string, ColumnInfo> fullnameColumnMap, IDictionary<string, object> arguments)
       {
-         _memberToColumnMap = memberToColumnMap;
-         _arguments = new Dictionary<string, object>();
+         _fullnameToColumnMap = fullnameColumnMap;
+         _memberToColumnMap = fullnameColumnMap.Where(m => m.Value.MappedMember != null).ToDictionary(m => m.Value.MappedMember, m => m.Value.Expression);
+         _arguments = arguments ?? new Dictionary<string, object>();
          using (var writer = new StringWriter())
          {
             _writer = writer;
             Visit(expression);
-            return new ParseResult(writer.GetStringBuilder().ToString(),_arguments);
+            return new ParseResult(writer.GetStringBuilder().ToString(), _arguments);
          }
       }
 
@@ -106,7 +110,15 @@ namespace XAdo.Sql
          }
          else if ((node.Value as Type) != null)
          {
-            _writer.Write(" "+_dialect.TypeMap[(Type)node.Value]);
+            try
+            {
+               _writer.Write(" ");
+               _writer.Write(_dialect.TypeMap[(Type) node.Value]);
+            }
+            catch (Exception ex)
+            {
+               throw new Exception("No type map found for type: " + ((Type)node.Value).Name,ex);
+            }
          }
          else
          {
@@ -168,12 +180,12 @@ namespace XAdo.Sql
                break;
             case ExpressionType.Equal:
                Visit(node.Left);
-               _writer.Write(node.Right.IsNullConstant() ? " IS " : " = ");
+               _writer.Write(node.Right.IsNullConstant() ? " IS " : " = "); // stick to SQL-92
                Visit(node.Right);
                break;
             case ExpressionType.NotEqual:
                Visit(node.Left);
-               _writer.Write(node.Right.IsNullConstant() ? " IS NOT " : " <> ");
+               _writer.Write(node.Right.IsNullConstant() ? " IS NOT " : " <> "); // stick to SQL-92
                Visit(node.Right);
                break;
             case ExpressionType.Or:
@@ -211,11 +223,18 @@ namespace XAdo.Sql
             return node;
          }
 
+         string expression;
+         if (_memberToColumnMap.TryGetValue(node.Member, out expression))
+         {
+            _writer.Write(expression);
+            return node;
+         }
+
          var namePath = new StringBuilder();
          if (node.IsParameterDependent(namePath))
          {
             // throws exception on missing map
-            _writer.Write(_memberToColumnMap[namePath.ToString()]);
+            _writer.Write(_fullnameToColumnMap[namePath.ToString()].Expression);
          }
          else
          {
@@ -357,6 +376,7 @@ namespace XAdo.Sql
             {Tuple.Create(ExpressionType.NotEqual, 0), "<>"},
             {Tuple.Create(ExpressionType.NotEqual, 1), "<="}
         };
+
 
       private void FormatCompare(Expression left, Expression right, int compareResult, ExpressionType op)
       {

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using XAdo.Core;
 
@@ -145,7 +147,7 @@ namespace XAdo.Sql.Core
          {
             return argsEnumerable;
          }
-         var att = node.Method.GetCustomAttribute<SqlFormatAttribute>();
+         var att = node.Method.GetAnnotation<SqlFormatAttribute>();
          if (att == null || !att.IncludeGenericParameters)
          {
             return argsEnumerable;
@@ -163,10 +165,19 @@ namespace XAdo.Sql.Core
          }
          return self;
       }
+      public static IDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> self)
+      {
+         return new ReadOnlyDictionary<TKey, TValue>(self);
+      }
 
       public static string FormatWith(this string format, params object[] args)
       {
          return format == null ? null : string.Format(format, args);
+      }
+
+      public static bool IsRuntimeGenerated(this Type self)
+      {
+         return Attribute.IsDefined(self, typeof (CompilerGeneratedAttribute), false);
       }
    }
 }

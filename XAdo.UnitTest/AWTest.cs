@@ -22,12 +22,12 @@ namespace XAdo.UnitTest
    }
 
    [SqlSelect(@"SELECT 
-       [AddressID]* as id
-      ,[AddressLine1]! as line1
+       [AddressID] as id*
+      ,[AddressLine1] as line1!
       ,[AddressLine2] as line2
       ,[City]
       ,[PostalCode]!
-      ,[ModifiedDate] as modifiedat
+      ,[ModifiedDate] as modifiedAt
   FROM [AdventureWorks2012].[Person].[Address]
   ")]
    public class Address
@@ -85,7 +85,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       {
          var selectParser = new SqlSelectParser();
          var selectInfo = selectParser.Parse(Query3);
-         var factory = selectInfo.BuildFactory<Person>();
+         var factory = selectInfo.CreateBinder<Person>();
          var ctor = factory.Compile();
 
          var context = new AdoContext("AW");
@@ -151,6 +151,8 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
                .Take(10)
                .Skip(5)
                .OrderBy(p => p.Address.City)
+               .Select(x => new {Name=x.FirstName, Address2 = new{x.Address.Line1}})
+               .Where(y => y.Address2.Line1 != null)
                .ToList(out count);
          }
       }

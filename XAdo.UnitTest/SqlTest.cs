@@ -35,17 +35,17 @@ FROM
 ";
          var sp = new SqlSelectParser();
          var tuples = sp.Parse(sql);
-         var map = tuples.Columns.ToDictionary(t => t.Alias, t => t.Expression);
+         var map = tuples.Columns.ToDictionary(t => t.Alias, t => t);
          var b = new SqlBuilder(new SqlServerDialect(),null,true);
          string oops="";
-         var result = b.Parse(Predicate<Foo>(e => e.Born < DateTime.Now && (e.Name ?? oops) != null && e.Name.CompareTo("a") > 0 || e.Name.Contains("oops")),map);
+         var result = b.Parse(Predicate<Foo>(e => e.Born < DateTime.Now && (e.Name ?? oops) != null && e.Name.CompareTo("a") > 0 || e.Name.Contains("oops")),map,null);
          var resultSql = sql.FormatSqlTemplate(new {where = result.Sql});
          Debug.WriteLine(resultSql);
          var sw = new Stopwatch();
          sw.Start();
          for (var i = 0; i < 1000; i++)
          {
-            b.Parse(Predicate<Foo>(e => e.Born < DateTime.Now && (e.Name ?? oops) != null && e.Name.AsComparable() > "a" || e.Name.Contains("oops")), map);
+            b.Parse(Predicate<Foo>(e => e.Born < DateTime.Now && (e.Name ?? oops) != null && e.Name.AsComparable() > "a" || e.Name.Contains("oops")), map,null);
          }
          sw.Stop();
          Debug.WriteLine(sw.ElapsedMilliseconds);
@@ -91,7 +91,7 @@ FROM
          //});
          var sp = new SqlSelectParser();
          var info = sp.Parse(sql);
-         var factory = info.BuildFactory<Foo>();
+         var factory = info.CreateBinder<Foo>();
          factory.Compile();
 
       }

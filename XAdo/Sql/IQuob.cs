@@ -36,5 +36,6 @@ namespace XAdo.Sql
       Task<IDictionary<TKey, List<TValue>>> ToGroupedListAsync<TKey, TValue>(Func<TEntity, TKey> groupKeySelector, Func<TEntity, TValue> listElementSelector);
       Task<int> CountAsync();
       Task<bool> ExistsAsync();
+      IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> binder);
    }
 }
