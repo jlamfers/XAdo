@@ -6,13 +6,13 @@ using System.Linq;
 namespace XAdo.Sql.Core
 {
 
-   public class SelectInfo
+   public class SqlSelectInfo
    {
       private string _innerQuery;
 
-      private SelectInfo() { }
+      private SqlSelectInfo() { }
 
-      public SelectInfo(string sql, IList<ColumnInfo> columns, IDictionary<string, string> tables, bool distinct, int selectColumnsPosition, int fromPosition)
+      public SqlSelectInfo(string sql, IList<ColumnInfo> columns, IDictionary<string, string> tables, bool distinct, int selectColumnsPosition, int fromPosition)
       {
          for (var index = 0; index < columns.Count; index++)
          {
@@ -47,6 +47,16 @@ namespace XAdo.Sql.Core
       public int SelectColumnsPosition { get; private set; }
       public int FromPosition { get; private set; }
 
+      private Dictionary<string, ColumnInfo>
+         _fullNameMap;
+      public ColumnInfo FindColumn(string fullname)
+      {
+         _fullNameMap = _fullNameMap ?? Columns.ToDictionary(c => c.FullName, c => c, StringComparer.OrdinalIgnoreCase);
+         ColumnInfo column;
+         _fullNameMap.TryGetValue(fullname, out column);
+         return column;
+      }
+
       public string AsInnerQuery()
       {
          if (_innerQuery == null)
@@ -62,9 +72,9 @@ namespace XAdo.Sql.Core
          return _innerQuery;
       }
 
-      public SelectInfo Map(List<ColumnInfo> columns)
+      public SqlSelectInfo Map(List<ColumnInfo> columns)
       {
-         var result = new SelectInfo
+         var result = new SqlSelectInfo
          {
             Columns = columns.Select((c, i) =>
             {
@@ -86,5 +96,11 @@ namespace XAdo.Sql.Core
          result.Sql += Sql.Substring(FromPosition);
          return result;
       }
+
+      public SqlSelectInfo Map(IList<string> columns)
+      {
+         return Map(columns.Select(c => FindColumn(c).Clone()).ToList());
+      }
+
    }
 }

@@ -57,8 +57,9 @@ namespace XAdo.Sql
 
       private IDictionary<string, ColumnInfo> 
          _fullnameToColumnMap;
-      private Dictionary<MemberInfo, string> 
-         _memberToColumnMap;
+
+      private LambdaExpression 
+         _expression;
 
       public SqlBuilder(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
       {
@@ -71,12 +72,14 @@ namespace XAdo.Sql
       public ParseResult Parse(LambdaExpression expression, IDictionary<string, ColumnInfo> fullnameColumnMap, IDictionary<string, object> arguments)
       {
          _fullnameToColumnMap = fullnameColumnMap;
-         _memberToColumnMap = fullnameColumnMap.Where(m => m.Value.MappedMember != null).ToDictionary(m => m.Value.MappedMember, m => m.Value.Expression);
          _arguments = arguments ?? new Dictionary<string, object>();
+         _expression = expression;
          using (var writer = new StringWriter())
          {
             _writer = writer;
             Visit(expression);
+            _writer = null;
+            _expression = null;
             return new ParseResult(writer.GetStringBuilder().ToString(), _arguments);
          }
       }
@@ -223,18 +226,18 @@ namespace XAdo.Sql
             return node;
          }
 
-         string expression;
-         if (_memberToColumnMap.TryGetValue(node.Member, out expression))
-         {
-            _writer.Write(expression);
-            return node;
-         }
-
          var namePath = new StringBuilder();
          if (node.IsParameterDependent(namePath))
          {
             // throws exception on missing map
-            _writer.Write(_fullnameToColumnMap[namePath.ToString()].Expression);
+            try
+            {
+               _writer.Write(_fullnameToColumnMap[namePath.ToString()].Expression);
+            }
+            catch (Exception ex)
+            {
+               throw new Exception("Member '" + namePath+"' not found. This member could not be mapped to any database column in select expression "+_expression,ex);
+            }
          }
          else
          {
@@ -376,7 +379,6 @@ namespace XAdo.Sql
             {Tuple.Create(ExpressionType.NotEqual, 0), "<>"},
             {Tuple.Create(ExpressionType.NotEqual, 1), "<="}
         };
-
 
       private void FormatCompare(Expression left, Expression right, int compareResult, ExpressionType op)
       {

@@ -6,6 +6,7 @@ using XAdo.Sql.Core;
 
 namespace XAdo.Sql
 {
+   //todo: add providername??
 
    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property,AllowMultiple = true)]
    public class SqlFormatAttribute : Attribute
@@ -66,5 +67,18 @@ namespace XAdo.Sql
          return _formatValue ?? (string) _formatProperty.GetValue(provider);
       }
 
+   }
+
+   public static class SqlFormatAttributeExtensions
+   {
+      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, string providerName)
+      {
+         return self.GetAnnotations<SqlFormatAttribute>().FirstOrDefault(a => a.ProviderName == null || a.ProviderName == providerName);
+      }
+
+      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, ISqlDialect dialect)
+      {
+         return self.GetSqlFormatAttribute(dialect.ProviderName);
+      }
    }
 }

@@ -14,7 +14,7 @@ namespace XAdo.Sql.Core
       private string _source;
       private int _pos;
 
-      public SelectInfo Parse(string source, int startpos=0)
+      public SqlSelectInfo Parse(string source, int startpos=0)
       {
          _pos = startpos;
          _source = source;
@@ -139,14 +139,14 @@ namespace XAdo.Sql.Core
                            {
                               if (SkipAnyOff("WHERE", "HAVING", "ORDER", "UNION"))
                               {
-                                 return new SelectInfo(_source,columns, tables,distinct,selectColumnsPos, fromPos);
+                                 return new SqlSelectInfo(_source,columns, tables,distinct,selectColumnsPos, fromPos);
                               }
                               _pos++;
                            }
 
                         }
 
-                        return new SelectInfo(_source,columns, tables, distinct, selectColumnsPos, fromPos);
+                        return new SqlSelectInfo(_source,columns, tables, distinct, selectColumnsPos, fromPos);
                      }
                      else
                      {

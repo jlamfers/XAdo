@@ -37,5 +37,34 @@ namespace XAdo.Sql
       Task<int> CountAsync();
       Task<bool> ExistsAsync();
       IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> binder);
+      IQuob Select(params string[] columns);
+   }
+
+   public interface IQuob
+   {
+      IQuob Where(Expression expression);
+      IQuob Having(Expression expression);
+      IQuob Skip(int? skip);
+      IQuob Take(int? take);
+      IQuob OrderBy(params string[] expressions);
+      IQuob OrderByDescending(params string[] expressions);
+      IQuob AddOrderBy(params string[] expressions);
+      IQuob AddOrderByDescending(params string[] expressions);
+
+      IEnumerable<object> ToEnumerable();
+      IEnumerable<object> ToEnumerable(out int count);
+
+      List<object> ToList();
+      List<object> ToList(out int count);
+      object[] ToArray();
+      object[] ToArray(out int count);
+      int Count();
+      bool Exists();
+
+      // async
+      Task<List<object>> ToListAsync();
+      Task<AsyncCountListResult<object>> ToCountListAsync();
+      Task<int> CountAsync();
+      Task<bool> ExistsAsync();
    }
 }

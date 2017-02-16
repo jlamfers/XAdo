@@ -46,12 +46,5 @@ namespace XAdo.Sql
       {
          return self == null ? default(T) : (T)self;
       }
-
-      [SqlFormat("{0}")]
-      public static CString AsComparable(this string self)
-      {
-         return new CString(self);
-      }
-
    }
 }

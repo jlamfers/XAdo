@@ -65,7 +65,7 @@ namespace XAdo.Sql.Core
       public string Alias { get; private set; }
       public string Map { get; private set; }
 
-      public string Path { get; private set; }
+      public string Path { get; internal set; }
 
       internal void ResolveFullPath(string previousPath)
       {
@@ -85,8 +85,8 @@ namespace XAdo.Sql.Core
          FullName = (Path + dot + Name);
       }
 
-      public string Name { get; private set; }
-      public string FullName { get; private set; }
+      public string Name { get; internal set; }
+      public string FullName { get; internal set; }
       public int Index { get; internal set; }
 
       internal MemberInfo MappedMember { get; set; }
@@ -101,12 +101,6 @@ namespace XAdo.Sql.Core
       {
          get { return _persistencyType.GetValueOrDefault(PersistencyType.Default); }
          private set { _persistencyType = value; }
-      }
-
-      public override string ToString()
-      {
-         var dot = string.IsNullOrEmpty(Path) ? "" : ".";
-         return string.Format("{3} -> {0}{1}{2}", Path, dot, Name, Expression);
       }
 
       public ColumnInfo Clone()
@@ -252,6 +246,13 @@ namespace XAdo.Sql.Core
          }
          return map;
       }
+
+      public override string ToString()
+      {
+         var dot = string.IsNullOrEmpty(Path) ? "" : ".";
+         return string.Format("{3} -> {0}{1}{2}", Path, dot, Name, Expression);
+      }
+
 
    }
 }

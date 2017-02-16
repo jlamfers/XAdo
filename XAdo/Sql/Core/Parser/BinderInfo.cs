@@ -27,39 +27,48 @@ namespace XAdo.Sql.Core
             {
                for (var i = 0; i < node.Arguments.Count; i++)
                {
-                  Bindings[_current = node.Members[i]] = Tuple.Create(node.Arguments[i], i);
+                  if (!HandleCall(node.Members[i], node.Arguments[i].Trim() as MethodCallExpression))
+                  {
+                     Visit(node.Arguments[i]);
+                  }
                }
                return node;
             }
             return base.VisitNew(node);
          }
 
-         private MemberInfo _current;
          protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
          {
-            Bindings[_current = node.Member] = Tuple.Create(node.Expression, 0);
-            return base.VisitMemberAssignment(node);
+            return HandleCall(node.Member, node.Expression.Trim() as MethodCallExpression) ? node : base.VisitMemberAssignment(node);
          }
 
-         protected override Expression VisitConstant(ConstantExpression node)
+         private bool HandleCall(MemberInfo member, MethodCallExpression call)
          {
-            if (node.Value is int)
+            if (call != null)
             {
-               var b = Bindings[_current];
-               Bindings[_current] = Tuple.Create(b.Item1, (int) node.Value);
+               var target = (call.Object ?? call.Arguments.FirstOrDefault());
+               if (target != null && target.Type == typeof(IDataRecord))
+               {
+                  var constant = call.Arguments.Last() as ConstantExpression;
+                  if (constant != null && constant.Value is int)
+                  {
+                     Bindings[member] = Tuple.Create((Expression)call, (int)constant.Value);
+                     return true;
+                  }
+               }
             }
-            return base.VisitConstant(node);
+            return false;
          }
       }
 
       private class MapVisitor : ExpressionVisitor
       {
-         private SelectInfo _selectInfo;
+         private SqlSelectInfo _selectInfo;
          private BinderInfo _binderInfo;
          private ParameterExpression _parameter;
          public readonly List<ColumnInfo> Columns = new List<ColumnInfo>();
 
-         public LambdaExpression Substitute(LambdaExpression mapExpression, SelectInfo selectInfo, BinderInfo binderInfo)
+         public LambdaExpression Substitute(LambdaExpression mapExpression, SqlSelectInfo selectInfo, BinderInfo binderInfo)
          {
             _selectInfo = selectInfo;
             _binderInfo = binderInfo;
@@ -75,31 +84,32 @@ namespace XAdo.Sql.Core
                return base.VisitNew(node);
             }
             var args = new List<Expression>();
-            for (var j = 0; j < node.Arguments.Count; j++)
+            for (var i = 0; i < node.Arguments.Count; i++)
             {
-               if (node.Arguments[j].NodeType == ExpressionType.New)
+               if (node.Arguments[i].NodeType == ExpressionType.New)
                {
-                  args.Add(Visit(node.Arguments[j]));
+                  args.Add(Visit(node.Arguments[i]));
                   continue;
                }
-               var member = node.Arguments[j].GetMemberInfo(false);
+               var member = node.Arguments[i].GetMemberInfo(false);
                int index;
                if (member == null || !_binderInfo.BindingIndices.TryGetValue(member, out index))
                {
-                  args.Add(Visit(node.Arguments[j]));
+                  args.Add(Visit(node.Arguments[i]));
                   continue;
                }
 
                var column = _selectInfo.Columns[index];
+               //note: indices are reset later
                var newIndex = Columns.FindIndex(c => c.Index == column.Index);
                if (newIndex == -1)
                {
                   newIndex = Columns.Count;
                   var c = column.Clone();
-                  c.MappedMember = node.Members[j];
+                  c.MappedMember = node.Members[i];
                   Columns.Add(c);
                }
-               args.Add(BinderFactory.GetRecordGetter(node.Members[j], newIndex, _parameter, column.NotNull));
+               args.Add(node.Members[i].GetDataRecordRecordGetterExpression(newIndex, _parameter, column.NotNull));
             }
             return Expression.New(node.Constructor, args, node.Members);
          }
@@ -119,11 +129,29 @@ namespace XAdo.Sql.Core
                   c.MappedMember = node.Member;
                   Columns.Add(c);
                }
-               return Expression.MemberBind(node.Member, BinderFactory.GetMemberBinder(node.Member, newIndex, _parameter, column.NotNull));
+               return Expression.MemberBind(node.Member, node.Member.GetDataRecordMemberAssignmentExpression(newIndex, _parameter, column.NotNull));
             }
            return base.VisitMemberBinding(node);
          }
 
+         protected override Expression VisitMember(MemberExpression node)
+         {
+            int index;
+            if (_binderInfo.BindingIndices.TryGetValue(node.Member, out index))
+            {
+               var column = _selectInfo.Columns[index];
+               var newIndex = Columns.FindIndex(c => c.Index == column.Index);
+               if (newIndex == -1)
+               {
+                  newIndex = Columns.Count;
+                  var c = column.Clone();
+                  c.MappedMember = null;
+                  Columns.Add(c);
+               }
+               return node.Member.GetDataRecordRecordGetterExpression(newIndex, _parameter, column.NotNull);
+            }
+            return base.VisitMember(node);
+         }
       }
 
       public BinderInfo(Expression binderExpression)
@@ -138,10 +166,28 @@ namespace XAdo.Sql.Core
       public IDictionary<MemberInfo, Expression> BindingExpressions { get; private set; }
       public IDictionary<MemberInfo, int> BindingIndices { get; private set; }
 
-      public LambdaExpression Map(LambdaExpression mappedBinderExpression, SelectInfo selectInfo, out SelectInfo mappedSelectInfo)
+      public LambdaExpression Map(LambdaExpression mappedBinderExpression, SqlSelectInfo selectInfo, out SqlSelectInfo mappedSelectInfo)
       {
+         var mappedType = mappedBinderExpression.Body.Type;
          var mapVisitor = new MapVisitor();
          var binderExpression = mapVisitor.Substitute(mappedBinderExpression, selectInfo, this);
+         var memberToPathMap = mappedType.GetMemberPathMap();
+         foreach (var c in mapVisitor.Columns)
+         {
+            if (c.MappedMember == null)
+            {
+               c.FullName = null;
+               c.Path = null;
+               c.Name = null;
+            }
+            else
+            {
+               c.FullName = memberToPathMap[c.MappedMember];
+               c.Name = c.FullName.Split('.').Last();
+               c.Path = c.FullName.Contains('.') ? c.FullName.Substring(0, c.FullName.LastIndexOf('.')) : "";
+               c.MappedMember = null;
+            }
+         }
          mappedSelectInfo = selectInfo.Map(mapVisitor.Columns);
          return binderExpression;
       }

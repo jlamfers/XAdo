@@ -7,15 +7,49 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using XAdo.Core;
 using XAdo.Core.Interface;
 using XAdo.Sql.Core;
 
 namespace XAdo.Sql
 {
-   public class Quob<TEntity> : IQuob<TEntity>
+   public class Quob<TEntity> : IQuob<TEntity>, IQuob, IAttachable
    {
 
-      private static LRUCache<Type, object> _mappedCache = new LRUCache<Type, object>(50);
+      #region Types
+      private class MapFactory<TMapped> : IMappedQuobFactory
+      {
+         private Quob<TEntity> _quob;
+
+         public IMappedQuobFactory SetRequestor(IQuob quob)
+         {
+            _quob = quob.CastTo<Quob<TEntity>>();
+            return this;
+         }
+
+         public IQuob CreateMappedQuob(Expression mappedBinder, SqlSelectInfo mappedSelectInfo)
+         {
+            var mapped = new Quob<TMapped>(true)
+            {
+               _sql = mappedSelectInfo.Sql,
+               _dialect = _quob._dialect,
+               _selectInfo = mappedSelectInfo,
+               _binderInfo = new BinderInfo(mappedBinder),
+               _binder = mappedBinder.CastTo<Expression<Func<IDataRecord, TMapped>>>().CompileCached(),
+               _map = new ReadOnlyDictionary<string, ColumnInfo>(
+                  mappedSelectInfo.Columns.Where(m => m.Name != null).ToDictionary(m => (m.Path + (m.Path.Length > 0 ? "." : "") + m.Name), m => m,
+                     StringComparer.OrdinalIgnoreCase)
+                  ),
+               _sqlCount = mappedSelectInfo.AsInnerQuery()
+            };
+            return mapped;
+         }
+
+      }
+
+      #endregion
+
+      private static LRUCache<string, object> _mappedCache = new LRUCache<string, object>(50);
 
 
       private string 
@@ -23,7 +57,7 @@ namespace XAdo.Sql
 
       private ISqlDialect 
          _dialect;
-      private SelectInfo 
+      private SqlSelectInfo 
          _selectInfo;
       private BinderInfo
          _binderInfo;
@@ -76,12 +110,52 @@ namespace XAdo.Sql
 
       public virtual IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> binder)
       {
-         var mapped = (Quob<TMapped>)(typeof(TMapped).IsRuntimeGenerated() 
-            ? _mappedCache.GetOrAdd(typeof(TMapped), t => CreateMappedQuob(binder)) 
-            : CreateMappedQuob(binder));
+         var mapped = (Quob<TMapped>)_mappedCache.GetOrAdd(binder.GetKey(), t =>
+         {
+            SqlSelectInfo mappedSelectInfo;
+            var mappedBinder = (Expression<Func<IDataRecord, TMapped>>)_binderInfo.Map(binder, _selectInfo, out mappedSelectInfo);
+            return
+               new MapFactory<TMapped>().SetRequestor(this)
+                  .CreateMappedQuob(mappedBinder, mappedSelectInfo)
+                  .CastTo<Quob<TMapped>>();
+         }); 
          mapped.Attach(_context.Session);
          mapped._context = _context.Clone();
          return mapped;
+      }
+      public virtual IQuob Select(params string[] columns)
+      {
+         if (columns.Length == 1)
+         {
+            columns = columns[0].Split(',').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim().Replace('/','.')).ToArray();
+         }
+
+         var mapped = (IAttachable)_mappedCache.GetOrAdd(string.Join(":", columns), t =>
+         {
+            var map = typeof (TEntity).GetPathMemberMap();
+            string current = null;
+            Type type;
+            try
+            {
+               type = AnonymousTypeHelper.GetOrCreateType(columns,
+                  columns.Select(c => map[current = c].GetMemberType()).ToList());
+            }
+            catch (KeyNotFoundException ex)
+            {
+               throw new Exception("The member name '" + current + "' is invalid");
+            }
+            var selectInfo = _selectInfo.Map(columns);
+            var binder = selectInfo.CreateBinder(type);
+            return typeof (MapFactory<>)
+               .MakeGenericType(typeof (TEntity), type)
+               .CreateInstance()
+               .CastTo<IMappedQuobFactory>()
+               .SetRequestor(this)
+               .CreateMappedQuob(binder, selectInfo);
+         });
+         mapped.Attach(_context.Session);
+         mapped.SetContext(_context.Clone());
+         return mapped.CastTo<IQuob>();
       }
 
       public virtual IQuob<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
@@ -138,11 +212,7 @@ namespace XAdo.Sql
       }
       public virtual IEnumerable<TEntity> ToEnumerable(out int count)
       {
-         var sql =
-            _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true).GetSqlTemplateArgs())
-            + Environment.NewLine 
-            + _dialect.StatementSeperator 
-            + _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
+         var sql = GetDuoSql();
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
@@ -199,11 +269,7 @@ namespace XAdo.Sql
       }
       public virtual async Task<AsyncCountListResult<TEntity>> ToCountListAsync()
       {
-         var sql =
-            _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true))
-            + Environment.NewLine
-            + _dialect.StatementSeperator
-            + _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
+         var sql = GetDuoSql();
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
@@ -235,7 +301,158 @@ namespace XAdo.Sql
       {
          var sql = _sqlCount.FormatSqlTemplate(_context.Clone(true));
          return (await _context.Session.QueryAsync(sql, r => r.GetBoolean(0), _context.GetArguments())).Single();
-      } 
+      }
+
+      #region IQuob
+      IQuob IQuob.Where(Expression expression)
+      {
+         return Where(expression.CastTo<Expression<Func<TEntity, bool>>>()).CastTo<IQuob>();
+      }
+
+      IQuob IQuob.Having(Expression expression)
+      {
+         return Having(expression.CastTo<Expression<Func<TEntity, bool>>>()).CastTo<IQuob>();
+      }
+
+      IQuob IQuob.Skip(int? skip)
+      {
+         return Skip(skip).CastTo<IQuob>();
+      }
+
+      IQuob IQuob.Take(int? take)
+      {
+         return Take(take).CastTo<IQuob>();
+      }
+
+      IQuob IQuob.OrderBy(params string[] expressions)
+      {
+         if (expressions.Length == 1)
+         {
+            expressions =
+               expressions[0].Split(',').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+            var first = true;
+            foreach (var e in expressions)
+            {
+               var desc = e.StartsWith("-") || e.EndsWith(" DESC", StringComparison.OrdinalIgnoreCase);
+               BuildOrderBySql(first, desc ? "DESC" : null, e.TrimStart('-').Split(' ').First().Replace('/', '.'));
+               first = false;
+            }
+            return this;
+         }
+
+         return BuildOrderBySql(true, null, expressions);
+      }
+
+      IQuob IQuob.OrderByDescending(params string[] expressions)
+      {
+         return BuildOrderBySql(true, "DESC", expressions);
+      }
+
+      IQuob IQuob.AddOrderBy(params string[] expressions)
+      {
+         return BuildOrderBySql(false, null, expressions);
+      }
+
+      IQuob IQuob.AddOrderByDescending(params string[] expressions)
+      {
+         return BuildOrderBySql(false, "DESC", expressions);
+      }
+
+      IEnumerable<object> IQuob.ToEnumerable()
+      {
+         return ToEnumerable().Cast<object>();
+      }
+
+      IEnumerable<object> IQuob.ToEnumerable(out int count)
+      {
+         return ToEnumerable(out count).Cast<object>();
+      }
+
+      List<object> IQuob.ToList()
+      {
+         return ToEnumerable().Cast<object>().ToList();
+      }
+
+      List<object> IQuob.ToList(out int count)
+      {
+         return ToEnumerable(out count).Cast<object>().ToList();
+      }
+
+      object[] IQuob.ToArray()
+      {
+         return ToEnumerable().Cast<object>().ToArray();
+      }
+
+      object[] IQuob.ToArray(out int count)
+      {
+         return ToEnumerable(out count).Cast<object>().ToArray();
+      }
+
+      async Task<List<object>> IQuob.ToListAsync()
+      {
+         var sql = _sql.FormatSqlTemplate(_context);
+         return await _context.Session.QueryAsync(sql, r => (object)_binder(r), _context.GetArguments());
+      }
+
+      async Task<AsyncCountListResult<object>> IQuob.ToCountListAsync()
+      {
+         var sql = GetDuoSql();
+
+         var binders = new List<Delegate>
+         {
+            new Func<IDataRecord, int>(r => r.GetInt32(0)), 
+            new Func<IDataRecord, object>(r => (object)_binder(r))
+         };
+
+         var reader = await _context.Session.QueryMultipleAsync(sql, binders, _context.GetArguments());
+         var count = (await reader.ReadAsync<int>()).Single();
+         var collection = await reader.ReadAsync<object>();
+         return new AsyncCountListResult<object>
+         {
+            Collection = collection,
+            TotalCount = count
+         };
+
+      }
+
+      #region Is implemented by IQuob<TEntity>
+      //int IQuob.Count()
+      //{
+      //   throw new NotImplementedException();
+      //}
+
+      //bool IQuob.Exists()
+      //{
+      //   throw new NotImplementedException();
+      //}
+
+      //Task<int> IQuob.CountAsync()
+      //{
+      //   throw new NotImplementedException();
+      //}
+
+      //Task<bool> IQuob.ExistsAsync()
+      //{
+      //   throw new NotImplementedException();
+      //}
+      #endregion
+
+      #endregion
+
+      #region IAttachable
+      void IAttachable.Attach(IAdoSession session)
+      {
+         Attach(session);
+      }
+      void IAttachable.SetContext(QueryContext context)
+      {
+         SetContext(context);
+      }
+      protected virtual void SetContext(QueryContext context)
+      {
+         _context = context;
+      }
+      #endregion
 
       private void Initialize()
       {
@@ -270,14 +487,30 @@ namespace XAdo.Sql
          {
             _context.Order.Clear();
          }
-         var sb = new StringBuilder();
+         var path = new StringBuilder();
          foreach (var e in expressions)
          {
-            sb.Length = 0;
+            path.Length = 0;
             var m = (MemberExpression)e.Body.Trim();
-            m.IsParameterDependent(sb);
-            var path = sb.ToString();
-            var info = _selectInfo.Columns.Single(c => c.FullName.Equals(path,StringComparison.OrdinalIgnoreCase));//TODO: reconsider case insensitve compares, move to _selectinfo?
+            m.IsParameterDependent(path);
+            var info = _selectInfo.FindColumn(path.ToString());
+            _context.Order.Add(string.Format("{0} {1}", info.IsCalculated ? info.Alias : info.Expression, order));
+         }
+         return this;
+      }
+      private IQuob BuildOrderBySql(bool reset, string order, params string[] expressions)
+      {
+         if (reset)
+         {
+            _context.Order.Clear();
+         }
+         foreach (var path in expressions)
+         {
+            var info = _selectInfo.FindColumn(path);
+            if (info == null)
+            {
+               throw new Exception("The sort member '"+path+"' is invalid");
+            }
             _context.Order.Add(string.Format("{0} {1}", info.IsCalculated ? info.Alias : info.Expression, order));
          }
          return this;
@@ -349,24 +582,15 @@ namespace XAdo.Sql
          template = Regexes.RegexFrom.Replace(template, m => sql.Substring(_selectInfo.FromPosition));
          return template;
       }
-      private Quob<TMapped> CreateMappedQuob<TMapped>(Expression<Func<TEntity, TMapped>> binder)
+      private string GetDuoSql()
       {
-         SelectInfo mappedSelectInfo;
-         var mappedBinder = (Expression<Func<IDataRecord, TMapped>>)_binderInfo.Map(binder, _selectInfo, out mappedSelectInfo);
-         var mapped = new Quob<TMapped>(true)
-         {
-            _sql = mappedSelectInfo.Sql,
-            _dialect = _dialect,
-            _selectInfo = mappedSelectInfo,
-            _binderInfo = new BinderInfo(mappedBinder),
-            _binder = mappedBinder.Compile(),
-            _map = new ReadOnlyDictionary<string, ColumnInfo>(
-               mappedSelectInfo.Columns.ToDictionary(m => (m.Path + "." + m.Name).TrimStart('.'), m => m,
-                  StringComparer.OrdinalIgnoreCase)
-               ),
-            _sqlCount = mappedSelectInfo.AsInnerQuery()
-         };
-         return mapped;
+         var sql =
+            _dialect.CountFormat.FormatWith(_sqlCount).FormatSqlTemplate(_context.Clone(true).GetSqlTemplateArgs())
+            + Environment.NewLine
+            + _dialect.StatementSeperator
+            + _sql.FormatSqlTemplate(_context.GetSqlTemplateArgs());
+         return sql;
+
       }
 
    }

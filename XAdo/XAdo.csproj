@@ -47,6 +47,11 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Core\Atomic.cs" />
+    <Compile Include="Sql\Core\CommonExtensions.cs" />
+    <Compile Include="Sql\Core\LRUCache.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sql\Core\Parser\ExpressionKey.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\GetterSetterUtil.cs">
@@ -127,37 +132,38 @@
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
-    <Compile Include="Sql\Core\BinderInfo.cs" />
+    <Compile Include="Sql\Core\Parser\BinderInfo.cs" />
     <Compile Include="Sql\Core\QueryContext.cs" />
-    <Compile Include="Sql\Core\SqlTemplateArgs.cs" />
-    <Compile Include="Sql\SqlSelectAttribute.cs" />
+    <Compile Include="Sql\Core\Templates\SqlTemplateArgs.cs" />
+    <Compile Include="Sql\Core\Meta\SqlSelectAttribute.cs" />
     <Compile Include="Sql\AsyncCountListResult.cs" />
-    <Compile Include="Sql\Core\LRUCache.cs" />
+    <Compile Include="Sql\Core\IAttachable.cs" />
     <Compile Include="Sql\IQuob.cs" />
+    <Compile Include="Sql\Core\IMappedQuobFactory.cs" />
     <Compile Include="Sql\SessionExtensions.cs" />
     <Compile Include="Sql\Quob.cs" />
-    <Compile Include="Sql\Core\Annotator.cs" />
-    <Compile Include="Sql\Core\DbReaderException.cs" />
-    <Compile Include="Sql\Core\BinderFactory.cs" />
-    <Compile Include="Sql\Core\DataRecordGetters.cs" />
-    <Compile Include="Sql\Core\SqlDialect.cs" />
-    <Compile Include="Sql\Core\ColumnInfo.cs" />
-    <Compile Include="Sql\Core\CString.cs" />
+    <Compile Include="Sql\Core\Meta\Annotator.cs" />
+    <Compile Include="Sql\Core\Data\DataRecordException.cs" />
+    <Compile Include="Sql\Core\Parser\BinderFactory.cs" />
+    <Compile Include="Sql\Core\Data\DataRecordGetters.cs" />
+    <Compile Include="Sql\Providers\SqlDialect.cs" />
+    <Compile Include="Sql\Core\Parser\ColumnInfo.cs" />
+    <Compile Include="Sql\CString.cs" />
     <Compile Include="Sql\Core\ExpressionExtensions.cs" />
-    <Compile Include="Sql\Core\KnownMembers.cs" />
-    <Compile Include="Sql\Core\MemberInfoFinder.cs" />
-    <Compile Include="Sql\Core\SelectInfo.cs" />
-    <Compile Include="Sql\Core\SqlSelectParser.cs" />
+    <Compile Include="Sql\Core\Meta\KnownMembers.cs" />
+    <Compile Include="Sql\Core\Meta\MemberInfoFinder.cs" />
+    <Compile Include="Sql\Core\Parser\SqlSelectInfo.cs" />
+    <Compile Include="Sql\Core\Parser\SqlSelectParser.cs" />
     <Compile Include="Sql\SqlMethods.cs" />
-    <Compile Include="Sql\Core\SqlTemplateFormatter.cs" />
-    <Compile Include="Sql\Core\StatementFormatter.cs" />
-    <Compile Include="Sql\Core\ISqlDialect.cs" />
+    <Compile Include="Sql\Core\Templates\SqlTemplateFormatter.cs" />
+    <Compile Include="Sql\Core\Meta\StatementFormatter.cs" />
+    <Compile Include="Sql\Providers\ISqlDialect.cs" />
     <Compile Include="Sql\Providers\SqlServerDialect.cs" />
-    <Compile Include="Sql\SqlBuilder.cs" />
+    <Compile Include="Sql\Core\Parser\SqlBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\AdoSqlBatchItem.cs" />
     <Compile Include="Core\Impl\AdoSqlBatchImpl.cs" />
-    <Compile Include="Sql\SqlFormatAttribute.cs" />
+    <Compile Include="Sql\Core\Meta\SqlFormatAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Sql\Providers\sql-server.json" />

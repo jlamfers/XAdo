@@ -4,31 +4,31 @@ using System.Runtime.Serialization;
 namespace XAdo.Sql.Core
 {
    [Serializable]
-   public class DbReaderException : Exception
+   public class DataRecordException : Exception
    {
-      public DbReaderException()
+      public DataRecordException()
       {
          Index = -1;
       }
-      public DbReaderException(int index)
+      public DataRecordException(int index)
       {
          Index = index;
       }
-      public DbReaderException(int index, string message) : base(message)
+      public DataRecordException(int index, string message) : base(message)
       {
          Index = index;
       }
-      public DbReaderException(int index, string message, Exception inner) : base(message, inner)
+      public DataRecordException(int index, string message, Exception inner) : base(message, inner)
       {
          Index = index;
       }
-      public DbReaderException(int index, Exception inner)
-         : this(index, "error at dbreader: value is null at index "+index , inner)
+      public DataRecordException(int index, Exception inner)
+         : this(index, "error at data reader: value is null at index "+index , inner)
       {
          Index = index;
       }
 
-      protected DbReaderException(
+      protected DataRecordException(
          SerializationInfo info,
          StreamingContext context) : base(info, context)
       {
@@ -37,6 +37,7 @@ namespace XAdo.Sql.Core
 
       public override void GetObjectData(SerializationInfo info, StreamingContext context)
       {
+         base.GetObjectData(info,context);
          info.AddValue("Index",Index);
       }
 

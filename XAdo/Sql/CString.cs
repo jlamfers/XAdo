@@ -95,4 +95,13 @@ namespace XAdo.Sql.Core
       }
    }
 
+   public static class CStringExtensions
+   {
+      [SqlFormat("{0}")]
+      public static CString AsComparable(this string self)
+      {
+         return new CString(self);
+      }
+   }
+
 }

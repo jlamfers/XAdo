@@ -74,8 +74,8 @@ INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.Busi
 INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
 INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
 --$WHERE {where}
+--${!order}{!inner}ORDER BY p.BusinessEntityID
 --$ORDER BY {order} 
---${!order}{!inner}ORDER BY Id
 --$OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
 
 ";
@@ -87,6 +87,34 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          var selectInfo = selectParser.Parse(Query3);
          var factory = selectInfo.CreateBinder<Person>();
          var ctor = factory.Compile();
+
+         var key = factory.GetKey();
+         factory.ToString();
+
+         var stw = new Stopwatch();
+         stw.Start();
+         for (var x = 0; x < 1000; x++)
+         {
+            factory.GetKey();
+         }
+
+         stw.Stop();
+         Debug.WriteLine("elapsed: " + stw.ElapsedMilliseconds);
+
+         var k3 = selectInfo.CreateBinder<Person>().GetKey();
+         stw = new Stopwatch();
+         stw.Start();
+         for (var x = 0; x < 1000; x++)
+         {
+            if (k3 == key)
+            {
+               
+            }
+         }
+
+         stw.Stop();
+         Debug.WriteLine("elapsed: " + stw.ElapsedMilliseconds);
+
 
          var context = new AdoContext("AW");
 
@@ -109,32 +137,42 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       {
          var selectParser = new SqlSelectParser();
          var selectInfo = selectParser.Parse(Query3);
-         //var sw = new Stopwatch();
-         //sw.Start();
-         //for (var i = 0; i < 1000; i++)
-         //{
-         //   selectParser.Parse(Query3);
-         //}
-         //sw.Stop();
-         //Debug.WriteLine(sw.ElapsedMilliseconds);
-         //var factory = selectInfo.BuildFactory<Person>();
-         //sw = new Stopwatch();
-         //sw.Start();
-         //for (var i = 0; i < 1000; i++)
-         //{
-         //   selectInfo.BuildFactory<Person>();
-         //}
-         //sw.Stop();
-         //Debug.WriteLine(sw.ElapsedMilliseconds);
-         //var ctor = factory.Compile();
-         //sw = new Stopwatch();
-         //sw.Start();
-         //for (var i = 0; i < 1000; i++)
-         //{
-         //   factory.Compile();
-         //}
-         //sw.Stop();
-         //Debug.WriteLine(sw.ElapsedMilliseconds);
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            selectParser.Parse(Query3);
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+         var factory = selectInfo.CreateBinder<Person>();
+         sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            selectInfo.CreateBinder<Person>();
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+         var ctor = factory.Compile();
+         sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            factory.Compile();
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+
+         sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            factory.CompileCached();
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+
 
          var context = new AdoContext(cfg => cfg
             .SetConnectionStringName("AW")
@@ -152,7 +190,10 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
                .Skip(5)
                .OrderBy(p => p.Address.City)
                .Select(x => new {Name=x.FirstName, Address2 = new{x.Address.Line1}})
-               .Where(y => y.Address2.Line1 != null)
+               .Select(y => new {y.Name,y.Address2.Line1})
+               .Where(y => y.Line1 != null)
+               .Select(y => Tuple.Create(y.Name,y.Line1))
+               //.Where(y => y.Item1 != null)
                .ToList(out count);
          }
       }
@@ -193,5 +234,44 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
             list = sn.Query<Address>().ToList();
          }         
       }
+
+      [Test]
+      public void MonkeyTest4()
+      {
+
+
+         var context = new AdoContext(cfg => cfg
+            .SetConnectionStringName("AW")
+            .BindSingleton<ISqlDialect, SqlServerDialect>()
+            .BindSingleton(typeof(IQuob<>), typeof(Quob<>))
+            .BindSingleton<IQuob<Person>>(b => new Quob<Person>(Query3))
+         );
+
+         using (var sn = context.CreateSession())
+         {
+            int count;
+            var q = sn.Query<Person>();
+
+            var q2 = q
+               .Select("FirstName, LastName, Address/Line1")
+               .OrderBy("-Address/Line1")
+               .Take(10);
+
+            var list = q2.ToList(out count);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 100; i++)
+            {
+               var r = q
+               .Select("FirstName,LastName,Address.Line1")
+               .Take(10)
+               .ToList();
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
    }
 }

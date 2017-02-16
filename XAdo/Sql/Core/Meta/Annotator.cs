@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace XAdo.Sql.Core
 {
-   // This Annotator class lets you dynamicly (and/or additionally) annotate types and members if you use this Annotator
+   // This Annotator class lets you dynamicly (and/or additionally) annotate types and members, only if you use this Annotator
    // extension methods to retrieve all corresponding annotations (attributes).
    public static class Annotator
    {

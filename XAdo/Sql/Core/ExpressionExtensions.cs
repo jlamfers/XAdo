@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using XAdo.Core;
 
@@ -119,25 +116,6 @@ namespace XAdo.Sql.Core
          return true;
 
       }
-      public static object GetValue(this MemberInfo member, object target)
-      {
-         var pi = member as PropertyInfo;
-         return pi != null ? pi.GetValue(target) : ((FieldInfo)member).GetValue(target);
-      }
-
-      public static bool IsNullable(this Type self)
-      {
-         return self != null && Nullable.GetUnderlyingType(self) != null;
-      }
-
-      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, string providerName)
-      {
-         return self.GetAnnotations<SqlFormatAttribute>().FirstOrDefault(a => a.ProviderName == null || a.ProviderName == providerName);
-      }
-      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, ISqlDialect dialect)
-      {
-         return self.GetSqlFormatAttribute(dialect.ProviderName);
-      }
 
       public static IEnumerable<Expression> GetAllArguments(this MethodCallExpression node)
       {
@@ -155,29 +133,6 @@ namespace XAdo.Sql.Core
          var args = argsEnumerable.ToList();
          args.AddRange(node.Method.GetGenericArguments().Select(Expression.Constant));
          return args;
-      }
-
-      public static IDictionary<TKey, TValue> AddRange<TKey, TValue>(this IDictionary<TKey, TValue> self, IDictionary<TKey, TValue> other)
-      {
-         foreach (var kv in other)
-         {
-            self.Add(kv);
-         }
-         return self;
-      }
-      public static IDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> self)
-      {
-         return new ReadOnlyDictionary<TKey, TValue>(self);
-      }
-
-      public static string FormatWith(this string format, params object[] args)
-      {
-         return format == null ? null : string.Format(format, args);
-      }
-
-      public static bool IsRuntimeGenerated(this Type self)
-      {
-         return Attribute.IsDefined(self, typeof (CompilerGeneratedAttribute), false);
       }
    }
 }
