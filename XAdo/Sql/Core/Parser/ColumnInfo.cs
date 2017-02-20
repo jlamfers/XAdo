@@ -3,18 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using XAdo.Sql.Core.Parser;
 
 namespace XAdo.Sql.Core
 {
-   [Flags]
-   public enum PersistencyType
-   {
-      Default=3, // all
-      Create=1,
-      Update=2,
-      None=0
-   }
-
    public class ColumnInfo
    {
       private PersistencyType? _persistencyType;
@@ -97,6 +89,27 @@ namespace XAdo.Sql.Core
       public bool IsOuterJoinColumn { get; private set; }
       public bool NotNull { get; private set; }
 
+      private TableInfo _table;
+      private bool _tableDefined;
+      public TableInfo Table
+      {
+         get
+         {
+            if (_tableDefined) return _table;
+            if (!IsCalculated)
+            {
+               var parts = Expression.SplitMultiPartIdentifier();
+               if (parts.Count > 1)
+               {
+                  parts.RemoveAt(parts.Count - 1);
+                  _table = new TableInfo(string.Join(".", parts));
+               }
+            }
+            _tableDefined = true;
+            return _table;
+         }
+      }
+
       public PersistencyType Persistency
       {
          get { return _persistencyType.GetValueOrDefault(PersistencyType.Default); }
@@ -119,6 +132,8 @@ namespace XAdo.Sql.Core
             IsCalculated = IsCalculated,
             IsOuterJoinColumn = IsOuterJoinColumn,
             NotNull = NotNull,
+            _table = _table,
+            _tableDefined = _tableDefined,
             _persistencyType = _persistencyType
          };
       }
@@ -222,6 +237,7 @@ namespace XAdo.Sql.Core
          }
          return null;
       }
+
       private static string NormalizeMap(string expression, string alias, string map)
       {
          if (string.IsNullOrEmpty(map))

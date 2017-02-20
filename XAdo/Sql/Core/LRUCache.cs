@@ -55,7 +55,6 @@ namespace XAdo.Sql.Core
          get { return _capacity; }
       }
 
-
       public bool TryGetValue(TKey key, out TValue value)
       {
          value = default(TValue);

@@ -46,7 +46,7 @@ namespace XAdo.Sql.Core
    public static class BinderFactory
    {
 
-      private static MethodInfo _isDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
+      private static readonly MethodInfo IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
 
       public static Expression<Func<IDataRecord, T>> CreateBinder<T>(this SqlSelectInfo info)
       {
@@ -109,7 +109,7 @@ namespace XAdo.Sql.Core
             }
          }
          var body = Expression.MemberInit(Expression.New(ctor), expressions);
-         return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, _isDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
+         return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, IsDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
       }
 
 

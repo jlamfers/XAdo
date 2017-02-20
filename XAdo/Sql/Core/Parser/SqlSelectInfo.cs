@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using XAdo.Sql.Core.Parser;
 
 namespace XAdo.Sql.Core
 {
@@ -12,7 +13,7 @@ namespace XAdo.Sql.Core
 
       private SqlSelectInfo() { }
 
-      public SqlSelectInfo(string sql, IList<ColumnInfo> columns, IDictionary<string, string> tables, bool distinct, int selectColumnsPosition, int fromPosition)
+      public SqlSelectInfo(string sql, IList<ColumnInfo> columns, IList<TableInfo> tables, bool distinct, int selectColumnsPosition, int fromPosition, int wherePosition)
       {
          for (var index = 0; index < columns.Count; index++)
          {
@@ -33,19 +34,21 @@ namespace XAdo.Sql.Core
          Sql += sql.Substring(fromPosition);
 
          Columns = columns.ToList().AsReadOnly();
-         Tables = new ReadOnlyDictionary<string, string>(tables);
+         Tables = tables.ToList().AsReadOnly();
          Distinct = distinct;
          SelectColumnsPosition = selectColumnsPosition;
          FromPosition = newFromPosition;
+         WherePosition = wherePosition - (fromPosition - newFromPosition);
 
       }
 
       public string Sql { get; private set; }
       public IList<ColumnInfo> Columns { get; private set; }
-      public IDictionary<string,string> Tables { get; private set; }
+      public IList<TableInfo> Tables { get; private set; }
       public bool Distinct { get; private set; }
       public int SelectColumnsPosition { get; private set; }
       public int FromPosition { get; private set; }
+      public int WherePosition { get; private set; }
 
       private Dictionary<string, ColumnInfo>
          _fullNameMap;
@@ -65,12 +68,37 @@ namespace XAdo.Sql.Core
             _innerQuery =
                Sql.Substring(0, SelectColumnsPosition)
                + " "
-               + (Distinct ? string.Join(",", Columns.Select(c => c.Expression + " AS " + ("c" + index++)).ToArray()) : "1 AS c0")
+               + (Distinct ? /* ensure each column to have unique aliases*/ string.Join(",", Columns.Select(c => c.Expression + " AS " + ("c" + index++)).ToArray()) : "1 AS c0")
                + " "
                + Sql.Substring(FromPosition);
          }
          return _innerQuery;
       }
+
+      //public string AsUpdateQuery()
+      //{
+      //   foreach (var table in Tables)
+      //   {
+      //      var table1 = table;
+      //      var columns = Columns.Where(c => (c.Table ?? Tables.First()).BelongsTo(table1)).ToList();
+      //      var updateableColumns = columns.Where(c => c.Persistency.HasFlag(PersistencyType.Update));
+      //      if (!updateableColumns.Any())
+      //      {
+      //         // cannot update
+      //         continue;
+      //      }
+      //      var keyColumns = columns.Where(c => c.IsKey).ToList();
+      //      if (!keyColumns.Any())
+      //      {
+      //         keyColumns = Columns.Where(c => c.IsKey).ToList();
+      //      }
+      //      if (!keyColumns.Any())
+      //      {
+      //         // cannot update
+      //         continue;
+      //      }
+      //   }
+      //}
 
       public SqlSelectInfo Map(List<ColumnInfo> columns)
       {
@@ -91,8 +119,9 @@ namespace XAdo.Sql.Core
                      columns.Select(c => c.Expression + (c.Alias != null ? " AS " + c.Alias : "")))
                   + Environment.NewLine
          };
-
+         var divPosition = FromPosition - result.Sql.Length;
          result.FromPosition = result.Sql.Length;
+         result.WherePosition = WherePosition - divPosition;
          result.Sql += Sql.Substring(FromPosition);
          return result;
       }

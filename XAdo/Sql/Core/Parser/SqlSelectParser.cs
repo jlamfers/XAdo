@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using XAdo.Sql.Core.Parser;
 
 namespace XAdo.Sql.Core
 {
@@ -105,7 +106,7 @@ namespace XAdo.Sql.Core
                         }
                         var fromPos = _pos - 4;
                         SkipSpaces();
-                        var tables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                        var tables = new List<TableInfo>();
                         var tablename = ReadUntilSpace();
                         string tablealias = null;
                         SkipSpaces();
@@ -115,7 +116,7 @@ namespace XAdo.Sql.Core
                            tablealias = ReadUntilSpace();
                            SkipSpaces();
                         }
-                        tables.Add(tablealias ?? tablename, tablename);
+                        tables.Add(new TableInfo(tablealias != null ? tablename+" AS "+tablealias : tablename));
                         while (SkipAnyOff("INNER", "OUTER", "LEFT", "RIGHT", "JOIN", "FULL") && !Eof())
                         {
                            SkipSpaces();
@@ -132,21 +133,21 @@ namespace XAdo.Sql.Core
                               tablealias = ReadUntilSpace();
                               SkipSpaces();
                            }
-                           tables.Add(tablealias ?? tablename, tablename);
+                           tables.Add(new TableInfo(tablealias != null ? tablename + " AS " + tablealias : tablename));
                            Expect("ON");
                            SkipSpaces();
                            while (!SkipAnyOff("INNER", "OUTER", "LEFT", "RIGHT", "JOIN", "FULL") && !Eof())
                            {
-                              if (SkipAnyOff("WHERE", "HAVING", "ORDER", "UNION"))
+                              if (SkipAnyOff("WHERE", "HAVING", "ORDER", "UNION", "GROUP"))
                               {
-                                 return new SqlSelectInfo(_source,columns, tables,distinct,selectColumnsPos, fromPos);
+                                 return new SqlSelectInfo(_source,columns, tables,distinct,selectColumnsPos, fromPos, _pos);
                               }
                               _pos++;
                            }
 
                         }
 
-                        return new SqlSelectInfo(_source,columns, tables, distinct, selectColumnsPos, fromPos);
+                        return new SqlSelectInfo(_source,columns, tables, distinct, selectColumnsPos, fromPos,_pos);
                      }
                      else
                      {

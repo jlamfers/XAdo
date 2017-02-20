@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using XAdo.Core;
 
 namespace XAdo.Sql.Core
@@ -54,7 +55,7 @@ namespace XAdo.Sql.Core
          return Activator.CreateInstance(self);
       }
 
-      public static IDictionary<MemberInfo, string> GetMemberPathMap(this Type type, IDictionary<MemberInfo, string> map = null, string path=null)
+      public static IDictionary<MemberInfo, string> GetMemberToFullNameMap(this Type type, IDictionary<MemberInfo, string> map = null, string path=null)
       {
          map = map ?? new Dictionary<MemberInfo, string>();
          path = path ?? "";
@@ -65,17 +66,15 @@ namespace XAdo.Sql.Core
             var t = m.GetMemberType();
             if (!t.IsPrimitiveType())
             {
-               t.GetMemberPathMap(map, m.Name);
+               t.GetMemberToFullNameMap(map, m.Name);
             }
          }
          return map;
 
       }
-      public static IDictionary<string,MemberInfo> GetPathMemberMap(this Type type)
+      public static IDictionary<string,MemberInfo> GetFullNameToMemberMap(this Type type)
       {
-         return type.GetMemberPathMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
+         return type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
       }
-
-
    }
 }

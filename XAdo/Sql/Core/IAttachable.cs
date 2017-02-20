@@ -6,7 +6,7 @@ namespace XAdo.Sql
    internal interface IAttachable
    {
       void Attach(IAdoSession session);
-      void SetContext(QueryContext context);
+      void SetQueryContext(QueryContext context);
 
    }
 }

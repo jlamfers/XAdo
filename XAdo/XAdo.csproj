@@ -47,6 +47,8 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Core\Atomic.cs" />
+    <Compile Include="Parser\Properties.cs" />
+    <Compile Include="Parser\SqlParser.cs" />
     <Compile Include="Sql\Core\CommonExtensions.cs" />
     <Compile Include="Sql\Core\LRUCache.cs">
       <SubType>Code</SubType>
@@ -133,6 +135,9 @@
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />
     <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
     <Compile Include="Sql\Core\Parser\BinderInfo.cs" />
+    <Compile Include="Sql\Core\Parser\PersistencyType.cs" />
+    <Compile Include="Sql\Core\Parser\Splitter.cs" />
+    <Compile Include="Sql\Core\Parser\TableInfo.cs" />
     <Compile Include="Sql\Core\QueryContext.cs" />
     <Compile Include="Sql\Core\Templates\SqlTemplateArgs.cs" />
     <Compile Include="Sql\Core\Meta\SqlSelectAttribute.cs" />

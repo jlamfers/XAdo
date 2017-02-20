@@ -171,7 +171,7 @@ namespace XAdo.Sql.Core
          var mappedType = mappedBinderExpression.Body.Type;
          var mapVisitor = new MapVisitor();
          var binderExpression = mapVisitor.Substitute(mappedBinderExpression, selectInfo, this);
-         var memberToPathMap = mappedType.GetMemberPathMap();
+         var memberToPathMap = mappedType.GetMemberToFullNameMap();
          foreach (var c in mapVisitor.Columns)
          {
             if (c.MappedMember == null)

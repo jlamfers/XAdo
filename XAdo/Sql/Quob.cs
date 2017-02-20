@@ -132,7 +132,7 @@ namespace XAdo.Sql
 
          var mapped = (IAttachable)_mappedCache.GetOrAdd(string.Join(":", columns), t =>
          {
-            var map = typeof (TEntity).GetPathMemberMap();
+            var map = typeof (TEntity).GetFullNameToMemberMap();
             string current = null;
             Type type;
             try
@@ -154,7 +154,7 @@ namespace XAdo.Sql
                .CreateMappedQuob(binder, selectInfo);
          });
          mapped.Attach(_context.Session);
-         mapped.SetContext(_context.Clone());
+         mapped.SetQueryContext(_context.Clone());
          return mapped.CastTo<IQuob>();
       }
 
@@ -444,7 +444,7 @@ namespace XAdo.Sql
       {
          Attach(session);
       }
-      void IAttachable.SetContext(QueryContext context)
+      void IAttachable.SetQueryContext(QueryContext context)
       {
          SetContext(context);
       }
