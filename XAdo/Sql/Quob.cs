@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Sql.Parser;
 using XAdo.Core;
 using XAdo.Core.Interface;
 using XAdo.Sql.Core;
@@ -31,13 +32,12 @@ namespace XAdo.Sql
          {
             var mapped = new Quob<TMapped>(true)
             {
-               _sql = mappedSelectInfo.Sql,
                _dialect = _quob._dialect,
                _selectInfo = mappedSelectInfo,
                _binderInfo = new BinderInfo(mappedBinder),
                _binder = mappedBinder.CastTo<Expression<Func<IDataRecord, TMapped>>>().CompileCached(),
-               _map = new ReadOnlyDictionary<string, ColumnInfo>(
-                  mappedSelectInfo.Columns.Where(m => m.Name != null).ToDictionary(m => (m.Path + (m.Path.Length > 0 ? "." : "") + m.Name), m => m,
+               _map = new ReadOnlyDictionary<string, string>(
+                  mappedSelectInfo.Select.Columns.Where(m => m.Map.Name != null).ToDictionary(m => (m.Map.Path + (m.Map.Path.Length > 0 ? "." : "") + m.Map.Name), m => m.Expression,
                      StringComparer.OrdinalIgnoreCase)
                   ),
                _sqlCount = mappedSelectInfo.AsInnerQuery()
@@ -66,7 +66,7 @@ namespace XAdo.Sql
          _binder;
       private QueryContext
          _context;
-      private IDictionary<string, ColumnInfo> 
+      private IDictionary<string, string> 
          _map;
       private string 
          _sqlCount;

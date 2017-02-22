@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Sql.Parser;
 using XAdo.Core;
 
 namespace XAdo.Sql.Core
@@ -69,41 +70,42 @@ namespace XAdo.Sql.Core
             throw new InvalidOperationException("Type " + refType.Name + " has no public default constructor");
          }
          var members = info
+            .Select
             .Columns
-            .Where(m => path.Length == 0 || m.Path==path || m.Path.StartsWith(path+"."))
-            .OrderBy(m => m.Path)
+            .Where(m => path.Length == 0 || m.Map.Path==path || m.Map.Path.StartsWith(path+"."))
+            .OrderBy(m => m.Map.Path)
             .ThenBy(m => m.Index)
             .ToArray();
 
          var expressions = new List<MemberBinding>();
          foreach (var m in members)
          {
-            if (m.Path == path)
+            if (m.Map.Path == path)
             {
                try
                {
-                  expressions.Add(refType.GetPropertyOrField(m.Name).GetDataRecordMemberAssignmentExpression(m.Index, p, m.NotNull));
+                  expressions.Add(refType.GetPropertyOrField(m.Map.Name).GetDataRecordMemberAssignmentExpression(m.Index, p, m.Meta.NotNull));
                }
                catch (Exception ex)
                {
-                  throw new Exception("Invalid member reference: " + refType.Name+"."+m.Name+", map: " + m.Map+" (verify your mapping)",ex);
+                  throw new Exception("Invalid member reference: " + refType.Name+"."+m.Map.Name+", map: " + m.Map+" (verify your mapping)",ex);
                }
             }
             else
             {
-               if (!handledPathes.Contains(m.Path))
+               if (!handledPathes.Contains(m.Map.Path))
                {
                   try
                   {
-                     var refMember = refType.GetPropertyOrField(m.Path.Split('.').Last());
-                     var newExpression = info.GetBinderExpression(refMember.GetMemberType(), m.Path, p, handledPathes,
-                        m.IsOuterJoinColumn);
+                     var refMember = refType.GetPropertyOrField(m.Map.Path.Split('.').Last());
+                     var newExpression = info.GetBinderExpression(refMember.GetMemberType(), m.Map.Path, p, handledPathes,
+                        m.Meta.IsOuterJoinColumn);
                      expressions.Add(Expression.Bind(refMember, newExpression));
-                     handledPathes.Add(m.Path);
+                     handledPathes.Add(m.Map.Path);
                   }
                   catch (Exception ex)
                   {
-                     throw new Exception("Invalid member reference: " + refType.Name + "." + m.Name + ", map: " + m.Map + " (verify your mapping)", ex);
+                     throw new Exception("Invalid member reference: " + refType.Name + "." + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
                   }
                }
             }

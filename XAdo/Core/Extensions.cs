@@ -9,7 +9,7 @@ namespace XAdo.Core
 {
     public static partial class Extensions
     {
-        internal static T CastTo<T>(this object self)
+       internal static T CastTo<T>(this object self)
         {
             return self == null || self == DBNull.Value ? default(T) : (T) self;
         }

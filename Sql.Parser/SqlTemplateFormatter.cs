@@ -21,6 +21,7 @@ namespace Sql.Parser
 
       public static string FormatTemplate(this string template, object argumentsObject)
       {
+
          if (string.IsNullOrEmpty(template))
          {
             return null;
@@ -34,9 +35,15 @@ namespace Sql.Parser
             var f = TryTransformFormatString(t.Item1, t.Item2, out argumentsList);
             return Tuple.Create(f, argumentsList.ToArray());
          });
+
          var format = tuple.Item1;
          if (format == null) return null;
          var args = tuple.Item2.Select(x => x(argumentsObject)).ToArray();
+
+         for (var i = 0; i < args.Length; i++)
+         {
+            if (args[i] == null) return "";
+         }
          return string.Format(format, args);
       }
 
@@ -83,7 +90,7 @@ namespace Sql.Parser
                if (notExists)
                {
                   arguments.Add(obj => new object());
-                  return sb.ToString();
+                  continue;
                }
                return null;
             }

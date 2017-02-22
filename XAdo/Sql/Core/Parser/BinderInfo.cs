@@ -5,6 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Sql.Parser;
+using Sql.Parser.Tokens;
 
 namespace XAdo.Sql.Core
 {
@@ -66,7 +68,7 @@ namespace XAdo.Sql.Core
          private SqlSelectInfo _selectInfo;
          private BinderInfo _binderInfo;
          private ParameterExpression _parameter;
-         public readonly List<ColumnInfo> Columns = new List<ColumnInfo>();
+         public readonly List<MetaColumnToken> Columns = new List<MetaColumnToken>();
 
          public LambdaExpression Substitute(LambdaExpression mapExpression, SqlSelectInfo selectInfo, BinderInfo binderInfo)
          {
@@ -99,7 +101,7 @@ namespace XAdo.Sql.Core
                   continue;
                }
 
-               var column = _selectInfo.Columns[index];
+               var column = _selectInfo.Select.Columns[index];
                //note: indices are reset later
                var newIndex = Columns.FindIndex(c => c.Index == column.Index);
                if (newIndex == -1)
@@ -109,7 +111,7 @@ namespace XAdo.Sql.Core
                   c.MappedMember = node.Members[i];
                   Columns.Add(c);
                }
-               args.Add(node.Members[i].GetDataRecordRecordGetterExpression(newIndex, _parameter, column.NotNull));
+               args.Add(node.Members[i].GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.NotNull));
             }
             return Expression.New(node.Constructor, args, node.Members);
          }
@@ -120,7 +122,7 @@ namespace XAdo.Sql.Core
             int index;
             if (_binderInfo.BindingIndices.TryGetValue(node.Member, out index))
             {
-               var column = _selectInfo.Columns[index];
+               var column = _selectInfo.Select.Columns[index];
                var newIndex = Columns.FindIndex(c => c.Index == column.Index);
                if (newIndex == -1)
                {
@@ -129,7 +131,7 @@ namespace XAdo.Sql.Core
                   c.MappedMember = node.Member;
                   Columns.Add(c);
                }
-               return Expression.MemberBind(node.Member, node.Member.GetDataRecordMemberAssignmentExpression(newIndex, _parameter, column.NotNull));
+               return Expression.MemberBind(node.Member, node.Member.GetDataRecordMemberAssignmentExpression(newIndex, _parameter, column.Meta.NotNull));
             }
            return base.VisitMemberBinding(node);
          }
@@ -139,7 +141,7 @@ namespace XAdo.Sql.Core
             int index;
             if (_binderInfo.BindingIndices.TryGetValue(node.Member, out index))
             {
-               var column = _selectInfo.Columns[index];
+               var column = _selectInfo.Select.Columns[index];
                var newIndex = Columns.FindIndex(c => c.Index == column.Index);
                if (newIndex == -1)
                {
@@ -148,7 +150,7 @@ namespace XAdo.Sql.Core
                   c.MappedMember = null;
                   Columns.Add(c);
                }
-               return node.Member.GetDataRecordRecordGetterExpression(newIndex, _parameter, column.NotNull);
+               return node.Member.GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.NotNull);
             }
             return base.VisitMember(node);
          }
@@ -176,15 +178,15 @@ namespace XAdo.Sql.Core
          {
             if (c.MappedMember == null)
             {
-               c.FullName = null;
-               c.Path = null;
-               c.Name = null;
+               c.Map.FullName = null;
+               c.Map.Path = null;
+               c.Map.Name = null;
             }
             else
             {
-               c.FullName = memberToPathMap[c.MappedMember];
-               c.Name = c.FullName.Split('.').Last();
-               c.Path = c.FullName.Contains('.') ? c.FullName.Substring(0, c.FullName.LastIndexOf('.')) : "";
+               c.Map.FullName = memberToPathMap[c.MappedMember];
+               c.Map.Name = c.Map.FullName.Split('.').Last();
+               c.Map.Path = c.Map.FullName.Contains('.') ? c.Map.FullName.Substring(0, c.Map.FullName.LastIndexOf('.')) : "";
                c.MappedMember = null;
             }
          }
