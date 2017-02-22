@@ -56,7 +56,7 @@
     <Compile Include="Mapper\PersistencyType.cs" />
     <Compile Include="QueryBuilder.cs" />
     <Compile Include="Parser\SqlSelectParser.cs" />
-    <Compile Include="SqlTemplateFormatter.cs" />
+    <Compile Include="TemplateFormatter.cs" />
     <Compile Include="Mapper\ColumnMeta.cs" />
     <Compile Include="Partials\FromTablePartial.cs" />
     <Compile Include="Partials\GroupByPartial.cs" />

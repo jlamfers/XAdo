@@ -82,7 +82,7 @@ namespace Sql.Parser.Parser
                return sb.ToString();
             }
          }
-         throw new SqlParserException(_source, _pos, "Missing RParen");
+         throw new SqlParserException(_source, _pos, "Unexpected EOF: Missing RParen");
       }
       public string ReadQuoted()
       {
@@ -107,7 +107,7 @@ namespace Sql.Parser.Parser
                Take(sb);
             }
          }
-         throw new SqlParserException(_source, _pos, "Unterminated quoted partial: missing " + right);
+         throw new SqlParserException(_source, _pos, "Unexpected EOF: unterminated quoted, expected: " + right);
       }
       public int ReadInt()
       {

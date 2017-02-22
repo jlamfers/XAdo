@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
+using Sql.Parser.Common;
 using Sql.Parser.Partials;
 
 // ReSharper disable InconsistentNaming
@@ -53,6 +55,7 @@ namespace Sql.Parser.Parser
 
       public IList<SqlPartial> Parse(string sql)
       {
+         if (sql == null) throw new ArgumentNullException("sql");
          _scanner = new Scanner(new Scanner(sql).ClearBlockComments());
          var partials = new List<SqlPartial>();
          while (!_scanner.Eof())
@@ -131,13 +134,15 @@ namespace Sql.Parser.Parser
          return partials;
       }
 
-
-
       // where clause only can have one template placolder, at the end
       private WithPartial ReadWith()
       {
          SkipComments();
          var alias = ReadAlias();
+         if (string.IsNullOrEmpty(alias))
+         {
+            throw new SqlParserException(_scanner.Source, _scanner.Position, "alias expected");
+         }
          SkipComments();
          _scanner.Expect(SQL.AS);
          SkipComments();
@@ -149,45 +154,73 @@ namespace Sql.Parser.Parser
       {
          var distinct = false;
          var selectChilds = new List<SqlPartial>();
+
+         SkipComments();
+         if (_scanner.NextIs(SQL.DISTINCT))
+         {
+            distinct = true;
+            SkipComments();
+         }
+
+         if (_scanner.NextIs(SQL.TOP))
+         {
+            throw new SqlParserException(_scanner.Source, _scanner.Position, "TOP in select is not allowed, use paging instead");
+         }
+
          while (true)
          {
-            _scanner.SkipSpaces();
+            SkipComments();
 
-            if (_scanner.PeekAnyOf(SQL.FROM) || _scanner.Eof())
+            if (_scanner.Eof())
             {
-               // done
-               return new SelectPartial(distinct, selectChilds);
+               throw new SqlParserException(_scanner.Source,_scanner.Position,"Unexpected eof");
             }
 
-            if (_scanner.NextIs(SQL.TOP))
-            {
-               throw new SqlParserException(_scanner.Source, _scanner.Position, "TOP in select is not allowed, use paging instead");
-            }
             if (_scanner.Peek() == '*')
             {
                throw new SqlParserException(_scanner.Source, _scanner.Position, "wildcards in select are not allowed, these cannot be mapped");
             }
-            if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
+
+            selectChilds.Add(ReadColumn());
+
+            _scanner.SkipSpaces();
+
+            if (!_scanner.PeekAnyOf(",", SQL.TAG1,SQL.TAG2, SQL.FROM))
             {
-               selectChilds.Add(new TagPartial(ReadLineComment().Expression));
-               continue;
+               if (_scanner.PeekAnyOf(SQL.LINECOMMENT))
+               {
+                  // allow any comments
+                  SkipComments();
+               }
+               else
+               {
+                  throw new SqlParserException(_scanner.Source, _scanner.Position,"',',  '{0}' or '{1}' expected".FormatWith(SQL.TAG1, SQL.FROM));
+               }
             }
-            if (_scanner.NextIs(SQL.LINECOMMENT))
-            {
-               ReadLineComment();
-               continue;
-            }
-            if (_scanner.NextIs(SQL.DISTINCT))
-            {
-               distinct = true;
-               continue;
-            }
+
             if (_scanner.Peek() == ',')
             {
                _scanner.NextChar();
+               _scanner.SkipSpaces();
+               if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
+               {
+                  selectChilds.Add(new TagPartial(ReadLineComment().Expression));
+               }
                continue;
             }
-            selectChilds.Add(ReadColumn());
+
+            if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
+            {
+               selectChilds.Add(new TagPartial(ReadLineComment().Expression));
+            }
+            SkipComments();
+            if (!_scanner.PeekAnyOf(SQL.FROM))
+            {
+               throw new SqlParserException(_scanner.Source, _scanner.Position, "'{0}' expected".FormatWith(SQL.FROM));
+            }
+
+            return new SelectPartial(distinct, selectChilds);
+
          }
 
       }
@@ -215,6 +248,10 @@ namespace Sql.Parser.Parser
          else if (_scanner.NextIs(SQL.FULL))
          {
             joinType = JoinType.Full;
+         }
+         else
+         {
+            throw new SqlParserException(_scanner.Source,_scanner.Position,"Unexpected token: " + _scanner.NextChar());
          }
          SkipComments();
          while (_scanner.NextIsAnyOf(true, SQL.OUTER, SQL.JOIN))
@@ -302,22 +339,22 @@ namespace Sql.Parser.Parser
          {
             var col = ReadColumn(false);
             var order = default(string);
-            _scanner.SkipSpaces();
             if (_scanner.NextIs(SQL.ASC))
             {
                order = SQL.ASC;
-               _scanner.SkipSpaces();
+               SkipComments();
             }
             else if (_scanner.NextIs(SQL.DESC))
             {
                order = SQL.ASC;
-               _scanner.SkipSpaces();
+               SkipComments();
             }
             columns.Add(new OrderColumnPartial(col.RawParts, order));
             if (_scanner.Peek() == ',')
             {
                _scanner.NextChar();
             }
+            SkipComments();
          }
          string template = null;
          if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))

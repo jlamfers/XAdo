@@ -19,6 +19,7 @@ namespace Sql.Parser
 
       public static QueryBuilder Parse(string sql, string template = null)
       {
+         if (sql == null) throw new ArgumentNullException("sql");
          return QueryBuilderCache.GetOrAdd(Tuple.Create(sql,template), x =>
          {
             var parser = new SqlSelectParser();
@@ -214,7 +215,7 @@ namespace Sql.Parser
          }
          else
          {
-            _partials = partials.ApplyTemplate(template).AsReadOnly();
+            _partials = partials.MergeTemplate(template).AsReadOnly();
          }
       }
 
@@ -311,7 +312,7 @@ namespace Sql.Parser
          return _countQuery = new QueryBuilder(partials);
       }
 
-      public void Write(TextWriter w, object args)
+      public void Format(TextWriter w, object args)
       {
          _partials.Format(w, args);
       }
@@ -322,7 +323,7 @@ namespace Sql.Parser
 
       public override string ToString()
       {
-         return _partials.ToTemplateString();
+         return _partials.ToStringRepresentation();
       }
 
       public IList<SqlPartial> Partials
@@ -472,10 +473,11 @@ namespace Sql.Parser
 
       public new static QueryBuilder<TEntity> Parse(string sql, string template=null)
       {
-         return QueryBuilderCache.GetOrAdd(Tuple.Create(sql, typeof (TEntity), template), x =>
+         if (sql == null) throw new ArgumentNullException("sql");
+         return QueryBuilderCache.GetOrAdd(Tuple.Create(sql, typeof(TEntity), template), x =>
          {
             var parser = new SqlSelectParser();
-            var partials = parser.Parse(x.CastTo<Tuple<string, Type,string>>().Item1);
+            var partials = parser.Parse(x.CastTo<Tuple<string, Type, string>>().Item1);
             var queryMap = new QueryBuilder(partials, x.CastTo<Tuple<string, Type, string>>().Item3);
             return queryMap.ToGeneric<TEntity>();
          }).CastTo<QueryBuilder<TEntity>>();

@@ -17,6 +17,19 @@ namespace Sql.Parser.Partials
       public bool Descending { get; private set; }
       public IList<string> Parts { get; private set; }
 
+      public string Schema
+      {
+         get { return Parts.Count >= 3 ? Parts[0] : null; }
+      }
+      public string Table
+      {
+         get { return Parts.Count >= 2 ? Parts[Parts.Count - 2] : null; }
+      }
+      public string Name
+      {
+         get { return Parts[Parts.Count - 1]; }
+      }
+
       public override void Write(TextWriter w, object args)
       {
          base.Write(w, args);

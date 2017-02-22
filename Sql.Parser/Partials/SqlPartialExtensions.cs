@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Security.Principal;
 
 namespace Sql.Parser.Partials
 {
@@ -39,7 +41,7 @@ namespace Sql.Parser.Partials
          }
       }
 
-      public static string ToTemplateString(this IList<SqlPartial> self)
+      public static string ToStringRepresentation(this IList<SqlPartial> self)
       {
          var w = new StringWriter();
          var sb = w.GetStringBuilder();
@@ -57,128 +59,159 @@ namespace Sql.Parser.Partials
       }
 
 
-      /*
-   {?take}SELECT * FROM (
-   $SELECT
-   {?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum
-   {?take}{!order},ROW_NUMBER() OVER (ORDER BY 1) AS __rownum
-   $FROM
-   $WHERE          // this is comment
-   WHERE {where}  
-   $GROUP_BY
-   $HAVING
-   {having}
-   {!take}ORDER BY {order}
-   {!take}{!order}ORDER BY 1
-   {?take}) 
-   WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum
+/*
+{?take}{!order}raiserror ('no order specified', 16, 10);      // only if paging is specified (indicated by take), and no order is specified, then throw error
+{?take}SELECT * FROM (                                        // only if paging is specified
+@SELECT
+{?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum      // only if both paging and order are specified
+@FROM
+@WHERE
+WHERE {where}  
+@GROUP_BY
+@HAVING
+HAVING {having}
+//any @ORDER_BY from original sql is ignored
+{!take}ORDER BY {order}                                     // only if NO paging is specified
+{?take}) AS __paged                                         // only if paging is specified
+{?order}WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum"; // only if both order and paging are specified
+*/
 
-       * */
 
-      public static List<SqlPartial> ApplyTemplate(this IList<SqlPartial> self, string template)
+      private static class Markers
+      {
+         public const string
+            SELECT = "@SELECT",
+            FROM = "@FROM",
+            WHERE = "@WHERE",
+            GROUP_BY = "@GROUP_BY",
+            HAVING = "@HAVING",
+            ORDER_BY = "@ORDER_BY";
+      }
+
+      private static readonly HashSet<string> _markers = new HashSet<string>(new[] { Markers.SELECT, Markers.FROM, Markers.WHERE, Markers.GROUP_BY, Markers.HAVING, Markers.ORDER_BY });
+      private static readonly Dictionary<Type, string> _typeMarkers = new Dictionary<Type, string>
+      {
+         {typeof(SelectPartial),Markers.SELECT},
+         {typeof(TablePartial), Markers.FROM},
+         {typeof(JoinPartial),Markers.FROM},
+         {typeof(WherePartial),Markers.WHERE},
+         {typeof(GroupByPartial),Markers.GROUP_BY},
+         {typeof(HavingPartial),Markers.HAVING},
+         {typeof(OrderByPartial),Markers.ORDER_BY},
+      };
+
+      public static List<SqlPartial> MergeTemplate(this IList<SqlPartial> self, string template)
       {
          var parts = template.Split('\n').Select(s => s.Trim()).Where(s => s.Length > 0).ToArray();
-         var index = 0;
          var partials = self.ToList();
          SqlPartial partial = null;
          var includeOrderBy = false;
-         foreach (var p in parts.Select(x => x.Split(new []{"//"},StringSplitOptions.None).First().Trim()))
+         var markerLookup = new Dictionary<string, int>();
+         var idx = 0;
+         foreach (var p in partials)
          {
-            switch (p.ToUpper())
+            idx++; // inc index before, so that index is right after marker position
+            string marker;
+            if (_typeMarkers.TryGetValue(p.GetType(), out marker))
             {
-               case "$SELECT":
-                  index = partials.IndexOf(partials.OfType<SelectPartial>().Single()) + 1;
-                  break;
-               case "$FROM":
-                  index = partials.IndexOf((SqlPartial)partials.OfType<JoinPartial>().LastOrDefault() ?? partials.OfType<TablePartial>().Single()) + 1;
-                  break;
-               case "$WHERE":
-                  partial = partials.OfType<WherePartial>().SingleOrDefault();
-                  index = partial != null ? partials.IndexOf(partial)+1 : index;
-                  break;
-               case "$GROUP_BY":
-                  partial = partials.OfType<GroupByPartial>().SingleOrDefault();
-                  index = partial != null ? partials.IndexOf(partial)+1 : index;
-                  break;
-               case "$HAVING":
-                  partial = partials.OfType<HavingPartial>().SingleOrDefault();
-                  index = partial != null ? partials.IndexOf(partial)+1 : index;
-                  break;
-               case "$ORDER_BY":
-                  includeOrderBy = true;
-                  partial = partials.OfType<OrderByPartial>().SingleOrDefault();
-                  index = partial != null ? partials.IndexOf(partial)+1 : index;
-                  break;
-               default:
+               markerLookup[marker] = idx;
+            }
+         }
+         var index = 0;
+         var addedCount = 0;
+         foreach (var p in parts.Select(x => x.Split(new[] { "//" }, StringSplitOptions.None).First().Trim()))
+         {
+            var upperP = p.ToUpper();
+            if (_markers.Contains(upperP))
+            {
+               // it is a marker
 
-                  // probe where clause
-                  var wt = partial as WherePartial;
-                  if (wt != null)
-                  {
-                     if (wt.Expression.Length == 0)
-                     {
-                        var wc = p;
-                        if (wc.ToUpper().StartsWith("WHERE "))
-                        {
-                           wc = wc.Substring(6).Trim();
-                        }
-                        var i = partials.IndexOf(partial);
-                        partials[i] = new WherePartial(wt.WhereClause, " AND (" + wc + ")");
-                     }
-                     partial = null;
-                     continue;
-                  }
+               includeOrderBy = includeOrderBy || upperP == Markers.ORDER_BY;
+               // is it an ORDER_BY marker?
 
-                  //probe having clause
-                  var ht = partial as HavingPartial;
-                  if (ht != null)
-                  {
-                     if (ht.Expression.Length == 0)
-                     {
-                        var hc = p;
-                        if (hc.ToUpper().StartsWith("HAVING "))
-                        {
-                           hc = hc.Substring(7).Trim();
-                        }
-                        var i = partials.IndexOf(partial);
-                        partials[i] = new HavingPartial(ht.HavingClause, " AND (" + hc + ")");
-                     }
-                     partial = null;
-                     continue;
-                  }
-
-                  //probe order by clause
-                  var ot = partial as OrderByPartial;
-                  if (ot != null)
-                  {
-                     if (ot.Expression.Length == 0)
-                     {
-                        var oc = p;
-                        if (oc.ToUpper().StartsWith("ORDER BY "))
-                        {
-                           oc = oc.Substring(9).Trim();
-                        }
-                        var i = partials.IndexOf(partial);
-                        partials[i] = new OrderByPartial(ot.Columns, ", " + oc);
-                     }
-                     partial = null;
-                     continue;
-                  }
-                  if (index <= partials.Count - 1)
-                  {
-                     partials.Insert(index, new TemplatePartial(p));
-                  }
-                  else
-                  {
-                     partials.Add(new TemplatePartial(p));
-                  }
+               if (markerLookup.TryGetValue(upperP, out idx))
+               {
+                  index = idx + addedCount;
+                  partial = index < partials.Count ? partials[index] : null;
+               }
+               else
+               {
                   index++;
-                  break;
+                  partial = null;
+               }
+            }
+            else
+            {
+               // probe where clause
+               var wp = partial as WherePartial;
+               if (wp != null)
+               {
+                  if (wp.Expression.Length == 0)
+                  {
+                     var wc = p;
+                     if (upperP.StartsWith("WHERE "))
+                     {
+                        wc = wc.Substring(6).Trim();
+                     }
+                     partials[index] = new WherePartial(wp.WhereClause, " AND (" + wc + ")");
+                  }
+                  partial = null;
+                  continue;
+               }
+
+               //probe having clause
+               var hp = partial as HavingPartial;
+               if (hp != null)
+               {
+                  if (hp.Expression.Length == 0)
+                  {
+                     var hc = p;
+                     if (upperP.StartsWith("HAVING "))
+                     {
+                        hc = hc.Substring(7).Trim();
+                     }
+                     partials[index] = new HavingPartial(hp.HavingClause, " AND (" + hc + ")");
+                  }
+                  partial = null;
+                  continue;
+               }
+
+               //probe order by clause
+               var op = partial as OrderByPartial;
+               if (op != null)
+               {
+                  if (op.Expression.Length == 0)
+                  {
+                     var oc = p;
+                     if (upperP.StartsWith("ORDER "))
+                     {
+                        oc = oc.Substring(6).TrimStart();
+                        if (oc.StartsWith("BY ",StringComparison.OrdinalIgnoreCase))
+                        {
+                           oc = oc.Substring(3).TrimStart();
+                        }
+                     }
+                     partials[index] = new OrderByPartial(op.Columns, ", " + oc);
+                  }
+                  partial = null;
+                  continue;
+               }
+
+               if (index <= partials.Count - 1)
+               {
+                  partials.Insert(index, new TemplatePartial(p));
+               }
+               else
+               {
+                  partials.Add(new TemplatePartial(p));
+               }
+               index++;
+               addedCount++;
             }
          }
          if (!includeOrderBy)
          {
-            //$ORDER_BY was not in template
+            //@ORDER_BY was not in template
             partial = partials.OfType<OrderByPartial>().SingleOrDefault();
             if (partial != null)
             {

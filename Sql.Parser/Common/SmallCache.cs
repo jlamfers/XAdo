@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -64,6 +65,19 @@ namespace Sql.Parser.Common
          return _dict.GetOrAdd(key, factory);
       }
 
+      public int Count
+      {
+         get
+         {
+            if (_dict != null) return _dict.Count;
+            if (!Equals(_key4,default(TKey))) return 4;
+            if (!Equals(_key3, default(TKey))) return 3;
+            if (!Equals(_key4, default(TKey))) return 2;
+            if (!Equals(_key1, default(TKey))) return 1;
+            return 0;
+         }
+      }
+
 
       private bool TryGet(object @lock, ref TKey key, ref TValue value, TKey arg, Func<TKey, TValue> factory, out TValue outValue)
       {
@@ -92,5 +106,37 @@ namespace Sql.Parser.Common
          return true;
       }
 
+      public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+      {
+         if (_dict != null) return _dict.GetEnumerator();
+         var list = new List<KeyValuePair<TKey, TValue>>();
+         lock (_lock1)
+         {
+            if (!Equals(_key1, default(TKey)))
+               list.Add(new KeyValuePair<TKey, TValue>(_key1, _value1));
+            else return list.GetEnumerator();
+         }
+         lock (_lock2)
+         {
+            if (!Equals(_key2, default(TKey))) list.Add(new KeyValuePair<TKey, TValue>(_key2, _value2));
+            else return list.GetEnumerator();
+         }
+         lock (_lock3)
+         {
+            if (!Equals(_key3, default(TKey))) list.Add(new KeyValuePair<TKey, TValue>(_key3, _value3));
+            else return list.GetEnumerator();
+         }
+         lock (_lock4)
+         {
+            if (!Equals(_key4, default(TKey))) list.Add(new KeyValuePair<TKey, TValue>(_key4, _value4));
+            else return list.GetEnumerator();
+         }
+         return list.GetEnumerator();
+      }
+
+      IEnumerator IEnumerable.GetEnumerator()
+      {
+         return GetEnumerator();
+      }
    }
 }

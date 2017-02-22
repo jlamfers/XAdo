@@ -20,9 +20,9 @@ namespace Sql.Parser.Partials
       public override void Write(TextWriter w, object args)
       {
          w.Write("WITH ");
-         base.Write(w, args);
-         w.Write(" AS ");
          w.Write(RawAlias);
+         w.Write(" AS ");
+         base.Write(w, args);
       }
 
    }

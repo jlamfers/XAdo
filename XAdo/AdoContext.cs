@@ -166,6 +166,13 @@ namespace XAdo
          if (connectionStringName == null) throw new ArgumentNullException("connectionStringName");
          ConnectionStringName = connectionStringName;
          Initialize(null);
+         var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
+         if (cs != null)
+         {
+            ConnectionString = cs.ConnectionString;
+            ProviderName = cs.ProviderName;
+         }
+
       }
 
       public AdoContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null)

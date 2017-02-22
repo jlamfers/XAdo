@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using Sql.Parser.Common;
 using Sql.Parser.Partials;
@@ -28,6 +29,7 @@ namespace Sql.Parser.Mapper
          get { return _persistencyType.GetValueOrDefault(PersistencyType.Default); }
          private set { _persistencyType = value; }
       }
+      public Type Type { get; internal set; }
 
       public static ColumnMeta FindMeta(TagPartial partial, bool distinct, out string relativeName)
       {

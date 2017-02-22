@@ -46,6 +46,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Core\AdoColumnMeta.cs" />
     <Compile Include="Core\Atomic.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Core\Impl\GetterDelegate.cs" />
     <Compile Include="Core\Impl\NullableGetters.cs" />
     <Compile Include="Core\Interface\IAdoSqlBatch.Async.cs" />
+    <Compile Include="Core\AdoMetaRetriever.cs" />
     <Compile Include="Core\TVoid.cs" />
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Sql.Parser;
 using Sql.Parser.Mapper;
 using Sql.Parser.Parser;
+using XAdo.Core;
 
 namespace XAdo.UnitTest
 {
@@ -96,19 +97,21 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID";
 
 
       private const string Template = @"
-{?take}{!order}raiserror ('no order specified', 16, 10); 
-{?take}SELECT * FROM (
-   $SELECT
-   {?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum
-   $FROM
-   $WHERE          // this is comment
-   WHERE {where}  
-   $GROUP_BY
-   $HAVING
-   HAVING {having}
-   {!take}ORDER BY {order}
-   {?take}) AS __paged
-{?order}WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum";
+{?take}{!order}raiserror ('no order specified', 16, 10);      // only if paging is specified (indicated by take), and no order is specified, then throw error
+{?take}SELECT * FROM (                                        // only if paging is specified
+@SELECT
+{?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum      // only if both paging and order are specified
+@FROM
+@WHERE
+WHERE {where}  
+@GROUP_BY
+@HAVING
+HAVING {having}
+//any @ORDER_BY from original sql is ignored
+{!take}ORDER BY {order}                                     // only if NO paging, BUT order is specified
+{?take}) AS __paged                                         // only if paging is specified
+{?order}WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum // only if both order and paging are specified
+";
 
       [Test]
       public async void MonkeyTest()
@@ -190,9 +193,9 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID";
             q.GetBinder();
          }
          sw.Stop();
-         Debug.WriteLine(sw.ElapsedMilliseconds);
+         Debug.WriteLine("get binder: "+sw.ElapsedMilliseconds);
 
-         qsql = q.Format(new { skip = 10, take = 100 });
+         qsql = q.Format(new { skip = 10, take = 100, order = "p.BusinessEntityID" });
          sw = new Stopwatch();
          sw.Start();
          for (var i = 0; i < 1000; i++)
@@ -200,7 +203,17 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID";
             q.Format(new { skip = 10, take = 100, order = "p.BusinessEntityID" });
          }
          sw.Stop();
-         Debug.WriteLine(sw.ElapsedMilliseconds);
+         Debug.WriteLine("format: " + sw.ElapsedMilliseconds);
+
+         sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            QueryBuilder<Person>.Parse(Query4, Template);
+         }
+         sw.Stop();
+         Debug.WriteLine("parse: " + sw.ElapsedMilliseconds);
+
 
          using (var sn = context.CreateSession())
          {
@@ -211,6 +224,18 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID";
             persons = sn.Query(qsql, q.GetBinder()).ToList();
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
+ 
+
+      [Test]
+      public void MetaTest()
+      {
+         var context = new AdoContext("AW");
+         using (var sn = context.CreateSession())
+         {
+            var meta = sn.QueryMetaForSql(Query4);
          }
       }
 

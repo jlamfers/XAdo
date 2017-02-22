@@ -13,29 +13,41 @@ namespace XAdo.Core
     {
         private readonly ConcurrentDictionary<string,FieldBuilder>
             _fields = new ConcurrentDictionary<string, FieldBuilder>();
-        private static readonly ModuleBuilder 
-            _moduleBuilder;
-        private static long 
+        private static long
             _uniqueCounter;
-        private static readonly AssemblyBuilder 
-            _assemblyBuilder;
-        private static readonly AssemblyName 
-            _assemblyName;
         private TypeBuilder 
             _typeBuilder;
 
+#if DEBUG
+        private static readonly ModuleBuilder
+            _moduleBuilder;
+        private static readonly AssemblyBuilder
+            _assemblyBuilder;
+        private static readonly AssemblyName
+            _assemblyName;
         static DtoTypeBuilder()
         {
             var domain = AppDomain.CurrentDomain;
             _assemblyName = new AssemblyName("DtoTypeBuilder");
-#if DEBUG
             _assemblyBuilder = domain.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.RunAndSave);
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyName.Name, _assemblyName.Name + ".dll");            
+        }
 #else
+        private readonly ModuleBuilder
+            _moduleBuilder;
+        private readonly AssemblyBuilder
+            _assemblyBuilder;
+        private readonly AssemblyName
+            _assemblyName;
+        public DtoTypeBuilder()
+        {
+            var domain = AppDomain.CurrentDomain;
+            _assemblyName = new AssemblyName();
             _assemblyBuilder = domain.DefineDynamicAssembly(_assemblyName, AssemblyBuilderAccess.Run);
             _moduleBuilder = _assemblyBuilder.DefineDynamicModule(_assemblyName.Name);
-#endif
         }
+#endif
+
 
         protected virtual long NextUniqueNumber()
         {

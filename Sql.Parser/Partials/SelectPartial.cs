@@ -10,7 +10,7 @@ namespace Sql.Parser.Partials
    public class SelectPartial : SqlPartial
    {
       public SelectPartial(bool distinct, IList<SqlPartial> childs)
-         : base(ToExpression(distinct,childs) )
+         : base("SELECT" + (distinct ? " DISTINCT" : "") )
       {
          Distinct = distinct;
          Columns = ConfigureMeta(childs);
@@ -32,18 +32,6 @@ namespace Sql.Parser.Partials
             c.Write(w,args);
             comma = ",";
          }
-      }
-
-      private static string ToExpression(bool distinct, IEnumerable<SqlPartial> childs)
-      {
-         var sb = new StringBuilder().Append("SELECT " + (distinct ? "DISTINCT " : ""));
-         var comma = "";
-         foreach (var c in childs.OfType<ColumnPartial>())
-         {
-            sb.AppendFormat("{0}{1}   {2}",comma,Environment.NewLine, c);
-            comma = ",";
-         }
-         return sb.ToString();
       }
 
       private IList<MetaColumnPartial> ConfigureMeta(IList<SqlPartial> childs)
@@ -92,7 +80,7 @@ namespace Sql.Parser.Partials
             int i = 0;
             foreach (var m in metaChilds)
             {
-               m.SetRawAlias("c"+ i++);
+               m.SetAlias("c"+ i++);
             }
          }
          return metaChilds.AsReadOnly();

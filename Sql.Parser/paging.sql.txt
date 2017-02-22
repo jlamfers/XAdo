@@ -1,12 +1,14 @@
-﻿{?take}SELECT * FROM (
-$SELECT
-{?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum
-$FROM
-$WHERE
-$GROUP_BY
-$HAVING
-{!take}ORDER BY {order}
-{?take}) 
-WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum
-
-
+﻿{?take}{!order}raiserror ('no order specified', 16, 10);      // only if paging is specified (indicated by take), and no order is specified, then throw error
+{?take}SELECT * FROM (                                        // only if paging is specified
+@SELECT
+{?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum      // only if both paging and order are specified
+@FROM
+@WHERE
+WHERE {where}  
+@GROUP_BY
+@HAVING
+HAVING {having}
+//any @ORDER_BY from original sql is ignored
+{!take}ORDER BY {order}                                     // only if NO paging is specified
+{?take}) AS __paged                                         // only if paging is specified
+{?order}WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum"; // only if both order and paging are specified

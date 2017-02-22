@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace Sql.Parser
 {
-   public static class SqlTemplateFormatter
+   public static class TemplateFormatter
    {
 
       private static readonly ConcurrentDictionary<Tuple<string,Type>,Tuple<string,Func<object, object>[]>>

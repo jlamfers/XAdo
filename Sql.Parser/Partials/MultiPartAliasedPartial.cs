@@ -30,9 +30,24 @@ namespace Sql.Parser.Partials
       public string Alias { get; internal set; }
       public IList<string> Parts { get; internal set; }
 
-      internal void SetRawAlias(string rawAlias)
+      public string Schema
       {
-         RawAlias = rawAlias;
+         get { return Parts.Count >= 3 ? Parts[0] : null; }
+      }
+      public string Table
+      {
+         get { return Parts.Count >= 2 ? Parts[Parts.Count - 2] : null; }
+      }
+      public string ColumnName
+      {
+         get { return Parts[Parts.Count - 1]; }
+      }
+
+
+      internal void SetAlias(string alias)
+      {
+         RawAlias = alias;
+         Alias = alias;
       }
 
       public override void Write(TextWriter w, object args)
