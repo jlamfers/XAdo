@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Sql.Parser.Common;
+using Sql.Parser.Parser;
 
 namespace Sql.Parser.Partials
 {

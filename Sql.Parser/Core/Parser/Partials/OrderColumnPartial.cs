@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using Sql.Parser.Common;
+using Sql.Parser.Parser;
 
 namespace Sql.Parser.Partials
 {
    public class OrderColumnPartial : SqlPartial
    {
       public OrderColumnPartial(IList<string> parts, string order)
-         : base(string.Join(".", parts))
+         : base(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, parts))
       {
          Parts = parts.Select(s => s.TrimQuotes()).ToList().AsReadOnly();
          Descending = order != null && order.ToUpper() == "DESC";

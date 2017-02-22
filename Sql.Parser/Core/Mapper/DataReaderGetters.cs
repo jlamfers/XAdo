@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using Sql.Parser.Common;
+using Sql.Parser.Linq;
 
 namespace Sql.Parser.Mapper
 {

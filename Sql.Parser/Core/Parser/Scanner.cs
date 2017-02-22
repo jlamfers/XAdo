@@ -37,7 +37,7 @@ namespace Sql.Parser.Parser
          _pos = _source.Length;
          return _source.Substring(pos);
       }
-      public string ReadIdentifier()
+      public string ReadIdentifier(ICollection<char> includes = null )
       {
          var sb = new StringBuilder();
          if (!IsLetter())
@@ -45,7 +45,7 @@ namespace Sql.Parser.Parser
             throw new SqlParserException(_source, _pos, "Invalid identifier start char: " + Peek());
          }
          Take(sb);
-         while (IsLetterOrDigit())
+         while (IsLetterOrDigit() || (includes != null && includes.Contains(Peek())))
          {
             Take(sb);
          }

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Sql.Parser.Partials
+namespace Sql.Parser.Core.Parser.Partials
 {
    public class SqlPartial
    {

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Sql.Parser.Common;
 using Sql.Parser.Mapper;
+using Sql.Parser.Parser;
 
 namespace Sql.Parser.Partials
 {
@@ -93,27 +95,35 @@ namespace Sql.Parser.Partials
          foreach (var ch in previousPath)
          {
             sb.Append(ch);
-            if (ch == '.')
+            if (ch == Constants.SpecialChars.NAME_SEP)
             {
                stack.Push(sb.Length - 1);
             }
          }
-         foreach (var part in path.Split('/'))
+         foreach (var part in path.Split(Constants.SpecialChars.PATH_SEP))
          {
             switch (part)
             {
                case "":
-               case ".":
+               case Constants.SpecialChars.CURRENT_PATH_STR:
                   break;
-               case "..":
+               case Constants.SpecialChars.PREV_PATH:
+                  if (stack.Count == 0)
+                  {
+                     throw new SqlParserException("mapping error: cannot resolve path from '{0}' to '{1}".FormatWith(previousPath,path));
+                  }
                   sb.Length = stack.Pop();
                   break;
-               case "...":
+               case Constants.SpecialChars.PREV_PREV_PATH:
+                  if (stack.Count < 2)
+                  {
+                     throw new SqlParserException("mapping error: cannot resolve path from '{0}' to '{1}".FormatWith(previousPath, path));
+                  }
                   stack.Pop();
                   sb.Length = stack.Pop();
                   break;
                default:
-                  if (sb.Length > 0) sb.Append(".");
+                  if (sb.Length > 0) sb.Append(Constants.SpecialChars.NAME_SEP_STR);
                   sb.Append(part);
                   stack.Push(sb.Length - 1);
                   break;

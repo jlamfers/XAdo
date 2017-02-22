@@ -11,6 +11,8 @@ namespace Sql.Parser.Parser
 {
    public class SqlSelectParser
    {
+
+
       private Scanner _scanner;
 
       public static class SQL
@@ -138,7 +140,7 @@ namespace Sql.Parser.Parser
       private WithPartial ReadWith()
       {
          SkipComments();
-         var alias = ReadAlias();
+         var alias = ReadAlias(null);
          if (string.IsNullOrEmpty(alias))
          {
             throw new SqlParserException(_scanner.Source, _scanner.Position, "alias expected");
@@ -226,7 +228,7 @@ namespace Sql.Parser.Parser
       }
       private TablePartial ReadTable()
       {
-         return new TablePartial(ReadMultiPart(true));
+         return new TablePartial(ReadMultiPart(true,null));
       }
       private JoinPartial ReadJoin()
       {
@@ -365,16 +367,16 @@ namespace Sql.Parser.Parser
       }
 
 
-      private string ReadAlias()
+      private string ReadAlias(ICollection<char> specialColumnChars)
       {
          _scanner.SkipSpaces();
-         return _scanner.IsStartQuote() ? _scanner.ReadQuoted() : _scanner.ReadIdentifier();
+         return _scanner.IsStartQuote() ? _scanner.ReadQuoted() : _scanner.ReadIdentifier(specialColumnChars);
       }
       private ColumnPartial ReadColumn(bool aliased = true)
       {
-         return new ColumnPartial(ReadMultiPart(aliased));
+         return new ColumnPartial(ReadMultiPart(aliased, aliased ? Constants.SpecialChars.Set : null));
       }
-      private MultiPartAliasedPartial ReadMultiPart(bool aliased)
+      private MultiPartAliasedPartial ReadMultiPart(bool aliased, ICollection<char> specialColumnChars )
       {
          SkipComments();
          var parts = new List<string>();
@@ -383,10 +385,10 @@ namespace Sql.Parser.Parser
             parts.Add(_scanner.IsLParen() ? 
                   _scanner.ReadParenthesed() 
                   : (_scanner.IsStartQuote() ? 
-                     _scanner.ReadQuoted() 
-                     : _scanner.ReadIdentifier()));
+                     _scanner.ReadQuoted()
+                     : _scanner.ReadIdentifier(specialColumnChars)));
 
-            if (_scanner.Peek() == '.')
+            if (_scanner.Peek() == Constants.SpecialChars.COLUMN_SEP)
             {
                _scanner.NextChar();
                continue;
@@ -397,7 +399,7 @@ namespace Sql.Parser.Parser
                _scanner.SkipSpaces();
                if (_scanner.NextIs(SQL.AS))
                {
-                  return new MultiPartAliasedPartial(parts, ReadAlias());
+                  return new MultiPartAliasedPartial(parts, ReadAlias(specialColumnChars));
                }
             }
             return new MultiPartAliasedPartial(parts, null);

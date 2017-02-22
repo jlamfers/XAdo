@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Sql.Parser.Common
 {
-   public static class ExpressionHelper
+   public static class MemberInfoFinder
    {
 
       public static MemberInfo GetPropertyOrField(this Type self, string name, BindingFlags flags = BindingFlags.Public | BindingFlags.Instance)
@@ -33,6 +33,12 @@ namespace Sql.Parser.Common
                throw new ArgumentOutOfRangeException("self", "Only Field and Properties are supported");
          }
       }
+      public static object GetValue(this MemberInfo member, object target)
+      {
+         var pi = member as PropertyInfo;
+         return pi != null ? pi.GetValue(target) : ((FieldInfo)member).GetValue(target);
+      }
+
 
       public static MethodInfo GetMethodInfo(this Expression<Action> expression)
       {
@@ -80,31 +86,9 @@ namespace Sql.Parser.Common
                return ((MethodCallExpression)expression).Method;
             default:
                if (throwException)
-                  throw new ArgumentException(string.Format("Cannot obtain a MemberExpression from '{0}' ", expression), "expression");
+                  throw new ArgumentException(String.Format("Cannot obtain a MemberExpression from '{0}' ", expression), "expression");
                return null;
          }
       }
-
-      public static Expression Trim(this Expression self)
-      {
-         if (self == null)
-         {
-            return null;
-         }
-
-         switch (self.NodeType)
-         {
-            case ExpressionType.Convert:
-            case ExpressionType.Quote:
-               return self.CastTo<UnaryExpression>().Operand.Trim();
-         }
-         return self;
-
-      }
-      public static Expression Convert(this Expression self, Type type)
-      {
-         return (self.Type == type ? self : Expression.Convert(self, type));
-      }
-
    }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Sql.Parser.Mapper
+namespace Sql.Parser.Core.Mapper
 {
    [Flags]
    public enum PersistencyType

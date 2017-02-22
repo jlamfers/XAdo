@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Sql.Parser.Common
 {
-   public class SmallCache<TKey, TValue> : ICache<TKey, TValue>
+   internal class SmallCache<TKey, TValue> : ICache<TKey, TValue>
    {
       private readonly object _lock1 = new object();
       private readonly object _lock2 = new object();
@@ -77,7 +77,6 @@ namespace Sql.Parser.Common
             return 0;
          }
       }
-
 
       private bool TryGet(object @lock, ref TKey key, ref TValue value, TKey arg, Func<TKey, TValue> factory, out TValue outValue)
       {

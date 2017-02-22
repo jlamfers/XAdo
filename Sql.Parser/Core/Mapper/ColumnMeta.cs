@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using Sql.Parser.Common;
+using Sql.Parser.Parser;
 using Sql.Parser.Partials;
 
 namespace Sql.Parser.Mapper
@@ -53,7 +54,7 @@ namespace Sql.Parser.Mapper
             {
                alias = null;
             }
-            partial.Alias = alias;
+            partial.SetAlias(alias);
             relativeName = alias ?? partial.Parts.Last();
             return map;
          }
@@ -66,6 +67,19 @@ namespace Sql.Parser.Mapper
             part = part.TrimQuotes();
             parts[parts.Count - 1] = part;
             partial.Parts = parts.AsReadOnly();
+
+            var raw = partial.RawParts.ToList();
+            var last = raw.Last();
+            if (last.IsQuoted())
+            {
+               raw[raw.Count - 1] = last[0] + part + last[last.Length - 1];
+            }
+            else
+            {
+               raw[raw.Count - 1] = part;
+            }
+            partial.RawParts = raw.AsReadOnly();
+
             relativeName = relativeName ?? part;
             return map;
          }
@@ -84,7 +98,7 @@ namespace Sql.Parser.Mapper
          }
 
          // optional seperator so that 'normal' characters (behind the seperator) can be interpreted as tags
-         var sepIndex = carrier.IndexOf(':');
+         var starterIndex = carrier.IndexOf(Constants.SpecialChars.SPECIAL_CHARS_STARTER);
          var meta = new ColumnMeta();
          if (distinct || @readonly)
          {
@@ -100,44 +114,41 @@ namespace Sql.Parser.Mapper
                case '\t':
                case ' ':
                   continue;
-               case '*':
+               case Constants.SpecialChars.PRIMARY_KEY:
                   meta.IsKey = true;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case '@':
+               case Constants.SpecialChars.CALCULATED:
                   meta.IsCalculated = true;
                   meta.Persistency &= ~PersistencyType.Create;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case '+':
+               case Constants.SpecialChars.AUTO_INCREMENT:
                   meta.IsAutoIncrement = true;
                   meta.IsKey = true;
                   meta.Persistency &= ~PersistencyType.Create;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case '?':
+               case Constants.SpecialChars.OUTER_JOIN_COLUMN:
                   meta.IsOuterJoinColumn = true;
                   break;
-               case '!':
+               case Constants.SpecialChars.NOT_NULL:
                   meta.NotNull = true;
                   break;
                default:
-                  if (sepIndex != -1 && i >= sepIndex)
+                  if (starterIndex != -1 && i >= starterIndex)
                   {
-                     switch (ch)
+                     switch (char.ToUpper(ch))
                      {
-                        case ':':
+                        case Constants.SpecialChars.SPECIAL_CHARS_STARTER:
                            break;
-                        case 'c':
-                        case 'C':
+                        case Constants.SpecialChars.CREATE:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Create;
                            break;
-                        case 'u':
-                        case 'U':
+                        case Constants.SpecialChars.UPDATE:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Update;
                            break;
-                        case 'r':
-                        case 'R':
+                        case Constants.SpecialChars.READ:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Read;
                            break;
                      }

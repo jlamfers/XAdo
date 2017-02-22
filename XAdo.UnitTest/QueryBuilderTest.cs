@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using NUnit.Framework;
 using Sql.Parser;
+using Sql.Parser.Parser;
 
 namespace XAdo.UnitTest
 {
@@ -32,10 +33,12 @@ t --oops
          var p = QueryBuilder.Parse(@"
 WITH cte AS 
 -- oops
---(
+(
    SELECT * FROM tTABLE
 )
-SELECT jan,jaap
+SELECT 
+jan as c1*,
+jaap
 FROM cte
 ORDER BY jan
 ");

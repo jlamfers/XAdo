@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using Sql.Parser.Parser;
 
 namespace Sql.Parser.Common
 {
-   internal static class CommonExtensions
+   internal static class Extensions
    {
       public static bool IsNullable(this Type self)
       {
@@ -16,6 +14,11 @@ namespace Sql.Parser.Common
       {
          return self.IsPrimitive || self.IsValueType || (self == typeof(string)) || self == typeof(byte[]);
       }
+      public static Type EnsureNotNullable(this Type self)
+      {
+         return self == null ? null : (Nullable.GetUnderlyingType(self) ?? self);
+      }
+
 
       public static IDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> self)
       {
@@ -43,19 +46,5 @@ namespace Sql.Parser.Common
       {
          return self == null || self == DBNull.Value ? default(T) : (T)self;
       }
-
-      public static string TrimQuotes(this string self)
-      {
-         if (string.IsNullOrEmpty(self)) return self;
-         var left = self[0];
-         char right;
-         if (Scanner.Quotes.TryGetValue(left, out right) && self.Last() == right)
-         {
-            return self.Substring(1, self.Length - 2);
-         }
-         return self;
-      }
-
-
    }
 }

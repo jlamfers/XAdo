@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Sql.Parser.Common;
+using Sql.Parser.Parser;
 
 namespace Sql.Parser.Mapper
 {
@@ -15,7 +16,7 @@ namespace Sql.Parser.Mapper
          foreach (var m in type.GetPropertiesAndFields())
          {
             if (map.ContainsKey(m)) return map;
-            map[m] = (path + "." + m.Name).TrimStart('.');
+            map[m] = (path + Constants.SpecialChars.NAME_SEP_STR + m.Name).TrimStart(Constants.SpecialChars.NAME_SEP);
             var t = m.GetMemberType();
             if (!t.IsScalarType())
             {

@@ -39,50 +39,66 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Linq\CString.cs" />
+    <Compile Include="Linq\Extensions.cs" />
     <Compile Include="Common\ICache.cs" />
     <Compile Include="Common\LRUCache.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Common\SmallCache.cs" />
+    <Compile Include="Common\Annotator.cs" />
+    <Compile Include="Dialects\ISqlDialect.cs" />
+    <Compile Include="Dialects\SqlDialect.cs" />
+    <Compile Include="Dialects\SqlServerDialect.cs" />
+    <Compile Include="Linq\KnownMembers.cs" />
+    <Compile Include="Linq\SqlPredicateBuilder.cs" />
+    <Compile Include="Linq\SqlFormatAttribute.cs" />
+    <Compile Include="Linq\StatementFormatter.cs" />
     <Compile Include="Mapper\ColumnMap.cs" />
-    <Compile Include="Common\CommonExtensions.cs" />
+    <Compile Include="Common\Extensions.cs" />
     <Compile Include="Mapper\DataReaderException.cs" />
     <Compile Include="Mapper\DataReaderGetters.cs" />
-    <Compile Include="Common\ExpressionHelper.cs" />
+    <Compile Include="Common\MemberInfoFinder.cs" />
     <Compile Include="Common\ExpressionKey.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Mapper\MapperExtensions.cs" />
     <Compile Include="Mapper\PersistencyType.cs" />
-    <Compile Include="QueryBuilder.cs" />
+    <Compile Include="Parser\Constants.cs" />
+    <Compile Include="Parser\Extensions.cs" />
+    <Compile Include="Parser\QueryBuilder.cs" />
     <Compile Include="Parser\SqlSelectParser.cs" />
     <Compile Include="TemplateFormatter.cs" />
     <Compile Include="Mapper\ColumnMeta.cs" />
-    <Compile Include="Partials\FromTablePartial.cs" />
-    <Compile Include="Partials\GroupByPartial.cs" />
-    <Compile Include="Partials\HavingPartial.cs" />
-    <Compile Include="Partials\JoinType.cs" />
-    <Compile Include="Partials\ColumnPartial.cs" />
-    <Compile Include="Partials\JoinPartial.cs" />
-    <Compile Include="Partials\LineCommentPartial.cs" />
-    <Compile Include="Partials\MetaColumnPartial.cs" />
-    <Compile Include="Partials\MultiPartAliasedPartial.cs" />
-    <Compile Include="Partials\OrderByPartial.cs" />
-    <Compile Include="Partials\OrderColumnPartial.cs" />
-    <Compile Include="Partials\SelectPartial.cs" />
+    <Compile Include="Parser\Partials\FromTablePartial.cs" />
+    <Compile Include="Parser\Partials\GroupByPartial.cs" />
+    <Compile Include="Parser\Partials\HavingPartial.cs" />
+    <Compile Include="Parser\Partials\JoinType.cs" />
+    <Compile Include="Parser\Partials\ColumnPartial.cs" />
+    <Compile Include="Parser\Partials\JoinPartial.cs" />
+    <Compile Include="Parser\Partials\LineCommentPartial.cs" />
+    <Compile Include="Parser\Partials\MetaColumnPartial.cs" />
+    <Compile Include="Parser\Partials\MultiPartAliasedPartial.cs" />
+    <Compile Include="Parser\Partials\OrderByPartial.cs" />
+    <Compile Include="Parser\Partials\OrderColumnPartial.cs" />
+    <Compile Include="Parser\Partials\SelectPartial.cs" />
     <Compile Include="Parser\Scanner.cs" />
     <Compile Include="Parser\SqlParserException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Partials\SqlPartial.cs" />
-    <Compile Include="Partials\SqlPartialExtensions.cs" />
-    <Compile Include="Partials\TablePartial.cs" />
-    <Compile Include="Partials\TagPartial.cs" />
-    <Compile Include="Partials\TemplatePartial.cs" />
-    <Compile Include="Partials\WherePartial.cs" />
-    <Compile Include="Partials\WithPartial.cs" />
+    <Compile Include="Parser\Partials\SqlPartial.cs" />
+    <Compile Include="Parser\Partials\SqlPartialExtensions.cs" />
+    <Compile Include="Parser\Partials\TablePartial.cs" />
+    <Compile Include="Parser\Partials\TagPartial.cs" />
+    <Compile Include="Parser\Partials\TemplatePartial.cs" />
+    <Compile Include="Parser\Partials\WherePartial.cs" />
+    <Compile Include="Parser\Partials\WithPartial.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="paging.sql.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Dialects\sql-server.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -8,11 +8,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Sql.Parser.Common;
+using Sql.Parser.Linq;
 using Sql.Parser.Mapper;
-using Sql.Parser.Parser;
 using Sql.Parser.Partials;
 
-namespace Sql.Parser
+namespace Sql.Parser.Parser
 {
    public class QueryBuilder
    {
@@ -173,7 +173,7 @@ namespace Sql.Parser
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private static readonly MethodInfo 
-         IsDbNull = ExpressionHelper.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
+         IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
 
       private QueryBuilder
          _countQuery;
@@ -423,7 +423,7 @@ namespace Sql.Parser
          }
          var members = Select
             .Columns
-            .Where(m => path.Length == 0 || m.Map.Path == path || m.Map.Path.StartsWith(path + "."))
+            .Where(m => path.Length == 0 || m.Map.Path == path || m.Map.Path.StartsWith(path + Constants.SpecialChars.NAME_SEP_STR))
             .OrderBy(m => m.Map.Path)
             .ThenBy(m => m.Index)
             .ToArray();
@@ -442,7 +442,7 @@ namespace Sql.Parser
                }
                catch (Exception ex)
                {
-                  throw new Exception("Invalid member reference: " + refType.Name + "." + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
+                  throw new Exception("Invalid member reference: " + refType.Name + Constants.SpecialChars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
                }
             }
             else
@@ -451,14 +451,14 @@ namespace Sql.Parser
                {
                   try
                   {
-                     var refMember = refType.GetPropertyOrField(m.Map.Path.Split('.').Last());
+                     var refMember = refType.GetPropertyOrField(m.Map.Path.Split(Constants.SpecialChars.NAME_SEP).Last());
                      var newExpression = GetBinderExpression(refMember.GetMemberType(), m.Map.Path, p, handledPathes, indices, m.Meta.IsOuterJoinColumn);
                      expressions.Add(Expression.Bind(refMember, newExpression));
                      handledPathes.Add(m.Map.Path);
                   }
                   catch (Exception ex)
                   {
-                     throw new Exception("Invalid member reference: " + refType.Name + "." + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
+                     throw new Exception("Invalid member reference: " + refType.Name + Constants.SpecialChars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
                   }
                }
             }

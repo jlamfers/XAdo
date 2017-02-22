@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using Sql.Parser.Common;
+using Sql.Parser.Parser;
 
 namespace Sql.Parser.Partials
 {
    public class MultiPartAliasedPartial : SqlPartial
    {
       public MultiPartAliasedPartial(IList<string> parts, string alias)
-         : base(string.Join(".", parts))
+         : base(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, parts))
       {
          RawParts = parts.ToList().AsReadOnly();
          Parts = parts.Select(s => s.TrimQuotes()).ToList().AsReadOnly();
@@ -52,7 +53,7 @@ namespace Sql.Parser.Partials
 
       public override void Write(TextWriter w, object args)
       {
-         base.Write(w, args);
+         w.Write(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, RawParts));
          if (RawAlias != null)
          {
             w.Write(" AS ");
