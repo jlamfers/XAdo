@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using NUnit.Framework;
-using Sql.Parser;
-using Sql.Parser.Parser;
+using XAdo.Sql.Core;
 
 namespace XAdo.UnitTest
 {

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using XAdo.Core.Cache;
 
 namespace XAdo.Core
 {
@@ -128,8 +129,8 @@ namespace XAdo.Core
             public string Name { get; private set; }
         }
 
-        private static readonly ConcurrentDictionary<PropertyInfo, IGetterSetter>
-            PropertyGetterSetterCache = new ConcurrentDictionary<PropertyInfo, IGetterSetter>();
+        private static readonly LRUCache<PropertyInfo, IGetterSetter>
+            PropertyGetterSetterCache = new LRUCache<PropertyInfo, IGetterSetter>("LRUCache.XAdo.Properties.Size",2000);
 
         public static IGetterSetter ToGetterSetter(this PropertyInfo self)
         {

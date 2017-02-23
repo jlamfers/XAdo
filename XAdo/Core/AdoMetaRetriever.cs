@@ -1,47 +1,44 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Runtime.InteropServices;
+using XAdo.Core.Cache;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core
 {
    public static class AdoMetaRetriever
    {
-      private static ConcurrentDictionary<string,IList<AdoColumnMeta>> 
-         _cache = new ConcurrentDictionary<string, IList<AdoColumnMeta>>();
+      private static readonly LRUCache<string, IList<AdoColumnMeta>>
+         Cache = new LRUCache<string, IList<AdoColumnMeta>>("LRUCache.XAdo.Meta.Size",2000);
 
       public static IList<AdoColumnMeta> QueryMetaForSql(this IAdoSession self, string sql)
       {
-         var providerName = self.Context.ProviderName ?? ConfigurationManager.ConnectionStrings[self.Context.ConnectionStringName].ProviderName;
-         var key = providerName + ":" + sql;
+         var key = self.Context.GetHashCode() + ":" + sql;
 
          IList<AdoColumnMeta> list;
-         if (_cache.TryGetValue(key, out list))
+         if (Cache.TryGetValue(key, out list))
          {
             return list;
          }
          using (var inner = self.Context.CreateSession())
          {
-            var cn = (DbConnection)self.CastTo<IAdoConnectionProvider>().Connection;
-            var f = DbProviderFactories.GetFactory(providerName);
+            var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
+            var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
             cn.Open();
             list = cn.QueryMeta(sql, f,null);
          }
-         return _cache.GetOrAdd(key, x => list);
+         return Cache.GetOrAdd(key, x => list);
       }
 
       public static IList<AdoColumnMeta> QueryMetaForTable(this IAdoSession self, string tablename)
       {
-         var providerName = self.Context.ProviderName ?? ConfigurationManager.ConnectionStrings[self.Context.ConnectionStringName].ProviderName;
          var sql = "SELECT * FROM " + tablename + " WHERE (1=2)";
-         var key = providerName + ":" + sql;
+         var key = self.Context.GetHashCode() + ":" + sql;
 
          IList<AdoColumnMeta> list;
-         if (_cache.TryGetValue(key, out list))
+         if (Cache.TryGetValue(key, out list))
          {
             return list;
          }
@@ -49,12 +46,12 @@ namespace XAdo.Core
          using (var inner = self.Context.CreateSession())
          {
             var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
-            var f = DbProviderFactories.GetFactory(providerName);
+            var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
             cn.Open();
             list = cn.QueryMeta(sql, f, tablename);
          }
 
-         return _cache.GetOrAdd(key, x => list);
+         return Cache.GetOrAdd(key, x => list);
       }
 
       private static IList<AdoColumnMeta> QueryMeta(this DbConnection self, string sql, DbProviderFactory f, string tablename)
@@ -95,6 +92,7 @@ namespace XAdo.Core
             return resultList.AsReadOnly();
          }
       }
+
 
    }
 }

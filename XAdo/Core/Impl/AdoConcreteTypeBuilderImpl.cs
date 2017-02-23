@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using XAdo.Core.Cache;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
 {
     public class AdoConcreteTypeBuilderImpl : IAdoConcreteTypeBuilder
     {
-        private readonly ConcurrentDictionary<Type, Type>
-            _cache = new ConcurrentDictionary<Type, Type>();
+        private readonly LRUCache<Type, Type>
+            _cache = new LRUCache<Type, Type>("LRUCache.XAdo.Types.Size",2000);
 
         public virtual Type GetConcreteType(Type type)
         {

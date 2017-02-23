@@ -48,6 +48,8 @@
     </Compile>
     <Compile Include="Core\AdoColumnMeta.cs" />
     <Compile Include="Core\Atomic.cs" />
+    <Compile Include="Core\Cache\ICache.cs" />
+    <Compile Include="Core\Cache\LRUCache.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\GetterSetterUtil.cs">

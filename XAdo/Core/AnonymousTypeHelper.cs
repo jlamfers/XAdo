@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using XAdo.Core.Cache;
 
 namespace XAdo.Core
 {
@@ -53,8 +54,8 @@ namespace XAdo.Core
 
      }
 
-      private static readonly ConcurrentDictionary<object, Type>
-          _cache = new ConcurrentDictionary<object, Type>();
+      private static readonly LRUCache<object, Type>
+          _cache = new LRUCache<object, Type>("LRUCache.XAdo.AnonymousTypes.Size",2000);
 
 
       public static Type GetOrCreateType(IList<string> names, IList<Type> types, string typeName = null)

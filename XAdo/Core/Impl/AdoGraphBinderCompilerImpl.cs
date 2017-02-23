@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using XAdo.Core.Cache;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -50,8 +51,8 @@ namespace XAdo.Core.Impl
       private static readonly HashSet<MethodInfo> 
          DelegateMethods = new HashSet<MethodInfo>(typeof(Delegate).GetMethods());
 
-      private readonly ConcurrentDictionary<Key, object>
-         _cache = new ConcurrentDictionary<Key, object>();
+      private readonly LRUCache<Key, object>
+         _cache = new LRUCache<Key, object>("LRUCache.XAdo.GraphBinder.Size", 500);
 
       private readonly IAdoGraphBinderFactory 
          _graphBinderFactory;

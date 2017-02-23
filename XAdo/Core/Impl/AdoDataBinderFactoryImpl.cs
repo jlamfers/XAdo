@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using XAdo.Core.Cache;
 using XAdo.Core.Interface;
 
 namespace XAdo.Core.Impl
@@ -21,8 +22,8 @@ namespace XAdo.Core.Impl
       private readonly IAdoClassBinder 
          _classBinder;
 
-      private readonly ConcurrentDictionary<BinderIdentity, object>
-          _recordBinderCache = new ConcurrentDictionary<BinderIdentity, object>();
+      private readonly LRUCache<BinderIdentity, object>
+          _recordBinderCache = new LRUCache<BinderIdentity, object>("LRUCache.XAdo.RecordBinder.Size", 1000);
 
       protected static readonly HashSet<Type> NonPrimitiveBindableTypes = new HashSet<Type>(new[]
         {

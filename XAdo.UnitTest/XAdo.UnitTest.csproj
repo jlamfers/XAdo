@@ -55,9 +55,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sql.Parser\Sql.Parser.csproj">
+    <ProjectReference Include="..\XAdo.Sql\XAdo.Sql.csproj">
       <Project>{56c8f188-11e5-4b8e-965d-750e45c2a7db}</Project>
-      <Name>Sql.Parser</Name>
+      <Name>XAdo.Sql</Name>
     </ProjectReference>
     <ProjectReference Include="..\XAdo\XAdo.csproj">
       <Project>{DE35B1AF-D6A1-4324-840A-11854787DED4}</Project>

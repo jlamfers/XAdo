@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{95
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.UnitTest", "XAdo.UnitTest\XAdo.UnitTest.csproj", "{88B3F56A-9B70-41EA-A949-D2CC9703814B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sql.Parser", "Sql.Parser\Sql.Parser.csproj", "{56C8F188-11E5-4B8E-965D-750E45C2A7DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XAdo.Sql", "XAdo.Sql\XAdo.Sql.csproj", "{56C8F188-11E5-4B8E-965D-750E45C2A7DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

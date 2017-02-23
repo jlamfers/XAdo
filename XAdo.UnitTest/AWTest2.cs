@@ -3,10 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using NUnit.Framework;
-using Sql.Parser;
-using Sql.Parser.Mapper;
-using Sql.Parser.Parser;
 using XAdo.Core;
+using XAdo.Sql.Core;
+using XAdo.Sql.Core.Parser;
 
 namespace XAdo.UnitTest
 {
@@ -105,6 +104,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID";
 @WHERE
 WHERE {where}  
 @GROUP_BY
+GROUP BY {group}
 @HAVING
 HAVING {having}
 //any @ORDER_BY from original sql is ignored
@@ -227,7 +227,56 @@ HAVING {having}
          }
       }
 
- 
+      [Test]
+      public async void MonkeyTest5()
+      {
+         var q = QueryBuilder.Parse(Query4, Template);
+
+         var context = new AdoContext("AW");
+
+         using (var sn = context.CreateSession())
+         {
+            var persons = sn.Query(q.Format(new { skip = 10, take = 100, order = "p.BusinessEntityID" }), q.GetBinder(sn)).ToList();
+            persons = await sn.QueryAsync(q.Format(new { skip = 10, take = 100, order = "p.BusinessEntityID" }), q.GetBinder(sn));
+            var sw = new Stopwatch();
+            sw.Start();
+            persons = sn.Query(q.Format(new { skip = 10, take = 100, order = "p.BusinessEntityID" }), q.GetBinder(sn)).ToList();
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
+
+      [Test]
+      public async void MonkeyTest6()
+      {
+         var q1 = QueryBuilder.Parse(Query4, Template);
+
+         var q = q1.SelectMapped("count(lastname)", "lastname");
+
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            q = q1.SelectMapped("count(lastname)", "lastname");
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+
+
+
+         var context = new AdoContext("AW");
+
+         using (var sn = context.CreateSession())
+         {
+            var persons = sn.Query(q.Format(new { skip = 10, take = 100, order = q.Select.Columns.First().Expression }), q.GetBinder(sn)).ToList();
+            persons = await sn.QueryAsync(q.Format(new { skip = 10, take = 100, order = q.Select.Columns.First().Expression }), q.GetBinder(sn));
+            sw = new Stopwatch();
+            sw.Start();
+            persons = sn.Query(q.Format(new { skip = 10, take = 100, order = q.Select.Columns.First().Expression }), q.GetBinder(sn)).ToList();
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
+         }
+      }
 
       [Test]
       public void MetaTest()
