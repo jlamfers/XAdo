@@ -56,7 +56,7 @@ namespace XAdo.Core
 
         protected virtual string GetUniqueName()
         {
-            return "<type_" + NextUniqueNumber() + ">";
+            return "<xado-emitted_" + NextUniqueNumber() + ">";
         }
 
         public virtual string TypeName { get; set; }

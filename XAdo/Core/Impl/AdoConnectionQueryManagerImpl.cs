@@ -15,8 +15,9 @@ namespace XAdo.Core.Impl
       private readonly IAdoDataReaderManager _dataReaderManager;
       private readonly IAdoCommandFactory _commandFactory;
       private readonly IAdoTypeConverterFactory _typeConverterFactory;
+      private readonly IAdoSqlInterceptor _sqlInterceptor;
 
-      public AdoConnectionQueryManagerImpl(IAdoDataReaderManager dataReaderManager, IAdoCommandFactory commandFactory, IAdoTypeConverterFactory typeConverterFactory)
+      public AdoConnectionQueryManagerImpl(IAdoDataReaderManager dataReaderManager, IAdoCommandFactory commandFactory, IAdoTypeConverterFactory typeConverterFactory, IAdoSqlInterceptor sqlInterceptor = null)
       {
          if (dataReaderManager == null) throw new ArgumentNullException("dataReaderManager");
          if (commandFactory == null) throw new ArgumentNullException("commandFactory");
@@ -24,6 +25,7 @@ namespace XAdo.Core.Impl
          _dataReaderManager = dataReaderManager;
          _commandFactory = commandFactory;
          _typeConverterFactory = typeConverterFactory;
+         _sqlInterceptor = sqlInterceptor;
       }
 
       public virtual int Execute(IDbConnection cn, string sql, object param = null, IDbTransaction tr = null,
@@ -31,6 +33,16 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Execute) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var enumerable = param as IEnumerable;
          {
@@ -66,6 +78,16 @@ namespace XAdo.Core.Impl
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
          if (param == null) throw new ArgumentNullException("param");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.EnumerableParam) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = (IEnumerable)interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var result = 0;
          var wasopen = cn.State == ConnectionState.Open;
@@ -107,6 +129,16 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Scalar, typeof(T)) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
          var wasopen = cn.State == ConnectionState.Open;
          if (!wasopen)
          {
@@ -134,6 +166,16 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Query) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
@@ -169,6 +211,16 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Query, typeof(T)) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
@@ -207,6 +259,16 @@ namespace XAdo.Core.Impl
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
 
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Query, typeof(T)) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
+
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
          if (!wasopen)
@@ -244,6 +306,16 @@ namespace XAdo.Core.Impl
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
 
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Query, typeof(T)) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
+
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
          if (!wasopen)
@@ -280,6 +352,16 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Multiple) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
@@ -324,6 +406,15 @@ namespace XAdo.Core.Impl
       {
          if (cn == null) throw new ArgumentNullException("cn");
          if (sql == null) throw new ArgumentNullException("sql");
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Multiple) { Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
 
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
@@ -440,6 +531,16 @@ namespace XAdo.Core.Impl
          if (sql == null) throw new ArgumentNullException("sql");
          if (factory == null) throw new ArgumentNullException("factory");
 
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Query, typeof(TResult)) {Arguments = param, Sql = sql, CommandType = commandType };
+            _sqlInterceptor.BeforeExecute(interception);
+            sql = interception.Sql;
+            param = interception.Arguments;
+            commandType = interception.CommandType;
+         }
+
+
          var wasopen = cn.State == ConnectionState.Open;
          var skipClose = false;
          if (!wasopen)
@@ -474,8 +575,7 @@ namespace XAdo.Core.Impl
 
       #region Private
 
-      private IDbCommand
-          CreateCommand(IDbConnection cn, string sql, object param, IDbTransaction tr,int? commandTimeout, CommandType? commandType)
+      private IDbCommand CreateCommand(IDbConnection cn, string sql, object param, IDbTransaction tr,int? commandTimeout, CommandType? commandType)
       {
          return _commandFactory.CreateCommand(cn, sql, param, tr, commandTimeout, commandType);
       }

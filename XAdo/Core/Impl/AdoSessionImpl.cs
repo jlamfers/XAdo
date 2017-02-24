@@ -35,8 +35,7 @@ namespace XAdo.Core.Impl
 
        private readonly IAdoClassBinder _binder;
 
-
-        private bool _keepConectionOpen;
+       private bool _keepConectionOpen;
         private string _connectionString;
         private string _providerName;
 
@@ -136,6 +135,7 @@ namespace XAdo.Core.Impl
        public virtual T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
        {
           EnsureNotDisposed();
+
           return _connectionQueryManager.ExecuteScalar<T>(LazyConnection.Value, sql, param,
              _tr != null ? _tr.Value : null, _commandTimeout,
              commandType);
@@ -143,14 +143,16 @@ namespace XAdo.Core.Impl
 
        public virtual object ExecuteScalar(string sql, object param = null, CommandType? commandType = null)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
+
             return _connectionQueryManager.ExecuteScalar(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType);
         }
 
         public virtual IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null)
         {
-            EnsureNotDisposed();
+           EnsureNotDisposed();
+
             var enumerable = _connectionQueryManager.Query<T>(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
             return buffered ? enumerable.ToList() : enumerable;
@@ -159,6 +161,7 @@ namespace XAdo.Core.Impl
         public virtual IEnumerable<T> Query<T>(string sql, Func<IDataRecord, T> factory, object param = null, bool buffered = true, CommandType? commandType = null)
        {
           EnsureNotDisposed();
+
           var enumerable = _connectionQueryManager.Query<T>(LazyConnection.Value, sql, factory, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
           return buffered ? enumerable.ToList() : enumerable;
        }
@@ -167,6 +170,7 @@ namespace XAdo.Core.Impl
             CommandType? commandType = null)
         {
             EnsureNotDisposed();
+
             var enumerable = _connectionQueryManager.Query(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType);
             return buffered ? enumerable.ToList() : enumerable;
@@ -175,6 +179,7 @@ namespace XAdo.Core.Impl
         public virtual AdoMultiResultReader QueryMultiple(string sql, object param = null,CommandType? commandType = null)
         {
             EnsureNotDisposed();
+
             return _connectionQueryManager.QueryMultiple(LazyConnection.Value, sql, param, _tr != null ? _tr.Value : null, _commandTimeout,
                 commandType, _allowUnbindableFetchResults, _allowUnbindableMembers);
 
@@ -184,6 +189,7 @@ namespace XAdo.Core.Impl
           CommandType? commandType = null)
        {
           EnsureNotDisposed();
+
           return _connectionQueryManager.QueryMultiple(LazyConnection.Value, sql, factories, param, _tr != null ? _tr.Value : null, _commandTimeout, commandType);
        }
 
@@ -291,8 +297,10 @@ namespace XAdo.Core.Impl
        {
           EnsureNotDisposed();
           var batch = _sqlBatch;
+          _sqlBatch = null;
           if (batch == null || batch.Count <= 0) return false;
           batch.Flush(this);
+          _sqlBatch = batch;
           return true;
        }
        public virtual IAdoSession AddSqlBatchItem(AdoSqlBatchItem batchItem)

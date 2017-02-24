@@ -74,11 +74,6 @@ namespace XAdo.Core
       }
 
 
-      protected override string GetUniqueName()
-      {
-         return "<anonymous_" + NextUniqueNumber() + ">";
-      }
-
       private static Type CreateType(IList<string> names, IList<Type> types, string typeName = null)
       {
          var b = new AnonymousTypeHelper { TypeName = typeName };

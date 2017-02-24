@@ -7,14 +7,29 @@ namespace XAdo.Core.Impl
 {
    public partial class AdoSqlBatchImpl : IAdoSqlBatch
    {
+      private readonly IAdoSqlInterceptor _sqlInterceptor;
 
       private readonly List<AdoSqlBatchItem>
          _commands = new List<AdoSqlBatchItem>();
+
+      public AdoSqlBatchImpl(IAdoSqlInterceptor sqlInterceptor = null)
+      {
+         _sqlInterceptor = sqlInterceptor;
+      }
 
 
       public virtual IAdoSqlBatch Add(AdoSqlBatchItem batchItem)
       {
          if (batchItem == null) throw new ArgumentNullException("batchItem");
+
+         if (_sqlInterceptor != null)
+         {
+            var interception = new AdoSqlInterception(SqlExecutionType.Batch) { Arguments = batchItem.Args, Sql = batchItem.Sql };
+            _sqlInterceptor.BeforeExecute(interception);
+            batchItem.Sql = interception.Sql;
+            batchItem.Args = interception.Arguments;
+         }
+
          var dict = batchItem.Args as IDictionary<string, object>;
          if (dict != null && dict.Count == 0)
          {
@@ -52,10 +67,10 @@ namespace XAdo.Core.Impl
 
          foreach (var item in commands)
          {
-            var c = item.Callback;
-            if (c != null)
+            var callback = item.Callback;
+            if (callback != null)
             {
-               c(session.ExecuteScalar<object>(item.Sql, item.Args));
+               callback(session.ExecuteScalar<object>(item.Sql, item.Args));
             }
             else
             {

@@ -127,6 +127,7 @@
     <Compile Include="Core\Impl\NullableGetters.cs" />
     <Compile Include="Core\Interface\IAdoSqlBatch.Async.cs" />
     <Compile Include="Core\AdoMetaRetriever.cs" />
+    <Compile Include="Core\Interface\ISqlInterceptor.cs" />
     <Compile Include="Core\TVoid.cs" />
     <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
     <Compile Include="Core\Interface\IAdoClassBinder.cs" />

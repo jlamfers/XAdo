@@ -5,7 +5,7 @@ namespace XAdo.Core
 {
    public class AdoSqlBatchItem
    {
-      private readonly StringBuilder _sql = new StringBuilder();
+      private StringBuilder _sql = new StringBuilder();
       public AdoSqlBatchItem(string sql, object args = null, Action<object> callback = null)
       {
          if (sql == null) throw new ArgumentNullException("sql");
@@ -13,7 +13,12 @@ namespace XAdo.Core
          Args = args;
          Callback = callback;
       }
-      public string Sql { get { return _sql.ToString(); } }
+
+      public string Sql
+      {
+         get { return _sql.ToString(); }
+         internal set { _sql = new StringBuilder(value);} // from interceptor
+      }
       public object Args { get; internal set; }
       public Action<object> Callback { get; private set; }
 

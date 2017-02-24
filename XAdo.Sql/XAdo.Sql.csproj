@@ -37,6 +37,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XPression">
+      <HintPath>..\packages\XPression.1.2.0\lib\net45\XPression.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Common\XAdoSqlException.cs" />
@@ -101,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Dialects\sql-server.json" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

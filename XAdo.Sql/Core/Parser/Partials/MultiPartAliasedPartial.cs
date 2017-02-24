@@ -25,8 +25,8 @@ namespace XAdo.Sql.Core.Parser.Partials
       }
 
       public IList<string> RawParts { get; internal set; }
-      public string RawAlias { get; internal set; }
-      public string Alias { get; internal set; }
+      public string RawAlias { get; private set; }
+      public string Alias { get; private set; }
       public IList<string> Parts { get; internal set; }
 
       internal void SetAlias(string alias)

@@ -31,12 +31,12 @@ namespace XAdo.Sql.Core.Mapper
       }
       public Type Type { get; internal set; }
 
-      public static ColumnMeta FindMeta(TagPartial partial, bool distinct, out string relativeName)
+      internal static ColumnMeta FindMeta(TagPartial partial, bool distinct, out string relativeName)
       {
          relativeName = partial.Expression;
          return FindMeta(ref relativeName,distinct,false) ?? new ColumnMeta();
       }
-      public static ColumnMeta FindMeta(ColumnPartial partial, bool distinct, out string relativeName)
+      internal static ColumnMeta FindMeta(ColumnPartial partial, bool distinct, out string relativeName)
       {
          relativeName = null;
          var @readonly = partial.Expression.Contains("(");

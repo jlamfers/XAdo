@@ -18,6 +18,7 @@ using XAdo.Sql.Core.Parser.Partials;
 
 namespace XAdo.Sql.Core
 {
+   // immutable object
    public class QueryBuilder
    {
 
@@ -205,6 +206,9 @@ namespace XAdo.Sql.Core
       private ICache<Type, QueryBuilder>
          _mapCache = new SmallCache<Type, QueryBuilder>();
 
+      private string
+         _formattedSql;
+
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private static readonly MethodInfo 
          IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
@@ -350,11 +354,20 @@ namespace XAdo.Sql.Core
 
       public void Format(TextWriter w, object args)
       {
-         _partials.Format(w, args);
+         if (args == null)
+         {
+            w.Write(Format(null));
+         }
+         else
+         {
+            _partials.Format(w, args);
+         }
       }
       public string Format(object args)
       {
-         return _partials.Format(args);
+         return args == null 
+            ? (_formattedSql ?? (_formattedSql = _partials.Format(null))) 
+            : _partials.Format(args);
       }
 
       public override string ToString()
@@ -600,6 +613,7 @@ namespace XAdo.Sql.Core
       }
    }
 
+   //immutable object
    public class QueryBuilder<TEntity> : QueryBuilder
    {
 
