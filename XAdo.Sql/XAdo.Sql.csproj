@@ -37,9 +37,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="XPression">
-      <HintPath>..\packages\XPression.1.2.0\lib\net45\XPression.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Common\XAdoSqlException.cs" />
@@ -47,12 +44,13 @@
     <Compile Include="Core\Linq\CString.cs" />
     <Compile Include="Core\Linq\Extensions.cs" />
     <Compile Include="Core\Common\Annotator.cs" />
+    <Compile Include="Core\Linq\SqlMethods.cs" />
     <Compile Include="Core\Parser\Partials\GroupByPartial.cs" />
     <Compile Include="Dialects\ISqlDialect.cs" />
     <Compile Include="Dialects\SqlDialect.cs" />
     <Compile Include="Dialects\SqlServerDialect.cs" />
     <Compile Include="Core\Linq\KnownMembers.cs" />
-    <Compile Include="Core\Linq\SqlPredicateBuilder.cs" />
+    <Compile Include="Core\Linq\SqlGenerator.cs" />
     <Compile Include="Core\Linq\SqlFormatAttribute.cs" />
     <Compile Include="Core\Linq\StatementFormatter.cs" />
     <Compile Include="Core\Mapper\ColumnMap.cs" />
@@ -104,7 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Dialects\sql-server.json" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

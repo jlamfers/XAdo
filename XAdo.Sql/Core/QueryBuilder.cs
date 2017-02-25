@@ -15,6 +15,7 @@ using XAdo.Sql.Core.Linq;
 using XAdo.Sql.Core.Mapper;
 using XAdo.Sql.Core.Parser;
 using XAdo.Sql.Core.Parser.Partials;
+using XAdo.Sql.Dialects;
 
 namespace XAdo.Sql.Core
 {
@@ -506,10 +507,16 @@ namespace XAdo.Sql.Core
       {
          return SelectMapped(mappedExpressions, null);
       }
-
+       
       public IDictionary<string, MetaColumnPartial> GetMappedColumns()
       {
          return Select.Columns.ToDictionary(c => c.Map.FullName, c => c,StringComparer.OrdinalIgnoreCase);
+      }
+
+      public SqlGenerator.Result GetSqlFromExpression(Expression expression, IDictionary<string, object> arguments = null, ISqlDialect dialect = null, string parameterPrefix = "xado_", bool noargs = false)
+      {
+         var generator = new SqlGenerator(dialect, parameterPrefix, noargs);
+         return generator.Generate(expression, Select.Columns.ToDictionary(c => c.Map.FullName, c => c.Expression, StringComparer.OrdinalIgnoreCase), arguments);
       }
 
       public Func<IDataRecord, T> GetBinder<T>()
@@ -647,6 +654,16 @@ namespace XAdo.Sql.Core
       {
          return GetBinder<TEntity>();
       }
+
+      public new SqlGenerator.Result GetSqlFromExpression(Expression<Func<TEntity,bool>> expression, IDictionary<string, object> arguments = null, ISqlDialect dialect = null, string parameterPrefix = "xado_", bool noargs = false)
+      {
+         return base.GetSqlFromExpression(expression, arguments, dialect, parameterPrefix, noargs);
+      }
+      public new SqlGenerator.Result GetSqlFromExpression(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null, ISqlDialect dialect = null, string parameterPrefix = "xado_", bool noargs = false)
+      {
+         return base.GetSqlFromExpression(expression, arguments, dialect, parameterPrefix, noargs);
+      }
+
    }
 
 }

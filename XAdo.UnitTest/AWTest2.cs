@@ -5,7 +5,9 @@ using System.Linq.Expressions;
 using NUnit.Framework;
 using XAdo.Core;
 using XAdo.Sql.Core;
+using XAdo.Sql.Core.Linq;
 using XAdo.Sql.Core.Parser;
+using XAdo.Sql.Dialects;
 
 namespace XAdo.UnitTest
 {
@@ -276,6 +278,24 @@ HAVING {having}
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
+      }
+
+      [Test]
+      public async void MonkeyTest7()
+      {
+         var q1 = QueryBuilder<Person>.Parse(Query4, Template);
+         var d = new SqlServerDialect();
+
+         var sql = q1.GetSqlFromExpression(p => p.Id.Avg<decimal>(), dialect:d);
+
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            sql = q1.GetSqlFromExpression(p => p.Id.Avg<decimal>(), dialect: d);
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
       }
 
       [Test]

@@ -44,6 +44,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="XPression">
+      <HintPath>..\packages\XPression.1.2.0\lib\net45\XPression.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWTest2.cs" />

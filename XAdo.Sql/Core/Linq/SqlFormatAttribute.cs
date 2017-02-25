@@ -12,8 +12,6 @@ namespace XAdo.Sql.Core.Linq
    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property,AllowMultiple = true)]
    public class SqlFormatAttribute : Attribute
    {
-      private static readonly ConcurrentDictionary<Type,ISqlDialect>
-         Cache = new ConcurrentDictionary<Type, ISqlDialect>();
 
       private readonly PropertyInfo 
          _formatProperty;
@@ -67,19 +65,20 @@ namespace XAdo.Sql.Core.Linq
          }
          return _formatValue ?? (string) _formatProperty.GetValue(provider);
       }
+      public int Order { get; set; }
 
    }
 
    public static class SqlFormatAttributeExtensions
    {
-      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, string providerName)
+      public static SqlFormatAttribute[] GetSqlFormatAttributes(this MemberInfo self, string providerName)
       {
-         return self.GetAnnotations<SqlFormatAttribute>().FirstOrDefault(a => a.ProviderName == null || a.ProviderName == providerName);
+         return self.GetAnnotations<SqlFormatAttribute>().Where(a => a.ProviderName == null || a.ProviderName == providerName).ToArray();
       }
 
-      public static SqlFormatAttribute GetSqlFormatAttribute(this MemberInfo self, ISqlDialect dialect)
+      public static SqlFormatAttribute[] GetSqlFormatAttributes(this MemberInfo self, ISqlDialect dialect)
       {
-         return self.GetSqlFormatAttribute(dialect.ProviderName);
+         return self.GetSqlFormatAttributes(dialect.ProviderName);
       }
    }
 }

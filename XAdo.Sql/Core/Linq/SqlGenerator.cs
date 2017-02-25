@@ -10,13 +10,12 @@ using XAdo.Sql.Dialects;
 
 namespace XAdo.Sql.Core.Linq
 {
-   public class SqlPredicateBuilder : ExpressionVisitor
+   public class SqlGenerator : ExpressionVisitor
    {
 
-
-      public class ParseResult
+      public class Result
       {
-         public ParseResult(string sql, IDictionary<string, object> arguments)
+         public Result(string sql, IDictionary<string, object> arguments)
          {
             Arguments = arguments;
             Sql = sql;
@@ -25,6 +24,7 @@ namespace XAdo.Sql.Core.Linq
          public string Sql { get; private set; }
          public IDictionary<string, object> Arguments { get; private set; }
       }
+
 
 
       private static readonly Dictionary<ExpressionType, string>
@@ -58,18 +58,19 @@ namespace XAdo.Sql.Core.Linq
       private IDictionary<string, string> 
          _fullnameToColumnMap;
 
-      private LambdaExpression 
+      private Expression 
          _expression;
 
-      public SqlPredicateBuilder(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
+      public SqlGenerator(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
       {
+         if (dialect == null) throw new ArgumentNullException("dialect");
          _dialect = dialect;
          _parameterPrefix = parameterPrefix;
          _noargs = noargs;
          _dialect.EnsureAnnotated();
       }
 
-      public ParseResult Parse(LambdaExpression expression, IDictionary<string, string> fullnameColumnMap, IDictionary<string, object> arguments)
+      public Result Generate(Expression expression, IDictionary<string, string> fullnameColumnMap, IDictionary<string, object> arguments)
       {
          _fullnameToColumnMap = fullnameColumnMap;
          _arguments = arguments ?? new Dictionary<string, object>();
@@ -80,7 +81,7 @@ namespace XAdo.Sql.Core.Linq
             Visit(expression);
             _writer = null;
             _expression = null;
-            return new ParseResult(writer.GetStringBuilder().ToString(), _arguments);
+            return new Result(writer.GetStringBuilder().ToString(), _arguments);
          }
       }
 
@@ -91,11 +92,12 @@ namespace XAdo.Sql.Core.Linq
             case ExpressionType.Not:
                if (node.Operand.Type.EnsureNotNullable() == typeof (bool))
                {
-                  FormatSql(" ("+_dialect.BitwiseNot+")", node.Operand);
+                  FormatSql(" NOT({0})", node.Operand);
+                  
                }
                else
                {
-                  FormatSql(" NOT({0})", node.Operand);
+                  FormatSql(" (" + _dialect.BitwiseNot + ")", node.Operand);
                }
                return node;
             case ExpressionType.Negate:
@@ -206,10 +208,26 @@ namespace XAdo.Sql.Core.Linq
 
       protected override Expression VisitMember(MemberExpression node)
       {
-         var formatter = node.Member.GetSqlFormatAttribute(_dialect);
-         if (formatter != null)
+         var formatters = node.Member.GetSqlFormatAttributes(_dialect);
+         if (formatters.Length > 0)
          {
-            FormatSql(formatter.GetFormat(_dialect), node.Expression);
+            if (formatters.Length == 1)
+            {
+               FormatSql(formatters[0].GetFormat(_dialect), node.Expression);
+               return node;
+            }
+            formatters = formatters.OrderBy(f => f.Order).ToArray();
+            var args = new[] {Parameterize(() => Visit(node.Expression))};
+            string s = null;
+            foreach (var f in formatters)
+            {
+               var format = f.GetFormat(_dialect);
+               var s1 = s;
+               args = args ?? new Action<TextWriter>[] { w => w.Write(s1) };
+               s = format.FormatSqlStatement(args);
+               args = null;
+            }
+            _writer.Write(s);
             return node;
          }
 
@@ -248,12 +266,29 @@ namespace XAdo.Sql.Core.Linq
 
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
-         var formatter = node.Method.GetSqlFormatAttribute(_dialect);
-         if (formatter != null)
+         var formatters = node.Method.GetSqlFormatAttributes(_dialect);
+         if (formatters.Length > 0)
          {
-            FormatSql(formatter.GetFormat(_dialect),node.GetAllArguments().ToArray());
+            if (formatters.Length == 1)
+            {
+               FormatSql(formatters[0].GetFormat(_dialect), node.GetAllArguments().ToArray());
+               return node;
+            }
+            formatters = formatters.OrderBy(f => f.Order).ToArray();
+            var args = node.GetAllArguments().Select(a => Parameterize(() => Visit(a))).ToArray();
+            string s = null;
+            foreach (var f in formatters)
+            {
+               var format = f.GetFormat(_dialect);
+               var s1 = s;
+               args = args ?? new Action<TextWriter>[] { w => w.Write(s1) };
+               s = format.FormatSqlStatement(args);
+               args = null;
+            }
+            _writer.Write(s);
             return node;
          }
+
 
          if (node.Method.Name == "GetValueOrDefault" && node.Method.DeclaringType.IsNullable())
          {

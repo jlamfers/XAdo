@@ -123,7 +123,7 @@ namespace XAdo.Sql.Core.Linq
          {
             return argsEnumerable;
          }
-         var att = node.Method.GetAnnotation<SqlFormatAttribute>();
+         var att = node.Method.GetAnnotations<SqlFormatAttribute>().OrderBy(f => f.Order).FirstOrDefault();
          if (att == null || !att.IncludeGenericParameters)
          {
             return argsEnumerable;
