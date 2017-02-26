@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using XAdo.Core.Cache;
 
@@ -8,6 +7,9 @@ namespace XAdo.Sql.Core.Common
 {
    internal class SmallCache<TKey, TValue> : ICache<TKey, TValue>
    {
+      private readonly string _capacityKey;
+      private readonly int _defaultCapacity;
+      private readonly IEqualityComparer<TKey> _comparer;
       private readonly object _lock1 = new object();
       private readonly object _lock2 = new object();
       private readonly object _lock3 = new object();
@@ -24,13 +26,24 @@ namespace XAdo.Sql.Core.Common
       private TValue _value3;
       private TValue _value4;
 
-      private ConcurrentDictionary<TKey, TValue> _dict;
+      private LRUCache<TKey, TValue> _lruCache;
+
+      public SmallCache(string capacityKey, int defaultCapacity = 100, IEqualityComparer<TKey> comparer = null)
+      {
+         _capacityKey = capacityKey;
+         _defaultCapacity = defaultCapacity;
+         _comparer = comparer;
+      }
+      public SmallCache(int defaultCapacity = 100)
+      {
+         _defaultCapacity = defaultCapacity;
+      }
 
       public TValue GetOrAdd(TKey key, Func<TKey, TValue> factory)
       {
-         if (_dict != null)
+         if (_lruCache != null)
          {
-            return _dict.GetOrAdd(key, factory);
+            return _lruCache.GetOrAdd(key, factory);
          }
 
          TValue value;
@@ -41,15 +54,15 @@ namespace XAdo.Sql.Core.Common
 
          lock (_lock5)
          {
-            if (_dict == null)
+            if (_lruCache == null)
             {
-               _dict = _dict ?? new ConcurrentDictionary<TKey, TValue>(new[]
+               _lruCache = _lruCache ?? new LRUCache<TKey, TValue>(new[]
                         {
                            new KeyValuePair<TKey, TValue>(_key1, _value1),
                            new KeyValuePair<TKey, TValue>(_key2, _value2),
                            new KeyValuePair<TKey, TValue>(_key3, _value3),
                            new KeyValuePair<TKey, TValue>(_key4, _value4),
-                        });
+                        },_capacityKey,_defaultCapacity,_comparer);
 
                _key1 = default(TKey);
                _key2 = default(TKey);
@@ -63,14 +76,14 @@ namespace XAdo.Sql.Core.Common
 
             }
          }
-         return _dict.GetOrAdd(key, factory);
+         return _lruCache.GetOrAdd(key, factory);
       }
 
       public int Count
       {
          get
          {
-            if (_dict != null) return _dict.Count;
+            if (_lruCache != null) return _lruCache.Count;
             if (!Equals(_key4,default(TKey))) return 4;
             if (!Equals(_key3, default(TKey))) return 3;
             if (!Equals(_key4, default(TKey))) return 2;
@@ -82,10 +95,10 @@ namespace XAdo.Sql.Core.Common
       private bool TryGet(object @lock, ref TKey key, ref TValue value, TKey arg, Func<TKey, TValue> factory, out TValue outValue)
       {
          outValue = default(TValue);
-         if (_dict != null) return false;
+         if (_lruCache != null) return false;
          lock (@lock)
          {
-            return _dict == null && TryGet(ref key, ref value, arg, factory, out outValue);
+            return _lruCache == null && TryGet(ref key, ref value, arg, factory, out outValue);
          }
       }
 
@@ -108,7 +121,7 @@ namespace XAdo.Sql.Core.Common
 
       public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
       {
-         if (_dict != null) return _dict.GetEnumerator();
+         if (_lruCache != null) return _lruCache.GetEnumerator();
          var list = new List<KeyValuePair<TKey, TValue>>();
          lock (_lock1)
          {
@@ -131,7 +144,7 @@ namespace XAdo.Sql.Core.Common
             if (!Equals(_key4, default(TKey))) list.Add(new KeyValuePair<TKey, TValue>(_key4, _value4));
             else return list.GetEnumerator();
          }
-         return _dict != null ? _dict.GetEnumerator() : list.GetEnumerator();
+         return _lruCache != null ? _lruCache.GetEnumerator() : list.GetEnumerator();
       }
 
       IEnumerator IEnumerable.GetEnumerator()

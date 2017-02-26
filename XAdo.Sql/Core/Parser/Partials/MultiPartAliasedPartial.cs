@@ -29,10 +29,11 @@ namespace XAdo.Sql.Core.Parser.Partials
       public string Alias { get; private set; }
       public IList<string> Parts { get; internal set; }
 
-      internal void SetAlias(string alias)
+      internal MultiPartAliasedPartial SetAlias(string alias)
       {
          RawAlias = alias;
          Alias = alias;
+         return this;
       }
 
       public override void Write(TextWriter w, object args)

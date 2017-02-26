@@ -8,6 +8,9 @@ using XAdo.Sql.Core;
 using XAdo.Sql.Core.Linq;
 using XAdo.Sql.Core.Parser;
 using XAdo.Sql.Dialects;
+using XAdo.Sql.Linq;
+using XPression;
+using XPression.Language.Syntax;
 
 namespace XAdo.UnitTest
 {
@@ -283,19 +286,57 @@ HAVING {having}
       [Test]
       public async void MonkeyTest7()
       {
-         var q1 = QueryBuilder<Person>.Parse(Query4, Template);
          var d = new SqlServerDialect();
+         var q1 = QueryBuilder<Person>.Parse(Query4, Template);
 
-         var sql = q1.GetSqlFromExpression(p => p.Id.Avg<decimal>(), dialect:d);
+         var exp2 = new UrlParser().Parse("concat('1','2','3','4')", typeof(object));
+         var sql2 = q1.GetSqlFromExpression(exp2, dialect: d);
+
+
+         var exp = new UrlParser().Parse("avg(cast(address.addresstype.id,'decimal'))..id_avg~stdev(cast(address.addresstype.id,'decimal'))..id_stdev", typeof(Person));
+
+         var sql = q1.GetSqlFromExpression(exp, dialect:d);
 
          var sw = new Stopwatch();
          sw.Start();
          for (var i = 0; i < 1000; i++)
          {
-            sql = q1.GetSqlFromExpression(p => p.Id.Avg<decimal>(), dialect: d);
+            exp = new UrlParser().Parse("avg(cast(address.addresstype.id,'decimal'))", typeof(Person));
+            sql = q1.GetSqlFromExpression(exp, dialect: d);
          }
          sw.Stop();
          Debug.WriteLine(sw.ElapsedMilliseconds);
+      }
+
+      [Test]
+      public async void MonkeyTest8()
+      {
+         var d = new SqlServerDialect();
+         var q1 = QueryBuilder.Parse(Query4, Template);
+
+         var context = new AdoContext("AW");
+         using (var s = context.CreateSession())
+         {
+            q1.GetBinder(s);
+         }
+
+         var q2 = q1.CreateNewSelect("id|personId~persontype~title", q1.GetBinderType(null), new UrlExpressionParser(), d, new[] {'~'},new[] {'|'});
+         var q3 = q1.CreateNewSelect("count(firstname)|firstname_count~firstname", q1.GetBinderType(null), new UrlExpressionParser(), d, new[] { '~' }, new[] { '|' });
+
+         
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            q3 = q1.CreateNewSelect("count(firstname)|firstname_count~firstname", q1.GetBinderType(null), new UrlExpressionParser(), d, new[] { '~' }, new[] { '|' });
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+
+         using (var s = context.CreateSession())
+         {
+            var list = s.Query(q3.Format(null), q3.GetBinder(s)).ToList();
+         }
       }
 
       [Test]

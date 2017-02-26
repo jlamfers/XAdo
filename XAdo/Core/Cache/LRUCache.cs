@@ -25,7 +25,7 @@ namespace XAdo.Core.Cache
       public LRUCache(string capacityKey, int defaultCapacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
       {
          int configuredValue;
-         _capacity = int.TryParse(ConfigurationManager.AppSettings[capacityKey], out configuredValue) ? configuredValue : defaultCapacity;
+         _capacity = capacityKey != null && int.TryParse(ConfigurationManager.AppSettings[capacityKey], out configuredValue) ? configuredValue : defaultCapacity;
 
          if (comparer != null)
          {
@@ -40,8 +40,8 @@ namespace XAdo.Core.Cache
             _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(comparer);
          }
       }
-      public LRUCache(IEnumerable<KeyValuePair<TKey, TValue>> other, int capacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
-         : this(capacity, comparer)
+      public LRUCache(IEnumerable<KeyValuePair<TKey, TValue>> other, string capacityKey = null, int capacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
+         : this(capacityKey,capacity, comparer)
       {
          var otherLRUCache = other as LRUCache<TKey, TValue>;
          if (otherLRUCache != null)

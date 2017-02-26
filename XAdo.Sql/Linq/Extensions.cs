@@ -117,7 +117,16 @@ namespace XAdo.Sql.Core.Linq
 
       public static IEnumerable<Expression> GetAllArguments(this MethodCallExpression node)
       {
-         var argsEnumerable = node.Object != null ? new[] { node.Object }.Concat(node.Arguments) : node.Arguments;
+         var arguments = node.Arguments.ToList();
+         var hasParams = node.Method.GetParameters().Any() && node.Method.GetParameters().Last().GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0;
+         if (hasParams)
+         {
+            var last = arguments.Last();
+            arguments.RemoveAt(arguments.Count - 1);
+            arguments.AddRange(last.CastTo<NewArrayExpression>().Expressions);
+         }
+
+         var argsEnumerable = node.Object != null ? new[] { node.Object }.Concat(arguments) : arguments;
 
          if (!node.Method.IsGenericMethod)
          {

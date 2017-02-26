@@ -11,6 +11,8 @@ namespace XAdo.Sql.Dialects
       private string _literalTrue = "1";
       private string _literalFalse = "0";
       private string _literalNull = "NULL";
+      private string[] _aggregates = { "AVG", "MIN", "MAX", "SUM", "COUNT" };
+
 
       public virtual void FormatValue(TextWriter writer, object value)
       {
@@ -85,78 +87,82 @@ namespace XAdo.Sql.Dialects
 
       }
 
-      public virtual string SelectTemplate { get; protected set; }
+      public virtual string SelectTemplate { get; set; }
 
-      public virtual string ProviderName { get; protected set; }
+      public virtual string ProviderName { get; set; }
 
-      public virtual string LiteralTrue { get { return _literalTrue; } protected set { _literalTrue = value; } }
-      public virtual string LiteralFalse { get { return _literalFalse; } protected set { _literalFalse = value; } }
-      public virtual string LiteralNull { get { return _literalNull; } protected set { _literalNull = value; } }
+      public virtual string LiteralTrue { get { return _literalTrue; } set { _literalTrue = value; } }
+      public virtual string LiteralFalse { get { return _literalFalse; } set { _literalFalse = value; } }
+      public virtual string LiteralNull { get { return _literalNull; } set { _literalNull = value; } }
 
-      public virtual string IdentifierSeperator { get; protected set; }
-      public virtual string StatementSeperator { get; protected set; }
-      public virtual string IdentifierDelimiterLeft { get; protected set; }
-      public virtual string IdentifierDelimiterRight { get; protected set; }
-      public virtual string StringDelimiter { get; protected set; }
-      public virtual string EscapedStringDelimiter { get; protected set; }
+      public virtual string IdentifierSeperator { get; set; }
+      public virtual string StatementSeperator { get; set; }
+      public virtual string IdentifierDelimiterLeft { get; set; }
+      public virtual string IdentifierDelimiterRight { get; set; }
+      public virtual string StringDelimiter { get; set; }
+      public virtual string EscapedStringDelimiter { get; set; }
 
-      public virtual string ParameterFormat { get; protected set; }
-      public virtual string DateTimeFormat { get; protected set; }
-      public virtual string CharFormat { get; protected set; }
-      public virtual string ExistsFormat { get; protected set; }
-      public virtual string CountFormat { get; protected set; }
+      public virtual string ParameterFormat { get; set; }
+      public virtual string DateTimeFormat { get; set; }
+      public virtual string CharFormat { get; set; }
+      public virtual string ExistsFormat { get; set; }
+      public virtual string CountFormat { get; set; }
 
 
-      public virtual string TypeCast { get; protected set; }
-      public virtual string Coalesce { get; protected set; }
-      public virtual string Modulo { get; protected set; }
-      public virtual string Power { get; protected set; }
+      public virtual string TypeCast { get; set; }
+      public virtual string Coalesce { get; set; }
+      public virtual string Modulo { get; set; }
+      public virtual string Power { get; set; }
+      public virtual string StDev { get; set; }
+      public virtual string StDevP { get; set; }
 
-      public virtual string StringLength { get; protected set; }
-      public virtual string StringToUpper { get; protected set; }
-      public virtual string StringToLower { get; protected set; }
-      public virtual string StringContains { get; protected set; }
-      public virtual string StringStartsWith { get; protected set; }
-      public virtual string StringEndsWith { get; protected set; }
-      public virtual string StringConcat { get; protected set; }
+      public virtual string StringLength { get; set; }
+      public virtual string StringToUpper { get; set; }
+      public virtual string StringToLower { get; set; }
+      public virtual string StringContains { get; set; }
+      public virtual string StringStartsWith { get; set; }
+      public virtual string StringEndsWith { get; set; }
+      public virtual string StringConcat { get; set; }
 
-      public virtual string MathFloor { get; protected set; }
-      public virtual string MathRound { get; protected set; }
-      public virtual string MathRoundZeroDecimals { get; protected set; }
-      public virtual string MathCeiling { get; protected set; }
+      public virtual string MathFloor { get; set; }
+      public virtual string MathRound { get; set; }
+      public virtual string MathRoundZeroDecimals { get; set; }
+      public virtual string MathCeiling { get; set; }
 
-      public virtual string DateTimeNow { get; protected set; }
-      public virtual string DateTimeToday { get; protected set; }
-      public virtual string DateTimeUtcNow { get; protected set; }
-      public virtual string DateTimeAddDays { get; protected set; }
-      public virtual string DateTimeAddMonths { get; protected set; }
-      public virtual string DateTimeAddYears { get; protected set; }
-      public virtual string DateTimeAddHours { get; protected set; }
-      public virtual string DateTimeAddMinutes { get; protected set; }
-      public virtual string DateTimeAddSeconds { get; protected set; }
-      public virtual string DateTimeAddMilliSeconds { get; protected set; }
+      public virtual string DateTimeNow { get; set; }
+      public virtual string DateTimeToday { get; set; }
+      public virtual string DateTimeUtcNow { get; set; }
+      public virtual string DateTimeAddDays { get; set; }
+      public virtual string DateTimeAddMonths { get; set; }
+      public virtual string DateTimeAddYears { get; set; }
+      public virtual string DateTimeAddHours { get; set; }
+      public virtual string DateTimeAddMinutes { get; set; }
+      public virtual string DateTimeAddSeconds { get; set; }
+      public virtual string DateTimeAddMilliSeconds { get; set; }
 
-      public virtual string DateTimeGetDay { get; protected set; }
-      public virtual string DateTimeGetMonth { get; protected set; }
-      public virtual string DateTimeGetYear { get; protected set; }
-      public virtual string DateTimeGetHour { get; protected set; }
-      public virtual string DateTimeGetMinute { get; protected set; }
-      public virtual string DateTimeGetSecond { get; protected set; }
-      public virtual string DateTimeGetMilliSecond { get; protected set; }
-      public virtual string DateTimeGetDate { get; protected set; }
-      public virtual string DateTimeGetDayOfWeek { get; protected set; }
-      public virtual string DateTimeGetDayOfYear { get; protected set; }
-      public virtual string DateTimeGetWeekNumber { get; protected set; }
+      public virtual string DateTimeGetDay { get; set; }
+      public virtual string DateTimeGetMonth { get; set; }
+      public virtual string DateTimeGetYear { get; set; }
+      public virtual string DateTimeGetHour { get; set; }
+      public virtual string DateTimeGetMinute { get; set; }
+      public virtual string DateTimeGetSecond { get; set; }
+      public virtual string DateTimeGetMilliSecond { get; set; }
+      public virtual string DateTimeGetDate { get; set; }
+      public virtual string DateTimeGetDayOfWeek { get; set; }
+      public virtual string DateTimeGetDayOfYear { get; set; }
+      public virtual string DateTimeGetWeekNumber { get; set; }
 
-      public virtual string SelectLastIdentity { get; protected set; }
-      public virtual string SelectLastIdentityTyped { get; protected set; }
+      public virtual string SelectLastIdentity { get; set; }
+      public virtual string SelectLastIdentityTyped { get; set; }
 
-      public virtual string BitwiseNot { get; protected set; }
-      public virtual string BitwiseAnd { get; protected set; }
-      public virtual string BitwiseOr { get; protected set; }
-      public virtual string BitwiseXOR { get; protected set; }
+      public virtual string BitwiseNot { get; set; }
+      public virtual string BitwiseAnd { get; set; }
+      public virtual string BitwiseOr { get; set; }
+      public virtual string BitwiseXOR { get; set; }
 
-      public virtual IDictionary<Type, string> TypeMap { get; protected set; }
+      public virtual string[] Aggregates { get { return _aggregates; } set { _aggregates = value; } }
+
+      public virtual IDictionary<Type, string> TypeMap { get; set; }
 
       protected virtual string EscapeString(string value)
       {

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
 
 namespace XAdo.Sql.Core.Common
 {
@@ -28,6 +30,10 @@ namespace XAdo.Sql.Core.Common
       {
          return new ReadOnlyDictionary<TKey, TValue>(self);
       }
+      public static ICollection<TValue> AsReadOnly<TValue>(this ICollection<TValue> self)
+      {
+         return new MyReadOnlyCollection<TValue>(self);
+      }
       public static IDictionary<TKey, TValue> AddRange<TKey, TValue>(this IDictionary<TKey, TValue> self, IDictionary<TKey, TValue> other)
       {
          foreach (var kv in other)
@@ -50,5 +56,6 @@ namespace XAdo.Sql.Core.Common
       {
          return self == null || self == DBNull.Value ? default(T) : (T)self;
       }
+
    }
 }

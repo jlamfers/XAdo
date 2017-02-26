@@ -44,9 +44,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="XPression">
-      <HintPath>..\packages\XPression.1.2.0\lib\net45\XPression.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AWTest2.cs" />
@@ -58,6 +55,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\XPression\XPression\XPression.csproj">
+      <Project>{df533036-ccdc-4fd6-9f26-ffc7f1a36303}</Project>
+      <Name>XPression</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XAdo.Sql\XAdo.Sql.csproj">
       <Project>{56c8f188-11e5-4b8e-965d-750e45c2a7db}</Project>
       <Name>XAdo.Sql</Name>

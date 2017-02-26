@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace XAdo.Sql.Dialects
 {
@@ -85,6 +86,10 @@ HAVING {having}
       public override string MathRound { get { return "ROUND({0},...)"; } }
       public override string MathRoundZeroDecimals { get { return "ROUND({0},0)"; } }
       public override string MathCeiling { get { return "CEILING({0})"; } }
+
+      public override string StDev { get { return "STDEV({0})"; }}
+      public override string StDevP { get { return "STDEVP({0})"; } }
+
       public override string Coalesce { get { return "COALESCE({0,...})"; } }
       public override string StringConcat { get { return "{0+...}"; } }
 
@@ -117,6 +122,11 @@ HAVING {having}
       public override string BitwiseAnd { get { return "{0} & {1}"; } }
       public override string BitwiseOr { get { return "{0} | {1}"; } }
       public override string BitwiseXOR { get { return "{0} ^ {1}"; } }
+
+      public override string[] Aggregates
+      {
+         get { return base.Aggregates.Concat(new[] {"STDEV", "STDEVP"}).ToArray(); }
+      }
 
 
       public override IDictionary<Type, string> TypeMap

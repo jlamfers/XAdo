@@ -103,6 +103,13 @@ namespace XAdo.Sql.Core.Linq
             case ExpressionType.Negate:
                FormatSql(" -({0})", node.Operand);
                return node;
+            case ExpressionType.Convert:
+               if (node.Type!=typeof(object) && node.Type.EnsureNotNullable() != node.Operand.Type.EnsureNotNullable())
+               {
+                  FormatSql(_dialect.TypeCast, node.Operand, Expression.Constant(node.Type));
+                  return node;
+               }
+               break;
          }
          return base.VisitUnary(node);
       }

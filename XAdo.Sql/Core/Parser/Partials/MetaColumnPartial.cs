@@ -23,7 +23,7 @@ namespace XAdo.Sql.Core.Parser.Partials
       public ColumnMeta Meta { get; private set; }
       public int Index { get; private set; }
 
-      public MetaColumnPartial Clone()
+      public virtual MetaColumnPartial Clone()
       {
          return new MetaColumnPartial(this, Map, Meta, Index);
       }
