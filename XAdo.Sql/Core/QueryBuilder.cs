@@ -12,7 +12,6 @@ namespace XAdo.Sql.Core
    // immutable object
    public partial class QueryBuilder
    {
-      private ISqlDialect _dialect;
       private IUrlExpressionParser _urlParser;
 
       #region Hidden fields
@@ -49,10 +48,11 @@ namespace XAdo.Sql.Core
       protected QueryBuilder(QueryBuilder other)
       {
          _partials = other._partials;
-         _dialect = other._dialect;
+         Dialect = other.Dialect;
          _countQuery = other._countQuery;
          _binderCache = other._binderCache;
          _mapCache = other._mapCache;
+         _urlParser = other._urlParser;
       }
 
       private QueryBuilder()
@@ -66,17 +66,19 @@ namespace XAdo.Sql.Core
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (urlParser == null) throw new ArgumentNullException("urlParser");
 
-         _dialect = dialect;
+         Dialect = dialect;
          _urlParser = urlParser;
          _partials = partials.MergeTemplate(dialect.SelectTemplate).AsReadOnly();
       }
+
+      public ISqlDialect Dialect { get; private set; }
 
       public QueryBuilder CreateMap(IList<SqlPartial> partials)
       {
          var mapped = new QueryBuilder
          {
             _partials = partials as ReadOnlyCollection<SqlPartial> ?? partials.ToList().AsReadOnly(),
-            _dialect = _dialect,
+            Dialect = Dialect,
             _urlParser = _urlParser
          };
          return mapped;

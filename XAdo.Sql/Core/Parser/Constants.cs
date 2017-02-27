@@ -38,6 +38,9 @@ namespace XAdo.Sql.Core.Parser
             // allow UPDATE
             UPDATE = 'U',
 
+            // allow DELETE
+            DELETE = 'D',
+
             // the database column seperator: dbo.Persons
             COLUMN_SEP = '.',
 
@@ -70,6 +73,7 @@ namespace XAdo.Sql.Core.Parser
             READ,
             UPDATE
          });
+
       }
    }
 }

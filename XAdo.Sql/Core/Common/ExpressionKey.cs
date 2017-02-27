@@ -252,7 +252,7 @@ namespace XAdo.Sql.Core.Common
 
       private void Write(object item)
       {
-         WriteHashCode(item.GetHashCode());
+         WriteHashCode( item==null ? 0 :item.GetHashCode());
       }
 
       private void WriteHashCode(int hash)

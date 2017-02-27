@@ -46,9 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AWTest2.cs" />
+    <Compile Include="AWTest3.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryBuilderTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

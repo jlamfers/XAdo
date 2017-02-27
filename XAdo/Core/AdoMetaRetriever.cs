@@ -26,7 +26,10 @@ namespace XAdo.Core
          {
             var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
             var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
-            cn.Open();
+            if (cn.State != ConnectionState.Open)
+            {
+               cn.Open();
+            }
             list = cn.QueryMeta(sql, f,null);
          }
          return Cache.GetOrAdd(key, x => list);
@@ -47,7 +50,10 @@ namespace XAdo.Core
          {
             var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
             var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
-            cn.Open();
+            if (cn.State != ConnectionState.Open)
+            {
+               cn.Open();
+            }
             list = cn.QueryMeta(sql, f, tablename);
          }
 

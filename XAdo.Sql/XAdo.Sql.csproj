@@ -39,17 +39,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdoSessionExtensions.cs" />
+    <Compile Include="AsyncCountListResult.cs" />
     <Compile Include="Core\Common\MyReadOnlyCollection.cs" />
     <Compile Include="Core\IQueryBuilder.cs" />
     <Compile Include="Core\IQueryBuilderFactory.cs" />
+    <Compile Include="Core\IQueryByConvention.cs" />
     <Compile Include="Core\QueryBuilder.Methods.cs" />
     <Compile Include="Core\QueryBuilder.Types.cs" />
     <Compile Include="Core\QueryBuilderFactory.cs" />
     <Compile Include="Core\QueryBuilder`1.cs" />
     <Compile Include="Core\Common\XAdoSqlException.cs" />
     <Compile Include="Core\Common\SmallCache.cs" />
+    <Compile Include="Core\QueryByConvention.cs" />
+    <Compile Include="Core\SqlSelectAttribute.cs" />
     <Compile Include="Dialects\SqlDialectExtensions.cs" />
     <Compile Include="Dialects\SyntaxExtender.cs" />
+    <Compile Include="IAttachable.cs" />
+    <Compile Include="IQuob.cs" />
     <Compile Include="Linq\CString.cs" />
     <Compile Include="Linq\Extensions.cs" />
     <Compile Include="Core\Common\Annotator.cs" />
@@ -101,7 +108,13 @@
     <Compile Include="Core\Parser\Partials\TemplatePartial.cs" />
     <Compile Include="Core\Parser\Partials\WherePartial.cs" />
     <Compile Include="Core\Parser\Partials\WithPartial.cs" />
+    <Compile Include="QueryContext.cs" />
+    <Compile Include="Quob.cs" />
+    <Compile Include="Quob`1.cs" />
     <Compile Include="SqlAdoContext.cs" />
+    <Compile Include="SqlTemplateArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Core\paging.sql.txt" />

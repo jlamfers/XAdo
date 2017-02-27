@@ -5,10 +5,11 @@ namespace XAdo.Sql.Core.Mapper
    [Flags]
    public enum PersistencyType
    {
-      Default = 7, // all
+      None = 0,
+      Default = 15, // all
       Create = 1,
       Read = 2,
       Update = 4,
-      None = 0
+      Delete = 8
    }
 }

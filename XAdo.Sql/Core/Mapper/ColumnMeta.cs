@@ -150,6 +150,9 @@ namespace XAdo.Sql.Core.Mapper
                         case Constants.SpecialChars.READ:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Read;
                            break;
+                        case Constants.SpecialChars.DELETE:
+                           meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Delete;
+                           break;
                      }
                   }
                   else
@@ -171,15 +174,16 @@ namespace XAdo.Sql.Core.Mapper
       public override string ToString()
       {
          var sb = new StringBuilder();
-         if (IsKey) sb.Append("*");
-         if (IsAutoIncrement) sb.Append("+");
-         if (IsCalculated) sb.Append("@");
-         if (NotNull) sb.Append("!");
-         if (IsOuterJoinColumn) sb.Append("?");
-         sb.Append(":");
-         sb.Append(Persistency.HasFlag(PersistencyType.Create) ? "C" : "-");
-         sb.Append(Persistency.HasFlag(PersistencyType.Read) ? "R" : "-");
-         sb.Append(Persistency.HasFlag(PersistencyType.Update) ? "U" : "-");
+         if (IsKey) sb.Append(Constants.SpecialChars.PRIMARY_KEY);
+         if (IsAutoIncrement) sb.Append(Constants.SpecialChars.AUTO_INCREMENT);
+         if (IsCalculated) sb.Append(Constants.SpecialChars.CALCULATED);
+         if (NotNull) sb.Append(Constants.SpecialChars.NOT_NULL);
+         if (IsOuterJoinColumn) sb.Append(Constants.SpecialChars.OUTER_JOIN_COLUMN);
+         sb.Append(Constants.SpecialChars.SPECIAL_CHARS_STARTER);
+         sb.Append(Persistency.HasFlag(PersistencyType.Create) ? Constants.SpecialChars.CREATE : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Read) ? Constants.SpecialChars.READ : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Update) ? Constants.SpecialChars.UPDATE : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Delete) ? Constants.SpecialChars.DELETE : '-');
          return sb.ToString();
       }
    }

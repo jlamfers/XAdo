@@ -1,8 +1,10 @@
-﻿namespace XAdo.Sql.Core
+﻿using System;
+
+namespace XAdo.Sql.Core
 {
    public interface IQueryBuilderFactory
    {
-      QueryBuilder Parse(string sql);
-      QueryBuilder<T> Parse<T>(string sql);
+      IQueryBuilder Parse(string sql, Type type);
+      IQueryBuilder<T> Parse<T>(string sql);
    }
 }

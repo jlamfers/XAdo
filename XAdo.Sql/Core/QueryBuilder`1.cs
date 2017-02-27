@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Linq.Expressions;
 using XAdo.Sql.Core.Linq;
 using XAdo.Sql.Core.Parser.Partials;
@@ -10,7 +11,7 @@ using XAdo.Sql.Linq;
 namespace XAdo.Sql.Core
 {
    //immutable object
-   public partial class QueryBuilder<TEntity> : QueryBuilder
+   public partial class QueryBuilder<TEntity> : QueryBuilder, IQueryBuilder<TEntity>
    {
       internal QueryBuilder(QueryBuilder other)
          : base(other)
@@ -37,14 +38,19 @@ namespace XAdo.Sql.Core
          return GetBinder<TEntity>();
       }
 
-      public SqlGenerator.Result GetSqlFromExpression(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGenerator.Result BuildSqlByExpression(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
-         return base.BuildSqlFromExpression(expression, arguments, parameterPrefix, noargs);
+         return base.BuildSqlByExpression(expression, arguments, parameterPrefix, noargs);
       }
-      public SqlGenerator.Result GetSqlFromExpression(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGenerator.Result BuildSqlByExpression(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
-         return base.BuildSqlFromExpression(expression, arguments, parameterPrefix, noargs);
+         return base.BuildSqlByExpression(expression, arguments, parameterPrefix, noargs);
       }
+      public string GetSqlOrderBy(bool descending, params Expression<Func<TEntity, object>>[] columns)
+      {
+         return GetSqlOrderBy(descending, columns.Cast<Expression>().ToArray());
+      }
+
 
    }
 }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using XAdo.Core;
 using XAdo.Core.Cache;
@@ -30,12 +31,18 @@ namespace XAdo.Sql.Core
       private readonly LRUCache<object, QueryBuilder>
          _mapCache = new LRUCache<object, QueryBuilder>("LRUCache.SubSet.Size", 25);
 
+      private readonly LRUCache<string, SqlGenerator.Result>
+         _compiledSqlCache = new LRUCache<string, SqlGenerator.Result>("LRUCache.CompiledSql.Size", 500, StringComparer.OrdinalIgnoreCase);
+
       private string
          _formattedSql;
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private IDictionary<string, MetaColumnPartial> 
          _mappedColumns;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private IDictionary<string, string> 
+         _mappedExpressions;
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private static readonly MethodInfo
@@ -43,6 +50,7 @@ namespace XAdo.Sql.Core
 
       private QueryBuilder
          _countQuery;
+
 
 
       public QueryBuilder AsCountQuery()
@@ -119,7 +127,7 @@ namespace XAdo.Sql.Core
          var fromType = toExpression.Parameters[0].Type;
          var toType = toExpression.Body.Type;
 
-         return _mapCache.GetOrAdd(toType, x =>
+         return _mapCache.GetOrAdd(toExpression.GetKey(), x =>
          {
 
             var binderInfo = GetBinderInfo(fromType);
@@ -174,9 +182,9 @@ namespace XAdo.Sql.Core
                else
                {
                   var expression = _urlParser.Parse(col.Item1, mappedType, typeof (object));
-                  var result = BuildSqlFromExpression(expression, null);
+                  var result = BuildSqlByExpression(expression, null);
                   var lparenIndex = result.Sql.IndexOf('(');
-                  if (lparenIndex != -1 && _dialect.GetAggregates().Contains(result.Sql.Substring(0, lparenIndex)))
+                  if (lparenIndex != -1 && Dialect.GetAggregates().Contains(result.Sql.Substring(0, lparenIndex)))
                   {
                      needGrouping = true;
                   }
@@ -216,16 +224,48 @@ namespace XAdo.Sql.Core
                          .AsReadOnly());
          }
       }
+      public IDictionary<string, string> MappedExpressions
+      {
+         get
+         {
+            return _mappedExpressions ??
+                   (_mappedExpressions =
+                      Select.Columns.ToDictionary(c => c.Map.FullName, c => c.Expression, StringComparer.OrdinalIgnoreCase)
+                         .AsReadOnly());
+         }
+      }
 
-      public SqlGenerator.Result BuildSqlFromExpression(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGenerator.Result BuildSqlByExpression(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
-         var generator = new SqlGenerator(_dialect, parameterPrefix, noargs);
-         return generator.Generate(expression, Select.Columns.ToDictionary(c => c.Map.FullName, c => c.Expression, StringComparer.OrdinalIgnoreCase), arguments);
+         var result = _compiledSqlCache.GetOrAdd(expression.GetKey(), x =>
+         {
+            var generator = new SqlGenerator(Dialect, parameterPrefix, noargs);
+            return generator.Generate(expression, MappedExpressions, null);
+         });
+         if (arguments != null)
+         {
+            arguments.AddRange(result.Arguments);
+            return new SqlGenerator.Result(result.Sql, arguments);
+         }
+         return new SqlGenerator.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
       }
-      public SqlGenerator.Result GetSqlPredicate(string expression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGenerator.Result BuildSqlPredicate(string expression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
-         return BuildSqlFromExpression(_urlParser.Parse(expression, mappedType ?? GetBinderType(null),typeof(bool)), arguments,parameterPrefix, noargs);
+         var result = _compiledSqlCache.GetOrAdd(expression, x =>
+         {
+            var expr = _urlParser.Parse(expression, mappedType ?? GetBinderType(null),typeof (bool));
+            var generator = new SqlGenerator(Dialect, parameterPrefix, noargs);
+            return generator.Generate(expr, MappedExpressions, null);
+         }
+            );
+         if (arguments != null)
+         {
+            arguments.AddRange(result.Arguments);
+            return new SqlGenerator.Result(result.Sql,arguments);
+         }
+         return new SqlGenerator.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
       }
+
       public string GetSqlOrderBy(string orderExpression, Type mappedType)
       {
          mappedType = mappedType ?? GetBinderType(null);
@@ -249,9 +289,25 @@ namespace XAdo.Sql.Core
             else
             {
                var expression = _urlParser.Parse(columnName, mappedType, typeof(object));
-               sb.Append(BuildSqlFromExpression(expression));
+               sb.Append(BuildSqlByExpression(expression));
             }
             if (desc)
+            {
+               sb.Append(" DESC");
+            }
+            comma = ", ";
+         }
+         return sb.ToString();
+      }
+      public string GetSqlOrderBy(bool descending, params Expression[] columns)
+      {
+         var sb = new StringBuilder();
+         var comma = "";
+         foreach (var item1 in columns)
+         {
+            sb.Append(comma);
+            sb.Append(BuildSqlByExpression(item1).Sql);
+            if (descending)
             {
                sb.Append(" DESC");
             }
@@ -285,7 +341,7 @@ namespace XAdo.Sql.Core
          if (_binderCache.Any())
          {
             // any type will do
-            return _binderCache.First().Value.BinderExpression.Parameters[0].Type;
+            return _binderCache.First().Value.EntityType;
          }
          if (session == null)
          {

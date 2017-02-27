@@ -104,7 +104,7 @@ namespace XAdo.Sql.Core.Linq
                FormatSql(" -({0})", node.Operand);
                return node;
             case ExpressionType.Convert:
-               if (node.Type!=typeof(object) && node.Type.EnsureNotNullable() != node.Operand.Type.EnsureNotNullable())
+               if (node.Type!=typeof(object) && node.Type.EnsureNotNullable() != node.Operand.Type.EnsureNotNullable() && !node.IsNullConstant())
                {
                   FormatSql(_dialect.TypeCast, node.Operand, Expression.Constant(node.Type));
                   return node;
@@ -215,26 +215,8 @@ namespace XAdo.Sql.Core.Linq
 
       protected override Expression VisitMember(MemberExpression node)
       {
-         var formatters = node.Member.GetSqlFormatAttributes(_dialect);
-         if (formatters.Length > 0)
+         if (TryFormatters(node))
          {
-            if (formatters.Length == 1)
-            {
-               FormatSql(formatters[0].GetFormat(_dialect), node.Expression);
-               return node;
-            }
-            formatters = formatters.OrderBy(f => f.Order).ToArray();
-            var args = new[] {Parameterize(() => Visit(node.Expression))};
-            string s = null;
-            foreach (var f in formatters)
-            {
-               var format = f.GetFormat(_dialect);
-               var s1 = s;
-               args = args ?? new Action<TextWriter>[] { w => w.Write(s1) };
-               s = format.FormatSqlStatement(args);
-               args = null;
-            }
-            _writer.Write(s);
             return node;
          }
 
@@ -273,29 +255,10 @@ namespace XAdo.Sql.Core.Linq
 
       protected override Expression VisitMethodCall(MethodCallExpression node)
       {
-         var formatters = node.Method.GetSqlFormatAttributes(_dialect);
-         if (formatters.Length > 0)
+         if (TryFormatters(node))
          {
-            if (formatters.Length == 1)
-            {
-               FormatSql(formatters[0].GetFormat(_dialect), node.GetAllArguments().ToArray());
-               return node;
-            }
-            formatters = formatters.OrderBy(f => f.Order).ToArray();
-            var args = node.GetAllArguments().Select(a => Parameterize(() => Visit(a))).ToArray();
-            string s = null;
-            foreach (var f in formatters)
-            {
-               var format = f.GetFormat(_dialect);
-               var s1 = s;
-               args = args ?? new Action<TextWriter>[] { w => w.Write(s1) };
-               s = format.FormatSqlStatement(args);
-               args = null;
-            }
-            _writer.Write(s);
             return node;
          }
-
 
          if (node.Method.Name == "GetValueOrDefault" && node.Method.DeclaringType.IsNullable())
          {
@@ -308,6 +271,51 @@ namespace XAdo.Sql.Core.Linq
          }
 
          return base.VisitMethodCall(node);
+      }
+
+      private bool TryFormatters(Expression node)
+      {
+         var methodNode = node as MethodCallExpression;
+         var memberNode = node as MemberExpression;
+
+         if (memberNode == null && methodNode == null)
+         {
+            return false;
+         }
+
+         var formatters = methodNode != null 
+            ? methodNode.Method.GetSqlFormatAttributes(_dialect)
+            : memberNode.Member.GetSqlFormatAttributes(_dialect);
+
+         if (!formatters.Any())
+         {
+            return false;
+         }
+
+         if (formatters.Length == 1)
+         {
+            FormatSql(formatters[0].GetFormat(_dialect), methodNode != null 
+               ? methodNode.GetAllArguments().ToArray() 
+               : new[] { memberNode.Expression });
+            return true;
+         }
+
+         formatters = formatters.OrderBy(f => f.Order).ToArray();
+         var args = methodNode != null 
+            ? methodNode.GetAllArguments().Select(a => Parameterize(() => Visit(a))).ToArray()
+            : new[] { Parameterize(() => Visit(memberNode.Expression)) };
+
+         string s = null;
+         foreach (var f in formatters)
+         {
+            var format = f.GetFormat(_dialect);
+            var s1 = s;
+            args = args ?? new Action<TextWriter>[] { w => w.Write(s1) };
+            s = format.FormatSqlStatement(args);
+            args = null;
+         }
+         _writer.Write(s);
+         return true;
       }
 
       private void FormatSql(string format, params Expression[] args)

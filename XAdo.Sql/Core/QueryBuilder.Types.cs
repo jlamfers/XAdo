@@ -171,6 +171,8 @@ namespace XAdo.Sql.Core
                }
             }
          }
+
+         public Type EntityType { get { return BinderExpression.Body.Type; } }
       }
    }
 

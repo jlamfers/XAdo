@@ -29,8 +29,8 @@ namespace XAdo.Sql.Core.Linq
 
          if (formatSpec.Contains("=>"))
          {
-            // syntactic sugar
-            _formatProperty = typeof(ISqlDialect).GetProperty(formatSpec.Split('.').Last());
+            // syntactic sugar with dialect reference
+            _formatProperty = typeof(ISqlDialect).GetProperty(formatSpec.Split('.').Last().Trim());
 
             if (_formatProperty == null)
             {
@@ -51,7 +51,7 @@ namespace XAdo.Sql.Core.Linq
 
       public string GetFormat()
       {
-         if (_formatValue == null)
+         if (!IsDialectReference)
          {
             throw new InvalidOperationException("This attribute instance needs a ISqlDialect instance for being able to resolve the property " + _formatProperty);
          }
@@ -67,13 +67,28 @@ namespace XAdo.Sql.Core.Linq
       }
       public int Order { get; set; }
 
+      public bool IsDialectReference
+      {
+         get { return _formatProperty != null; }
+      }
+
    }
 
    public static class SqlFormatAttributeExtensions
    {
       public static SqlFormatAttribute[] GetSqlFormatAttributes(this MemberInfo self, string providerName)
       {
-         return self.GetAnnotations<SqlFormatAttribute>().Where(a => a.ProviderName == null || a.ProviderName == providerName).ToArray();
+         var annotations = self.GetAnnotations<SqlFormatAttribute>().ToArray();
+         var probe = annotations.Where(a => a.ProviderName.EqualsOrdinalIgnoreCase(providerName)).ToArray();
+         if (probe.Any())
+         {
+            return
+               probe.Concat(annotations.Where(a => a.ProviderName == null && a.IsDialectReference))
+                  .OrderBy(a => a.Order)
+                  .ToArray();
+         }
+         return annotations.Where(a => a.IsDialectReference || a.ProviderName == null).OrderBy(a => a.Order).ToArray();
+
       }
 
       public static SqlFormatAttribute[] GetSqlFormatAttributes(this MemberInfo self, ISqlDialect dialect)

@@ -24,6 +24,10 @@ namespace XAdo.Sql.Core.Common
       {
          return self == null || !self.IsValueType || Nullable.GetUnderlyingType(self)  != null ? self : typeof(Nullable<>).MakeGenericType(self);
       }
+      public static bool EqualsOrdinalIgnoreCase(this string self, string other)
+      {
+         return string.Equals(self, other, StringComparison.OrdinalIgnoreCase);
+      }
 
 
       public static IDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> self)

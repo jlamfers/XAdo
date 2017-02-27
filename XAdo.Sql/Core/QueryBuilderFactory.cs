@@ -25,7 +25,7 @@ namespace XAdo.Sql.Core
          _urlParser = urlParser;
       }
 
-      public virtual QueryBuilder Parse(string sql)
+      public virtual IQueryBuilder Parse(string sql, Type type)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          return QueryBuilderCache.GetOrAdd(sql, x =>
@@ -33,11 +33,15 @@ namespace XAdo.Sql.Core
             var parser = new SqlSelectParser();
             var partials = parser.Parse(sql);
             var queryMap = new QueryBuilder(partials,_dialect,_urlParser);
+            if (type != null)
+            {
+               queryMap.GetBinder(type);
+            }
             return queryMap;
          });
       }
 
-      public virtual QueryBuilder<T> Parse<T>(string sql)
+      public virtual IQueryBuilder<T> Parse<T>(string sql)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          return QueryBuilderCache.GetOrAdd(sql, x =>
