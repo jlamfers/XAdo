@@ -1,4 +1,4 @@
-﻿namespace XAdo.Sql.Core.Parser.Partials
+﻿namespace XAdo.Quobs.Core.Parser.Partials
 {
    public enum JoinType
    {

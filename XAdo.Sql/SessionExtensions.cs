@@ -1,11 +1,11 @@
 using System;
 using XAdo.Core.Interface;
-using XAdo.Sql.Core;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs
 {
-   public static class AdoSessionExtensions
+   public static class SessionExtensions
    {
       public static IQueryBuilder GetQueryBuilder(this IAdoSession self, string sqlSelect, Type type = null)
       {

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using XAdo.Sql.Core.Parser;
-using XAdo.Sql.Core.Parser.Partials;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Core.Parser.Partials;
 
-namespace XAdo.Sql.Core.Mapper
+namespace XAdo.Quobs.Core.Mapper
 {
    public class ColumnMeta
    {
@@ -39,7 +40,7 @@ namespace XAdo.Sql.Core.Mapper
       internal static ColumnMeta FindMeta(ColumnPartial partial, bool distinct, out string relativeName)
       {
          relativeName = null;
-         var @readonly = partial.Expression.Contains("(");
+         var @readonly = partial.Expression.Contains("(");//TODO: fine grain
          var alias = partial.Alias;
          var map = FindMeta(ref alias, distinct,@readonly);
          if (alias != null)

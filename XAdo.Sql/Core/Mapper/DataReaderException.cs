@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace XAdo.Sql.Core.Mapper
+namespace XAdo.Quobs.Core.Mapper
 {
    [Serializable]
    public class DataReaderException : Exception

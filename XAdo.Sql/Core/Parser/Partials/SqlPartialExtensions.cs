@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace XAdo.Sql.Core.Parser.Partials
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public static class SqlPartialExtensions
    {

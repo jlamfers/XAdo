@@ -1,32 +1,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using XAdo.Core.Interface;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Dialects;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs
 {
-   public class QueryContext
+   public class QuobContext
    {
 
-      public QueryContext(ISqlDialect dialect)
+      public QuobContext(ISqlDialect dialect)
       {
          Dialect = dialect;
          WhereClauses = new List<string>();
          HavingClauses = new List<string>();
          Arguments = new Dictionary<string, object>();
          Order = new List<string>();
+         Group = new List<string>();
       }
       public virtual string SkipParameterName
       {
-         get { return "__skip"; }
+         get { return "__xado_skip"; }
       }
       public virtual string TakeParameterName
       {
-         get { return "__take"; }
+         get { return "__xado_take"; }
       }
 
       public ISqlDialect Dialect { get; private set; }
 
       public List<string> WhereClauses { get; private set; }
+      public IList<string> Group { get; private set; }
       public List<string> HavingClauses { get; private set; }
       public IDictionary<string, object> Arguments { get; private set; }
       public IList<string> Order { get; private set; }
@@ -46,21 +51,22 @@ namespace XAdo.Sql.Core
          return args;
       }
 
-      public virtual SqlTemplateArgs GetSqlTemplateArgs()
+      public virtual TemplateArgs GetSqlTemplateArgs()
       {
-         return new SqlTemplateArgs().Init(this);
+         return new TemplateArgs().Init(this);
       }
 
 
-      public virtual QueryContext Clone(bool forInnerQuery = false)
+      public virtual QuobContext Clone(bool forInnerQuery = false)
       {
-         var clone = new QueryContext(Dialect)
+         var clone = new QuobContext(Dialect)
          {
             WhereClauses = WhereClauses.ToList(),
             HavingClauses = HavingClauses.ToList(),
             Session = Session,
             Arguments = Arguments.ToDictionary(x => x.Key, x => x.Value),
-            Inner = forInnerQuery ? (bool?)true : null
+            Inner = forInnerQuery ? (bool?)true : null,
+            Group = Group.ToList()
          };
          if (!forInnerQuery)
          {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace XAdo.Sql.Core.Common
+namespace XAdo.Quobs.Core.Common
 {
    [Serializable]
    public class XAdoSqlException : Exception

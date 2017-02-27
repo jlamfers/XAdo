@@ -5,14 +5,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using XAdo.Core.Interface;
-using XAdo.Sql.Core;
+using XAdo.Quobs.Core;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs
 {
    public class Quob : IQuob, IAttachable
    {
 
-      protected Quob(IQueryBuilder queryBuilder, QueryContext context)
+      protected Quob(IQueryBuilder queryBuilder, QuobContext context)
          : this(queryBuilder)
       {
          Context = context;
@@ -25,10 +25,10 @@ namespace XAdo.Sql
          QueryBuilder = queryBuilder;
       }
 
-      protected QueryContext Context { get; private set; }
+      protected QuobContext Context { get; private set; }
       protected IQueryBuilder QueryBuilder { get; private set; }
 
-      protected virtual Quob SelfOrNew(QueryContext context, IQueryBuilder querybuilder = null)
+      protected virtual Quob SelfOrNew(QuobContext context, IQueryBuilder querybuilder = null)
       {
          return (querybuilder == null && context == Context) ? this : new Quob(querybuilder ?? QueryBuilder, context);
       }
@@ -36,7 +36,7 @@ namespace XAdo.Sql
 
       public virtual IQuob Where(Expression expression)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var compileResult = QueryBuilder.BuildSqlByExpression(expression,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -44,7 +44,7 @@ namespace XAdo.Sql
 
       public virtual IQuob Having(Expression expression)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var compileResult = QueryBuilder.BuildSqlByExpression(expression, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -52,7 +52,7 @@ namespace XAdo.Sql
 
       public IQuob Where(string expression)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var compileResult = QueryBuilder.BuildSqlPredicate(expression, null,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -60,7 +60,7 @@ namespace XAdo.Sql
 
       public IQuob Having(string expression)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var compileResult = QueryBuilder.BuildSqlPredicate(expression, null, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -89,7 +89,7 @@ namespace XAdo.Sql
 
       private IQuob OrderBy(bool descending, bool reset, params Expression[] expressions)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var sqlOrderExpression = QueryBuilder.GetSqlOrderBy(descending,expressions);
          if (reset)
          {
@@ -101,21 +101,21 @@ namespace XAdo.Sql
 
       public virtual IQuob Skip(int? skip)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          context.Skip = skip;
          return SelfOrNew(context);
       }
 
       public virtual IQuob Take(int? take)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          context.Take = take;
          return SelfOrNew(context);
       }
 
       public virtual IQuob OrderBy(string expression)
       {
-         var context = Context ?? new QueryContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
          var sqlOrderExpression = QueryBuilder.GetSqlOrderBy(expression,null);
          context.Order.Clear();
          context.Order.Add(sqlOrderExpression);
@@ -187,7 +187,7 @@ namespace XAdo.Sql
          return await Context.Session.QueryAsync(sql, QueryBuilder.GetBinder(Context.Session), Context.GetArguments());
       }
 
-      public virtual async Task<AsyncCountListResult<object>> FetchWithCountAsync()
+      public virtual async Task<CollectionWithCountResult<object>> FetchWithCountAsync()
       {
          var sql = GetDuoSql();
          var binders = new List<Delegate>
@@ -198,7 +198,7 @@ namespace XAdo.Sql
          var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
          var collection = await reader.ReadAsync();
-         return new AsyncCountListResult<object>
+         return new CollectionWithCountResult<object>
          {
             Collection = collection,
             TotalCount = count
@@ -229,7 +229,7 @@ namespace XAdo.Sql
 
       public virtual IQuob Attach(IAdoSession session)
       {
-         var clone = SelfOrNew(new QueryContext(QueryBuilder.Dialect) { Session = session });
+         var clone = SelfOrNew(new QuobContext(QueryBuilder.Dialect) { Session = session });
          clone.QueryBuilder.GetBinder(session);
          return clone;
       }

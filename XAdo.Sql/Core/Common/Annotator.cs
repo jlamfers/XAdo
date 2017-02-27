@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace XAdo.Sql.Core.Common
+namespace XAdo.Quobs.Core.Common
 {
    // This Annotator class lets you dynamicly (and/or additionally) annotate types and members, only if you use this Annotator
    // extension methods to retrieve all corresponding annotations (attributes).

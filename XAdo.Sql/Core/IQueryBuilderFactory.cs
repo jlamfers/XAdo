@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    public interface IQueryBuilderFactory
    {

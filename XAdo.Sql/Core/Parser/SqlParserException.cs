@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using System.Text;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql.Core.Parser
+namespace XAdo.Quobs.Core.Parser
 {
    [Serializable]
    public class SqlParserException : Exception

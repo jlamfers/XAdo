@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using XAdo.Sql.Core.Parser;
+using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Sql.Core.Mapper
+namespace XAdo.Quobs.Core.Mapper
 {
    public class ColumnMap
    {

@@ -1,11 +1,11 @@
 using System.Linq;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs.Core
 {
-   public class SqlTemplateArgs
+   public class TemplateArgs
    {
-      public virtual SqlTemplateArgs Init(QueryContext context)
+      public virtual TemplateArgs Init(QuobContext context)
       {
          var and = "";
          foreach (var wc in context.WhereClauses)

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 
-namespace XAdo.Sql.Core.Common
+namespace XAdo.Quobs.Core.Common
 {
    internal static class Extensions
    {

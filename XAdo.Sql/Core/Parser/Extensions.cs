@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace XAdo.Sql.Core.Parser
+namespace XAdo.Quobs.Core.Parser
 {
    public static class Extensions
    {

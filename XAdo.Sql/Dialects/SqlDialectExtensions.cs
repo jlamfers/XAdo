@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Linq;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Linq;
 using XPression.Core;
 
-namespace XAdo.Sql.Dialects
+namespace XAdo.Quobs.Dialects
 {
    public static class SqlDialectExtensions
    {

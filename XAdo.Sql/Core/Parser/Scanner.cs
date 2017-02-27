@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
-namespace XAdo.Sql.Core.Parser
+namespace XAdo.Quobs.Core.Parser
 {
    public class Scanner
    {

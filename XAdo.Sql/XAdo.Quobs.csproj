@@ -7,8 +7,8 @@
     <ProjectGuid>{56C8F188-11E5-4B8E-965D-750E45C2A7DB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>XAdo.Sql</RootNamespace>
-    <AssemblyName>XAdo.Sql</AssemblyName>
+    <RootNamespace>XAdo.Quobs</RootNamespace>
+    <AssemblyName>XAdo.Quobs</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,8 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdoSessionExtensions.cs" />
-    <Compile Include="AsyncCountListResult.cs" />
+    <Compile Include="SessionExtensions.cs" />
+    <Compile Include="Core\CollectionWithCountResult.cs" />
     <Compile Include="Core\Common\MyReadOnlyCollection.cs" />
     <Compile Include="Core\IQueryBuilder.cs" />
     <Compile Include="Core\IQueryBuilderFactory.cs" />
@@ -55,7 +55,7 @@
     <Compile Include="Core\SqlSelectAttribute.cs" />
     <Compile Include="Dialects\SqlDialectExtensions.cs" />
     <Compile Include="Dialects\SyntaxExtender.cs" />
-    <Compile Include="IAttachable.cs" />
+    <Compile Include="Core\IAttachable.cs" />
     <Compile Include="IQuob.cs" />
     <Compile Include="Linq\CString.cs" />
     <Compile Include="Linq\Extensions.cs" />
@@ -108,11 +108,11 @@
     <Compile Include="Core\Parser\Partials\TemplatePartial.cs" />
     <Compile Include="Core\Parser\Partials\WherePartial.cs" />
     <Compile Include="Core\Parser\Partials\WithPartial.cs" />
-    <Compile Include="QueryContext.cs" />
+    <Compile Include="QuobContext.cs" />
     <Compile Include="Quob.cs" />
     <Compile Include="Quob`1.cs" />
-    <Compile Include="SqlAdoContext.cs" />
-    <Compile Include="SqlTemplateArgs.cs">
+    <Compile Include="QuobAdoContext.cs" />
+    <Compile Include="Core\TemplateArgs.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

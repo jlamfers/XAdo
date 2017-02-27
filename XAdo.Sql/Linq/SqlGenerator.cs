@@ -5,10 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using XAdo.Core;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Dialects;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Dialects;
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
    public class SqlGenerator : ExpressionVisitor
    {

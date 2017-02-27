@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs.Core
 {
-   public class AsyncCountListResult<T>
+   public class CollectionWithCountResult<T>
    {
       public List<T> Collection { get; set; }
       public int TotalCount { get; set; }

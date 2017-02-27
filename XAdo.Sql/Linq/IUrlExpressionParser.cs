@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace XAdo.Sql.Linq
+namespace XAdo.Quobs.Linq
 {
    public interface IUrlExpressionParser
    {

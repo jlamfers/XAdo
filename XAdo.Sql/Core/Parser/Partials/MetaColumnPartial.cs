@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
-using XAdo.Sql.Core.Mapper;
+using XAdo.Core;
+using XAdo.Quobs.Core.Mapper;
 
-namespace XAdo.Sql.Core.Parser.Partials
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class MetaColumnPartial : ColumnPartial
    {
@@ -21,11 +22,13 @@ namespace XAdo.Sql.Core.Parser.Partials
 
       public ColumnMap Map { get; private set; }
       public ColumnMeta Meta { get; private set; }
+      public TablePartial Table { get; internal set; }// to be resolved by QueryBuilder
+      public AdoColumnMeta AdoMeta { get; internal set; }// to be resolved by QueryBuilder
       public int Index { get; private set; }
 
       public virtual MetaColumnPartial Clone()
       {
-         return new MetaColumnPartial(this, Map, Meta, Index);
+         return new MetaColumnPartial(this, Map, Meta, Index){Table = Table};
       }
    }
 }

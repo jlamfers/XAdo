@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Dialects;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Dialects;
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
    //todo: add providername??
 

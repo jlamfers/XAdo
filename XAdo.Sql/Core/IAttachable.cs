@@ -1,7 +1,6 @@
 using XAdo.Core.Interface;
-using XAdo.Sql.Core;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs.Core
 {
    internal interface IAttachable
    {

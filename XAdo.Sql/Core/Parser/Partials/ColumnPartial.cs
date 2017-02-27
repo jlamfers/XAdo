@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace XAdo.Sql.Core.Parser.Partials
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class ColumnPartial : MultiPartAliasedPartial
    {
@@ -17,7 +17,7 @@ namespace XAdo.Sql.Core.Parser.Partials
       {
          get { return Parts.Count >= 3 ? Parts[0] : null; }
       }
-      public string Table
+      public string TableName
       {
          get { return Parts.Count >= 2 ? Parts[Parts.Count - 2] : null; }
       }

@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Linq;
 using NUnit.Framework;
-using XAdo.Sql;
-using XAdo.Sql.Core;
+using XAdo.Quobs;
+using XAdo.Quobs.Core;
 using XPression.Core;
 
 namespace XAdo.UnitTest
@@ -71,7 +71,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest()
       {
-         var context = new SqlAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -90,7 +90,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest2()
       {
-         var context = new SqlAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -109,7 +109,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest3()
       {
-         var context = new SqlAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {

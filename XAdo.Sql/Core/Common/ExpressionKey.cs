@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using XAdo.Core.Cache;
 
-namespace XAdo.Sql.Core.Common
+namespace XAdo.Quobs.Core.Common
 {
 
 

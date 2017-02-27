@@ -4,11 +4,11 @@ using System.Data;
 using System.IO;
 using System.Linq.Expressions;
 using XAdo.Core.Interface;
-using XAdo.Sql.Core.Linq;
-using XAdo.Sql.Core.Parser.Partials;
-using XAdo.Sql.Dialects;
+using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Linq;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    public interface IQueryBuilder<TEntity> : IQueryBuilder
    {

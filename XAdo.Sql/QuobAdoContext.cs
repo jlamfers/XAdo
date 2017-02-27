@@ -1,16 +1,16 @@
 ﻿using System;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
-using XAdo.Sql.Core;
-using XAdo.Sql.Dialects;
-using XAdo.Sql.Linq;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Linq;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs
 {
-   public class SqlAdoContext : AdoContext
+   public class QuobAdoContext : AdoContext
    {
 
-      public SqlAdoContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null)
+      public QuobAdoContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null)
          : base(ctx => MyInitialize(ctx,initializer), customClassBinder)
       {
       }

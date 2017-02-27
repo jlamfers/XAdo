@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using XAdo.Core.Cache;
 
-namespace XAdo.Sql.Core.Common
+namespace XAdo.Quobs.Core.Common
 {
    internal class SmallCache<TKey, TValue> : ICache<TKey, TValue>
    {

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Parser;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Sql.Core.Mapper
+namespace XAdo.Quobs.Core.Mapper
 {
    public static class MapperExtensions
    {

@@ -22,16 +22,13 @@ namespace XAdo.Core
          {
             return list;
          }
-         using (var inner = self.Context.CreateSession())
+         var cn = (DbConnection)self.CastTo<IAdoConnectionProvider>().Connection;
+         var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
+         if (cn.State != ConnectionState.Open)
          {
-            var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
-            var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
-            if (cn.State != ConnectionState.Open)
-            {
-               cn.Open();
-            }
-            list = cn.QueryMeta(sql, f,null);
+            cn.Open();
          }
+         list = cn.QueryMeta(sql, f,null);
          return Cache.GetOrAdd(key, x => list);
       }
 
@@ -46,16 +43,13 @@ namespace XAdo.Core
             return list;
          }
 
-         using (var inner = self.Context.CreateSession())
+         var cn = (DbConnection)self.CastTo<IAdoConnectionProvider>().Connection;
+         var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
+         if (cn.State != ConnectionState.Open)
          {
-            var cn = (DbConnection)inner.CastTo<IAdoConnectionProvider>().Connection;
-            var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
-            if (cn.State != ConnectionState.Open)
-            {
-               cn.Open();
-            }
-            list = cn.QueryMeta(sql, f, tablename);
+            cn.Open();
          }
+         list = cn.QueryMeta(sql, f, tablename);
 
          return Cache.GetOrAdd(key, x => list);
       }
@@ -91,7 +85,8 @@ namespace XAdo.Core
                   DefaultValue = dc.DefaultValue,
                   MaxLength = dc.MaxLength,
                   PKey = ispkey,
-                  Unique = dc.Unique
+                  Unique = dc.Unique,
+                  ReadOnly = dc.ReadOnly
                });
             }
 

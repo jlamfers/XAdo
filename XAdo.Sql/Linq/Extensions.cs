@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
    public static class Extensions
    {

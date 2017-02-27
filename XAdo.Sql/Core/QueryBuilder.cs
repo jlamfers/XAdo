@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using XAdo.Sql.Core.Parser.Partials;
-using XAdo.Sql.Dialects;
-using XAdo.Sql.Linq;
+using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Linq;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    // immutable object
    public partial class QueryBuilder
@@ -69,6 +70,7 @@ namespace XAdo.Sql.Core
          Dialect = dialect;
          _urlParser = urlParser;
          _partials = partials.MergeTemplate(dialect.SelectTemplate).AsReadOnly();
+         BindColumnsToTables();
       }
 
       public ISqlDialect Dialect { get; private set; }
@@ -81,7 +83,27 @@ namespace XAdo.Sql.Core
             Dialect = Dialect,
             _urlParser = _urlParser
          };
+         mapped.BindColumnsToTables();
          return mapped;
+      }
+
+      private void BindColumnsToTables()
+      {
+         if (!Joins.Any())
+         {
+            foreach (MetaColumnPartial c in Select.Columns)
+            {
+               if (!c.Meta.IsCalculated && c.Meta.Persistency != PersistencyType.Read)
+               {
+                  c.Table = Table;
+               }
+            }
+            return;
+         }
+         foreach (var c in Select.Columns)
+         {
+            c.Table = Tables.SingleOrDefault(t => t.OwnsColumn(c));
+         }
       }
 
       public WithPartial With

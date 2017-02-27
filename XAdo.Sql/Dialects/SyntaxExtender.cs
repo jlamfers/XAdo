@@ -1,10 +1,10 @@
 ﻿using System;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Linq;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Linq;
 using XPression.Core.Functions;
 using XPression.Language.Syntax;
 
-namespace XAdo.Sql.Dialects
+namespace XAdo.Quobs.Dialects
 {
    public class XPressionSyntaxExtender : IAutoSyntaxExtender
    {

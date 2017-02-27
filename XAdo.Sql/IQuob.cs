@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using XAdo.Quobs.Core;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs
 {
    public interface IQuob<TEntity>
    {
@@ -32,7 +33,7 @@ namespace XAdo.Sql
 
       // async
       Task<List<TEntity>> FetchAsync();
-      Task<AsyncCountListResult<TEntity>> FetchWithCountAsync();
+      Task<CollectionWithCountResult<TEntity>> FetchWithCountAsync();
       Task<IDictionary<TKey, TValue>> FetchToDictionaryAsync<TKey, TValue>(Func<TEntity, TKey> keySelector, Func<TEntity, TValue> elementSelector);
       Task<IDictionary<TKey, List<TValue>>> FetchToGroupedListAsync<TKey, TValue>(Func<TEntity, TKey> groupKeySelector, Func<TEntity, TValue> listElementSelector);
       Task<int> CountAsync();
@@ -69,7 +70,7 @@ namespace XAdo.Sql
 
       // async
       Task<List<object>> FetchAsync();
-      Task<AsyncCountListResult<object>> FetchWithCountAsync();
+      Task<CollectionWithCountResult<object>> FetchWithCountAsync();
       Task<int> CountAsync();
       Task<bool> ExistsAsync();
 

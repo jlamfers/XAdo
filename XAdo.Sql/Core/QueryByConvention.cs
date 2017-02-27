@@ -1,7 +1,7 @@
 ﻿using System;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    public class QueryByConvention : IQueryByConvention
    {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
-namespace XAdo.Sql.Dialects
+namespace XAdo.Quobs.Dialects
 {
    // JSON serializable class
    public class SqlDialect : ISqlDialect

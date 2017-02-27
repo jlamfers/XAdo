@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Mapper;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Mapper;
 
-namespace XAdo.Sql.Core.Parser.Partials
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class SelectPartial : SqlPartial
    {

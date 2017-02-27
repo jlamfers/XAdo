@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace XAdo.Sql.Core.Parser
+namespace XAdo.Quobs.Core.Parser
 {
    public static class TemplateFormatter
    {

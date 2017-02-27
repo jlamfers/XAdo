@@ -1,10 +1,10 @@
 ﻿using System;
 using XAdo.Core.Cache;
-using XAdo.Sql.Core.Parser;
-using XAdo.Sql.Dialects;
-using XAdo.Sql.Linq;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Linq;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    public class QueryBuilderFactory : IQueryBuilderFactory
    {

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 using XPression;
 
-namespace XAdo.Sql.Linq
+namespace XAdo.Quobs.Linq
 {
    public class UrlExpressionParser : IUrlExpressionParser
    {

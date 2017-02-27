@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
 
    /// <summary>

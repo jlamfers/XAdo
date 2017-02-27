@@ -4,11 +4,11 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Mapper;
-using XAdo.Sql.Core.Parser.Partials;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Parser.Partials;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    // immutable object
    public partial class QueryBuilder

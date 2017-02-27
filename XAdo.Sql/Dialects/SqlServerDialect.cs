@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace XAdo.Sql.Dialects
+namespace XAdo.Quobs.Dialects
 {
    public class SqlServerDialect : SqlDialect
    {

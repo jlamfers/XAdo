@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
    public static class SqlMethods
    {

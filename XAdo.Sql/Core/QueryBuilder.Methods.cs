@@ -6,20 +6,18 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using XAdo.Core;
 using XAdo.Core.Cache;
 using XAdo.Core.Interface;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Linq;
-using XAdo.Sql.Core.Mapper;
-using XAdo.Sql.Core.Parser;
-using XAdo.Sql.Core.Parser.Partials;
-using XAdo.Sql.Dialects;
-using XAdo.Sql.Linq;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Linq;
 
-namespace XAdo.Sql.Core
+namespace XAdo.Quobs.Core
 {
    // immutable object
 
@@ -43,6 +41,9 @@ namespace XAdo.Sql.Core
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private IDictionary<string, string> 
          _mappedExpressions;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private IList<TablePartial>
+         _tables;
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private static readonly MethodInfo
@@ -235,6 +236,17 @@ namespace XAdo.Sql.Core
          }
       }
 
+      public IList<TablePartial> Tables
+      {
+         get
+         {
+            if (_tables != null) return _tables;
+            var tables = new[] {Table}.Concat(Joins.Select(j => j.RighTable)).ToList();
+            return _tables = tables.AsReadOnly();
+
+         }
+      } 
+
       public SqlGenerator.Result BuildSqlByExpression(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
          var result = _compiledSqlCache.GetOrAdd(expression.GetKey(), x =>
@@ -326,15 +338,25 @@ namespace XAdo.Sql.Core
       }
       public Func<IDataRecord, object> GetBinder(IAdoSession session)
       {
-         //TODO: find metadata by tables
+         if (session != null)
+         {
+            EnsureAdoMetaDataAvailable(session);
+         }
+
          if (_binderCache.Any())
          {
             // any will do
             return _binderCache.First().Value.ObjectBinderDelegate;
          }
-         var meta = session.QueryMetaForSql(Format(new { skip = 0, take = 0, order = Select.Columns.First().Expression }));
-         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), meta.Select(m => m.AllowDBNull ? m.DataType.EnsureNullable() : m.DataType).ToArray());
+
+         if (session == null)
+         {
+            throw new InvalidOperationException("Need session here to retrieve meta data. Now session is not allowed null.");
+         }
+         
+         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), Select.Columns.Select(c => c.AdoMeta.AllowDBNull ? c.AdoMeta.DataType.EnsureNullable() : c.AdoMeta.DataType).ToArray());
          return GetBinderInfo(type).ObjectBinderDelegate;
+
       }
       public Type GetBinderType(IAdoSession session)
       {
@@ -422,6 +444,33 @@ namespace XAdo.Sql.Core
          }
          var body = Expression.MemberInit(Expression.New(ctor), expressions);
          return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, IsDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
+      }
+
+
+      private bool _adoMetaDataRequested = false;
+      private void EnsureAdoMetaDataAvailable(IAdoSession session)
+      {
+         if (_adoMetaDataRequested)
+         {
+            return;
+         }
+         if (Select.Columns.Any(c => c.Table == null))
+         {
+            var meta = session.QueryMetaForSql(Format(new { skip = 0, take = 0, order = Select.Columns.First().Expression }));
+            for (var i = 0; i < Select.Columns.Count; i++)
+            {
+               Select.Columns[i].AdoMeta = meta[i];
+            }
+            _adoMetaDataRequested = true;
+            return;
+         }
+         var metaList = Tables.ToDictionary(t => t, t => session.QueryMetaForTable(t.Expression).ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
+         for (var i = 0; i < Select.Columns.Count; i++)
+         {
+            var c = Select.Columns[i];
+            c.AdoMeta = metaList[c.Table][c.ColumnName];
+         }
+         _adoMetaDataRequested = true;
       }
 
 

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
-using XAdo.Sql.Core.Common;
-using XAdo.Sql.Core.Parser.Partials;
+using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Parser.Partials;
 
 // ReSharper disable InconsistentNaming
 
 
-namespace XAdo.Sql.Core.Parser
+namespace XAdo.Quobs.Core.Parser
 {
    public class SqlSelectParser
    {

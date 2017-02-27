@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Reflection;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core.Common;
 
 // ReSharper disable StringCompareIsCultureSpecific.1
 // ReSharper disable StringCompareToIsCultureSpecific
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
-namespace XAdo.Sql.Core.Linq
+namespace XAdo.Quobs.Linq
 {
    internal static class KnownMembers
    {

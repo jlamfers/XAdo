@@ -58,9 +58,9 @@
       <Project>{df533036-ccdc-4fd6-9f26-ffc7f1a36303}</Project>
       <Name>XPression</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XAdo.Sql\XAdo.Sql.csproj">
+    <ProjectReference Include="..\XAdo.Sql\XAdo.Quobs.csproj">
       <Project>{56c8f188-11e5-4b8e-965d-750e45c2a7db}</Project>
-      <Name>XAdo.Sql</Name>
+      <Name>XAdo.Quobs</Name>
     </ProjectReference>
     <ProjectReference Include="..\XAdo\XAdo.csproj">
       <Project>{DE35B1AF-D6A1-4324-840A-11854787DED4}</Project>

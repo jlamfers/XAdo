@@ -4,14 +4,14 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using XAdo.Sql.Core;
-using XAdo.Sql.Core.Common;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Common;
 
-namespace XAdo.Sql
+namespace XAdo.Quobs
 {
    public class Quob<TEntity> : Quob, IQuob<TEntity>
    {
-      protected Quob(IQueryBuilder<TEntity> queryBuilder, QueryContext context) : base(queryBuilder, context)
+      protected Quob(IQueryBuilder<TEntity> queryBuilder, QuobContext context) : base(queryBuilder, context)
       {
       }
 
@@ -25,7 +25,7 @@ namespace XAdo.Sql
       {
       }
 
-      protected override Quob SelfOrNew(QueryContext context, IQueryBuilder querybuilder = null)
+      protected override Quob SelfOrNew(QuobContext context, IQueryBuilder querybuilder = null)
       {
          return (Context == context && querybuilder == null) ? this : new Quob<TEntity>((IQueryBuilder<TEntity>)(querybuilder ?? QueryBuilder), context);
       }
@@ -130,7 +130,7 @@ namespace XAdo.Sql
          return await Context.Session.QueryAsync(sql, QueryBuilder.GetBinder<TEntity>(), Context.GetArguments());
       }
 
-      public new async Task<AsyncCountListResult<TEntity>> FetchWithCountAsync()
+      public new async Task<CollectionWithCountResult<TEntity>> FetchWithCountAsync()
       {
          var sql = GetDuoSql();
          var binders = new List<Delegate>
@@ -141,7 +141,7 @@ namespace XAdo.Sql
          var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
          var collection = await reader.ReadAsync<TEntity>();
-         return new AsyncCountListResult<TEntity>
+         return new CollectionWithCountResult<TEntity>
          {
             Collection = collection,
             TotalCount = count

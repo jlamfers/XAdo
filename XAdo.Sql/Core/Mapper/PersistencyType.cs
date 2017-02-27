@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Sql.Core.Mapper
+namespace XAdo.Quobs.Core.Mapper
 {
    [Flags]
    public enum PersistencyType
