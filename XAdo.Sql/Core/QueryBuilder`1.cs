@@ -47,7 +47,7 @@ namespace XAdo.Quobs.Core
       }
       public string GetSqlOrderBy(bool descending, params Expression<Func<TEntity, object>>[] columns)
       {
-         return GetSqlOrderBy(descending, columns.Cast<Expression>().ToArray());
+         return BuildSqlOrderBy(descending, columns.Cast<Expression>().ToArray());
       }
 
 

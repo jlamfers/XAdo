@@ -39,6 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Impl\AdoCommandFactoryImplEx.cs" />
+    <Compile Include="Core\ISqlPersistBuilder.cs" />
+    <Compile Include="Core\SqlPersistBuilder.cs" />
     <Compile Include="SessionExtensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
     <Compile Include="Core\Common\MyReadOnlyCollection.cs" />

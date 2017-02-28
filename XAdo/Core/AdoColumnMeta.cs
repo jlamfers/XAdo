@@ -12,6 +12,6 @@ namespace XAdo.Core
       public bool Unique { get; internal set; }
       public object DefaultValue { get; internal set; }
       public int MaxLength { get; internal set; }
-      public bool ReadOnly { get; set; }
+      public bool ReadOnly { get; internal set; }
    }
 }

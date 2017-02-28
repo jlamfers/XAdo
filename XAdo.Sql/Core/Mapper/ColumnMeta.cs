@@ -22,13 +22,13 @@ namespace XAdo.Quobs.Core.Mapper
 
       public bool IsKey { get; private set; }
       public bool IsAutoIncrement { get; private set; }
-      public bool IsCalculated { get; private set; }
+      public bool IsCalculated { get; internal set; }
       public bool NotNull { get; private set; }
       public bool IsOuterJoinColumn { get; private set; }
       public PersistencyType Persistency
       {
          get { return _persistencyType.GetValueOrDefault(PersistencyType.Default); }
-         private set { _persistencyType = value; }
+         internal set { _persistencyType = value; }
       }
       public Type Type { get; internal set; }
 
@@ -40,7 +40,7 @@ namespace XAdo.Quobs.Core.Mapper
       internal static ColumnMeta FindMeta(ColumnPartial partial, bool distinct, out string relativeName)
       {
          relativeName = null;
-         var @readonly = partial.Expression.Contains("(");//TODO: fine grain
+         var @readonly = partial.Expression.Contains("(");
          var alias = partial.Alias;
          var map = FindMeta(ref alias, distinct,@readonly);
          if (alias != null)

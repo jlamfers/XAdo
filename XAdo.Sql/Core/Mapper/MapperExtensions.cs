@@ -16,11 +16,16 @@ namespace XAdo.Quobs.Core.Mapper
          foreach (var m in type.GetPropertiesAndFields())
          {
             if (map.ContainsKey(m)) return map;
-            map[m] = (path + Constants.SpecialChars.NAME_SEP_STR + m.Name).TrimStart(Constants.SpecialChars.NAME_SEP);
+            var p = (path + Constants.SpecialChars.NAME_SEP_STR + m.Name).TrimStart(Constants.SpecialChars.NAME_SEP);
             var t = m.GetMemberType();
             if (!t.IsScalarType())
             {
-               t.GetMemberToFullNameMap(map, m.Name);
+               t.GetMemberToFullNameMap(map, p);
+            }
+            //map[m] = p;
+            else
+            {
+               map[m] = p;
             }
          }
          return map;
@@ -29,7 +34,8 @@ namespace XAdo.Quobs.Core.Mapper
 
       public static IDictionary<string, MemberInfo> GetFullNameToMemberMap(this Type type)
       {
-         return type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
+         var dict = type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
+         return dict;
       }
 
    }

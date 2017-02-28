@@ -111,22 +111,35 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       {
          var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
+         var persistBuilder = new SqlPersistBuilder();
+
          using (var sn = context.CreateSession())
          {
             var qb = sn.GetQueryBuilder(Constants.SqlSelect);
+            var upd = persistBuilder.BuildUpdate(qb);
+            var sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               upd = persistBuilder.BuildUpdate(qb);
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.ElapsedMilliseconds);
             qb.GetBinder(sn);
             var sql =
                qb.Format(
                   new
                   {
                      where = qb.BuildSqlPredicate("firstname ne null", null).Sql,
-                     order = qb.GetSqlOrderBy("id, -firstname, lastname", null),
+                     order = qb.BuildSqlOrderBy("id, -firstname, lastname", null),
                      skip = 10,
                      take = 10
                   });
-            sn.Query(sql,qb.GetBinder(sn));
+            var first = sn.Query(sql,qb.GetBinder(sn)).First();
 
-            var sw = new Stopwatch();
+            var result = sn.Execute(upd, first);
+
+            sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
             {

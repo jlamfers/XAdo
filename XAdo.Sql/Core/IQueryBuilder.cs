@@ -37,6 +37,7 @@ namespace XAdo.Quobs.Core
       HavingPartial Having { get; }
       HavingPartial OrderBy { get; }
       ISqlDialect Dialect { get; }
+      IList<TablePartial> Tables { get; }
 
       Expression<Func<IDataRecord, T>> GetBinderExpression<T>();
       Expression GetBinderExpression(Type entityType);
@@ -45,13 +46,13 @@ namespace XAdo.Quobs.Core
       QueryBuilder Map(string selectExpression, Type mappedType);
       SqlGenerator.Result BuildSqlByExpression(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
       SqlGenerator.Result BuildSqlPredicate(string filterExpression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
-      string GetSqlOrderBy(string orderExpression, Type mappedType);
+      string BuildSqlOrderBy(string orderExpression, Type mappedType);
       Func<IDataRecord, T> GetBinder<T>();
       Delegate GetBinder(Type entityType);
       Func<IDataRecord, object> GetBinder(IAdoSession session);
       Type GetBinderType(IAdoSession session);
       QueryBuilder<TEntity> ToGeneric<TEntity>();
       QueryBuilder CreateMap(IList<SqlPartial> partials); //todo: add type, session????
-      string GetSqlOrderBy(bool descending, params Expression[] columns);
+      string BuildSqlOrderBy(bool descending, params Expression[] columns);
    }
 }

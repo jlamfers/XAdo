@@ -89,20 +89,20 @@ namespace XAdo.Quobs.Core
 
       private void BindColumnsToTables()
       {
-         if (!Joins.Any())
+         if (Joins == null || !Joins.Any())
          {
-            foreach (MetaColumnPartial c in Select.Columns)
+            foreach (MetaColumnPartial c in Select.Columns.Where(c => !c.Meta.IsCalculated && c.Meta.Persistency != PersistencyType.Read))
             {
-               if (!c.Meta.IsCalculated && c.Meta.Persistency != PersistencyType.Read)
-               {
-                  c.Table = Table;
-               }
+               c.Table = Table;
             }
             return;
          }
          foreach (var c in Select.Columns)
          {
             c.Table = Tables.SingleOrDefault(t => t.OwnsColumn(c));
+            if (c.Table != null) continue;
+            c.Meta.IsCalculated = true;
+            c.Meta.Persistency = PersistencyType.Read;
          }
       }
 

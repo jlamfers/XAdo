@@ -90,7 +90,7 @@ namespace XAdo.Quobs
       private IQuob OrderBy(bool descending, bool reset, params Expression[] expressions)
       {
          var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var sqlOrderExpression = QueryBuilder.GetSqlOrderBy(descending,expressions);
+         var sqlOrderExpression = QueryBuilder.BuildSqlOrderBy(descending,expressions);
          if (reset)
          {
             context.Order.Clear();
@@ -116,7 +116,7 @@ namespace XAdo.Quobs
       public virtual IQuob OrderBy(string expression)
       {
          var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var sqlOrderExpression = QueryBuilder.GetSqlOrderBy(expression,null);
+         var sqlOrderExpression = QueryBuilder.BuildSqlOrderBy(expression,null);
          context.Order.Clear();
          context.Order.Add(sqlOrderExpression);
          return SelfOrNew(context);

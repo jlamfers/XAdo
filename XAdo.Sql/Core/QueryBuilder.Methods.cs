@@ -241,7 +241,7 @@ namespace XAdo.Quobs.Core
          get
          {
             if (_tables != null) return _tables;
-            var tables = new[] {Table}.Concat(Joins.Select(j => j.RighTable)).ToList();
+            var tables = new[] {Table}.Concat(Joins==null ? Enumerable.Empty<TablePartial>() : Joins.Select(j => j.RighTable)).ToList();
             return _tables = tables.AsReadOnly();
 
          }
@@ -277,8 +277,7 @@ namespace XAdo.Quobs.Core
          }
          return new SqlGenerator.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
       }
-
-      public string GetSqlOrderBy(string orderExpression, Type mappedType)
+      public string BuildSqlOrderBy(string orderExpression, Type mappedType)
       {
          mappedType = mappedType ?? GetBinderType(null);
          var columnTuples = _urlParser.SplitColumns(orderExpression);
@@ -311,7 +310,7 @@ namespace XAdo.Quobs.Core
          }
          return sb.ToString();
       }
-      public string GetSqlOrderBy(bool descending, params Expression[] columns)
+      public string BuildSqlOrderBy(bool descending, params Expression[] columns)
       {
          var sb = new StringBuilder();
          var comma = "";
@@ -340,7 +339,7 @@ namespace XAdo.Quobs.Core
       {
          if (session != null)
          {
-            EnsureAdoMetaDataAvailable(session);
+            EnsureAdoMetaDataBound(session);
          }
 
          if (_binderCache.Any())
@@ -447,30 +446,44 @@ namespace XAdo.Quobs.Core
       }
 
 
-      private bool _adoMetaDataRequested = false;
-      private void EnsureAdoMetaDataAvailable(IAdoSession session)
+      private bool _adoMetaDataBound = false;
+      private void EnsureAdoMetaDataBound(IAdoSession session)
       {
-         if (_adoMetaDataRequested)
+         if (_adoMetaDataBound)
          {
             return;
          }
-         if (Select.Columns.Any(c => c.Table == null))
+         var metaList = Tables.ToDictionary(t => t, t => session.QueryMetaForTable(t.Expression).ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
+         var anyNullTable = false;
+         for (var i = 0; i < Select.Columns.Count; i++)
+         {
+            var c = Select.Columns[i];
+            if (c.Table == null)
+            {
+               anyNullTable = true;
+               continue;
+            }
+            c.AdoMeta = metaList[c.Table][c.ColumnName];
+         }
+
+         if (anyNullTable)
          {
             var meta = session.QueryMetaForSql(Format(new { skip = 0, take = 0, order = Select.Columns.First().Expression }));
             for (var i = 0; i < Select.Columns.Count; i++)
             {
-               Select.Columns[i].AdoMeta = meta[i];
+               var c = Select.Columns[i];
+               if (c.Table != null)
+               {
+                  continue;
+               }
+               c.AdoMeta = meta[i];
             }
-            _adoMetaDataRequested = true;
+            _adoMetaDataBound = true;
             return;
          }
-         var metaList = Tables.ToDictionary(t => t, t => session.QueryMetaForTable(t.Expression).ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
-         for (var i = 0; i < Select.Columns.Count; i++)
-         {
-            var c = Select.Columns[i];
-            c.AdoMeta = metaList[c.Table][c.ColumnName];
-         }
-         _adoMetaDataRequested = true;
+
+
+         _adoMetaDataBound = true;
       }
 
 

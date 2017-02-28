@@ -36,7 +36,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
          return this;
       }
 
-      public override void Write(TextWriter w, object args)
+      public void WriteAliased(TextWriter w, object args)
       {
          w.Write(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, RawParts));
          if (RawAlias != null)
@@ -44,6 +44,11 @@ namespace XAdo.Quobs.Core.Parser.Partials
             w.Write(" AS ");
             w.Write(RawAlias);
          }
+      }
+
+      public override void Write(TextWriter w, object args)
+      {
+         WriteAliased(w,args);
       }
 
    }

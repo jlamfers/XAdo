@@ -11,6 +11,7 @@ namespace XAdo.Quobs
       {
          if (sqlSelect == null) throw new ArgumentNullException("sqlSelect");
          var builder = self.Context.GetInstance<IQueryBuilderFactory>().Parse(sqlSelect,type);
+         builder.GetBinder(self);
          return builder;
       }
 
@@ -18,6 +19,7 @@ namespace XAdo.Quobs
       {
          if (sqlSelect == null) throw new ArgumentNullException("sqlSelect");
          var builder = self.Context.GetInstance<IQueryBuilderFactory>().Parse<T>(sqlSelect);
+         builder.GetBinder(typeof(T));
          return builder;
       }
 

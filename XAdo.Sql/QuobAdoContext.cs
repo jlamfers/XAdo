@@ -2,6 +2,7 @@
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Impl;
 using XAdo.Quobs.Dialects;
 using XAdo.Quobs.Linq;
 
@@ -18,6 +19,7 @@ namespace XAdo.Quobs
       private static void MyInitialize(IAdoContextInitializer context, Action<IAdoContextInitializer> initializer)
       {
          context
+            .BindSingleton<IAdoCommandFactory, AdoCommandFactoryImplEx>()
             .BindSingleton<IUrlExpressionParser,UrlExpressionParser>()
             .BindSingleton<ISqlDialect,SqlServerDialect>()
             .BindSingleton<IQueryBuilderFactory, QueryBuilderFactory>()
