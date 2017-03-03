@@ -7,9 +7,9 @@ namespace XAdo.Quobs.Core.Parser.Partials
    public class OrderColumnPartial : SqlPartial
    {
       public OrderColumnPartial(IList<string> parts, string order)
-         : base(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, parts))
+         : base(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, parts))
       {
-         Parts = parts.Select(s => s.TrimQuotes()).ToList().AsReadOnly();
+         Parts = parts.Select(s => s.UnquotePartial()).ToList().AsReadOnly();
          Descending = order != null && order.ToUpper() == "DESC";
       }
 

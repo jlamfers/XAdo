@@ -16,7 +16,7 @@ namespace XAdo.Quobs.Core.Mapper
          foreach (var m in type.GetPropertiesAndFields())
          {
             if (map.ContainsKey(m)) return map;
-            var p = (path + Constants.SpecialChars.NAME_SEP_STR + m.Name).TrimStart(Constants.SpecialChars.NAME_SEP);
+            var p = (path + Constants.Syntax.Chars.NAME_SEP_STR + m.Name).TrimStart(Constants.Syntax.Chars.NAME_SEP);
             var t = m.GetMemberType();
             if (!t.IsScalarType())
             {

@@ -63,7 +63,12 @@ namespace XAdo.Core.Impl
                     throw new AdoException("AdoSession has not been initialized yet.");
                 }
 
-                _cn = new Lazy<IDbConnection>(() => _connectionFactory.CreateConnection(_connectionString, _providerName, _keepConectionOpen));
+               _cn = new Lazy<IDbConnection>(() =>
+               {
+                  var cn = _connectionFactory.CreateConnection(_connectionString, _providerName, _keepConectionOpen);
+                  return cn;
+               }
+                  );
 
                if (_tr != null)
                {
@@ -444,7 +449,11 @@ namespace XAdo.Core.Impl
 
         public virtual IDbConnection Connection
         {
-            get { return LazyConnection.Value; }
+           get { return LazyConnection.Value; }
+        }
+        public virtual IDbTransaction Transaction
+        {
+           get { return _tr == null ? null : _tr.Value; }
         }
 
         #endregion

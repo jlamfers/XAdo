@@ -401,7 +401,7 @@ namespace XAdo.Quobs.Core
          }
          var members = Select
             .Columns
-            .Where(m => path.Length == 0 || m.Map.Path == path || m.Map.Path.StartsWith(path + Constants.SpecialChars.NAME_SEP_STR))
+            .Where(m => path.Length == 0 || m.Map.Path == path || m.Map.Path.StartsWith(path + Constants.Syntax.Chars.NAME_SEP_STR))
             .OrderBy(m => m.Map.Path)
             .ThenBy(m => m.Index)
             .ToArray();
@@ -420,7 +420,7 @@ namespace XAdo.Quobs.Core
                }
                catch (Exception ex)
                {
-                  throw new Exception("Invalid member reference: " + refType.Name + Constants.SpecialChars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
+                  throw new Exception("Invalid member reference: " + refType.Name + Constants.Syntax.Chars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
                }
             }
             else
@@ -429,14 +429,14 @@ namespace XAdo.Quobs.Core
                {
                   try
                   {
-                     var refMember = refType.GetPropertyOrField(m.Map.Path.Split(Constants.SpecialChars.NAME_SEP).Last());
+                     var refMember = refType.GetPropertyOrField(m.Map.Path.Split(Constants.Syntax.Chars.NAME_SEP).Last());
                      var newExpression = GetBinderExpression(MemberInfoFinder.GetMemberType(refMember), m.Map.Path, p, handledPathes, indices, m.Meta.IsOuterJoinColumn);
                      expressions.Add(Expression.Bind(refMember, newExpression));
                      handledPathes.Add(m.Map.Path);
                   }
                   catch (Exception ex)
                   {
-                     throw new Exception("Invalid member reference: " + refType.Name + Constants.SpecialChars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
+                     throw new Exception("Invalid member reference: " + refType.Name + Constants.Syntax.Chars.NAME_SEP_STR + m.Map.Name + ", map: " + m.Map + " (verify your mapping)", ex);
                   }
                }
             }

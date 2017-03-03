@@ -381,7 +381,7 @@ namespace XAdo.Quobs.Core.Parser
       }
       private ColumnPartial ReadColumn(bool aliased = true)
       {
-         return new ColumnPartial(ReadMultiPart(aliased, aliased ? Constants.SpecialChars.Set : null));
+         return new ColumnPartial(ReadMultiPart(aliased, aliased ? Constants.Syntax.Chars.TagCharsSet : null));
       }
       private MultiPartAliasedPartial ReadMultiPart(bool aliased, ICollection<char> specialColumnChars )
       {
@@ -395,7 +395,7 @@ namespace XAdo.Quobs.Core.Parser
                      _scanner.ReadQuoted()
                      : _scanner.ReadIdentifier(specialColumnChars)));
 
-            if (_scanner.Peek() == Constants.SpecialChars.COLUMN_SEP)
+            if (_scanner.Peek() == Constants.Syntax.Chars.COLUMN_SEP)
             {
                _scanner.NextChar();
                continue;

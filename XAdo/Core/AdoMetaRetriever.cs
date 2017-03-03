@@ -22,13 +22,15 @@ namespace XAdo.Core
          {
             return list;
          }
-         var cn = (DbConnection)self.CastTo<IAdoConnectionProvider>().Connection;
+         var cp = self.CastTo<IAdoConnectionProvider>();
+         var cn = cp.Connection.CastTo<DbConnection>();
+         var tr = cp.Transaction.CastTo<DbTransaction>();
          var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
          if (cn.State != ConnectionState.Open)
          {
             cn.Open();
          }
-         list = cn.QueryMeta(sql, f,null);
+         list = cn.QueryMeta(tr,sql, f, null);
          return Cache.GetOrAdd(key, x => list);
       }
 
@@ -43,21 +45,27 @@ namespace XAdo.Core
             return list;
          }
 
-         var cn = (DbConnection)self.CastTo<IAdoConnectionProvider>().Connection;
+         var cp = self.CastTo<IAdoConnectionProvider>();
+         var cn = cp.Connection.CastTo<DbConnection>();
+         var tr = cp.Transaction.CastTo<DbTransaction>();
          var f = DbProviderFactories.GetFactory(self.Context.ProviderName);
          if (cn.State != ConnectionState.Open)
          {
             cn.Open();
          }
-         list = cn.QueryMeta(sql, f, tablename);
+         list = cn.QueryMeta(tr,sql, f, tablename);
 
          return Cache.GetOrAdd(key, x => list);
       }
 
-      private static IList<AdoColumnMeta> QueryMeta(this DbConnection self, string sql, DbProviderFactory f, string tablename)
+      private static IList<AdoColumnMeta> QueryMeta(this DbConnection self, DbTransaction tr, string sql, DbProviderFactory f, string tablename)
       {
          using (var command = self.CreateCommand())
          {
+            if (tr != null)
+            {
+               command.Transaction = tr;
+            }
             command.CommandText = sql;
             var adapter = f.CreateDataAdapter();
             adapter.SelectCommand = command;

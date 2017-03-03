@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Quobs.Core.Mapper
+namespace XAdo.Quobs.Core.Parser.Partials2
 {
    public class ColumnMap
    {

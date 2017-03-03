@@ -6,73 +6,129 @@ namespace XAdo.Quobs.Core.Parser
 {
    public static class Constants
    {
-      public static class SpecialChars
+      public static class Syntax
       {
-         public const char
+         public static class Chars
+         {
+            public const char
 
-            // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
-            SPECIAL_CHARS_STARTER = ':',
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               SPECIAL_CHARS_STARTER = ':';
 
-            // annotates a column that may be empty because of an outer join. The emitted binder needs to check if the
-            // corresponding column is null before creating a referenced instance
-            OUTER_JOIN_COLUMN = '?',
+            public const char
 
-            // indicates the (a) primary key
-            PRIMARY_KEY = '*',
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               OUTER_JOIN_COLUMN = '?';
 
-            // indicates an autoincrement column, is considered to be a pkey as well
-            AUTO_INCREMENT = '+',
+            public const char
 
-            // indicates a caculated (and/or aggregated) column
-            CALCULATED = '@',
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               PRIMARY_KEY = '*';
 
-            // indicates a NOT NULL column
-            NOT_NULL = '!',
+            public const char
+               // indicates JSON start char
+               JSON_START = '{';
 
-            // allow CREATE
-            CREATE = 'C',
+            public const char
+               // indicates JSON end char
+               JSON_END = '}';
 
-            // allow READ
-            READ = 'R',
+            public const char
 
-            // allow UPDATE
-            UPDATE = 'U',
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               AUTO_INCREMENT = '+';
 
-            // allow DELETE
-            DELETE = 'D',
+            public const char
 
-            // the database column seperator: dbo.Persons
-            COLUMN_SEP = '.',
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               CALCULATED = '@';
 
-            // mapped column name sepeartor: Person.Address.Street
-            NAME_SEP = '.',
+            public const char
 
-            // mapping seperator: ./Address/Street/Id
-            PATH_SEP = '/';
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               NOT_NULL = '!';
 
-         public static readonly string
-            COLUMN_SEP_STR = new string(COLUMN_SEP, 1),
-            NAME_SEP_STR = new string(NAME_SEP, 1);
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               CREATE = 'C';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               READ = 'R';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               UPDATE = 'U';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               DELETE = 'D';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               COLUMN_SEP = '.';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               NAME_SEP = '.';
+
+            public const char
+
+               // this optional character mark the starting point from which annotation characters follow: FirstName:*CRU
+               PATH_SEP = '/';
+
+            public const char 
+               // marks unique column
+               UNIQUE = '#';
+
+
+            public static readonly string
+               COLUMN_SEP_STR = new string(COLUMN_SEP, 1);
+
+            public static readonly string
+               NAME_SEP_STR = new string(NAME_SEP, 1);
+
+            // Special Chars that are allowed in columns, as column annotations
+
+            public static readonly HashSet<char> TagCharsSet = new HashSet<char>(new[]
+            {
+               SPECIAL_CHARS_STARTER, 
+               OUTER_JOIN_COLUMN, 
+               PRIMARY_KEY, 
+               AUTO_INCREMENT, 
+               CALCULATED, 
+               NOT_NULL,
+               UNIQUE
+            });
+
+            public static readonly HashSet<char> TagCharsSplitSet = new HashSet<char>(new[]
+            {
+               SPECIAL_CHARS_STARTER, 
+               OUTER_JOIN_COLUMN, 
+               PRIMARY_KEY, 
+               AUTO_INCREMENT, 
+               CALCULATED, 
+               NOT_NULL,
+               UNIQUE,
+               JSON_START
+            });
+
+         }
 
          // Path switches
          public const string
             CURRENT_PATH_STR = ".",
             PREV_PATH = "..",
-            PREV_PREV_PATH = "...";
+            PREV_PREV_PATH = "...",
 
-         // Special Chars that are allowed in columns, as column annotations
-         public static readonly HashSet<char> Set = new HashSet<char>(new[]
-         {
-            SPECIAL_CHARS_STARTER, 
-            OUTER_JOIN_COLUMN, 
-            PRIMARY_KEY, 
-            AUTO_INCREMENT, 
-            CALCULATED, 
-            NOT_NULL,
-            CREATE,
-            READ,
-            UPDATE
-         });
+            TAG_COMMENT = "//",
+            TAG_AS_GENERIC_LITERAL = "-- >";
 
       }
    }

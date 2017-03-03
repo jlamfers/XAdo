@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using XAdo.Quobs;
 using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Mapper;
 using XPression.Core;
 
 namespace XAdo.UnitTest
@@ -115,6 +117,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
 
          using (var sn = context.CreateSession())
          {
+            sn.BeginTransaction();
             var qb = sn.GetQueryBuilder(Constants.SqlSelect);
             var upd = persistBuilder.BuildUpdate(qb);
             var sw = new Stopwatch();
@@ -138,6 +141,14 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
             var first = sn.Query(sql,qb.GetBinder(sn)).First();
 
             var result = sn.Execute(upd, first);
+            sw = new Stopwatch();
+            sw.Start();
+            for (var i = 0; i < 1000; i++)
+            {
+               result = sn.Execute(upd, first);
+            }
+            sw.Stop();
+            Debug.WriteLine("Updated: "+sw.ElapsedMilliseconds);
 
             sw = new Stopwatch();
             sw.Start();
@@ -148,6 +159,13 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
             sw.Stop();
             Debug.WriteLine(sw.ElapsedMilliseconds);
          }
+      }
+
+      [Test]
+      public void RegExTest()
+      {
+         var m = new XAdo.Quobs.Core.Parser.Partials2.ColumnMeta();
+         m.InitializeByTag("* {'onupdate':'input','type':'decimal','maxlength':10}",false);
       }
    }
 }

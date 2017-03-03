@@ -7,12 +7,12 @@ namespace XAdo.Quobs.Core.Parser.Partials
    public class MultiPartAliasedPartial : SqlPartial
    {
       public MultiPartAliasedPartial(IList<string> parts, string alias)
-         : base(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, parts))
+         : base(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, parts))
       {
          RawParts = parts.ToList().AsReadOnly();
-         Parts = parts.Select(s => s.TrimQuotes()).ToList().AsReadOnly();
+         Parts = parts.Select(s => s.UnquotePartial()).ToList().AsReadOnly();
          RawAlias = alias;
-         Alias = alias.TrimQuotes();
+         Alias = alias.UnquotePartial();
       }
 
       public MultiPartAliasedPartial(MultiPartAliasedPartial other)
@@ -38,7 +38,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public void WriteAliased(TextWriter w, object args)
       {
-         w.Write(string.Join(Constants.SpecialChars.COLUMN_SEP_STR, RawParts));
+         w.Write(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, RawParts));
          if (RawAlias != null)
          {
             w.Write(" AS ");

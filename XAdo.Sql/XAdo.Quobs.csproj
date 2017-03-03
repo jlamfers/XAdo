@@ -30,8 +30,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,6 +46,23 @@
   <ItemGroup>
     <Compile Include="Core\Impl\AdoCommandFactoryImplEx.cs" />
     <Compile Include="Core\ISqlPersistBuilder.cs" />
+    <Compile Include="Core\Parser\Partials2\ColumnMap.cs" />
+    <Compile Include="Core\Parser\Partials2\ColumnMeta.cs" />
+    <Compile Include="Core\Parser\Partials2\ColumnPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\FromTablePartial.cs" />
+    <Compile Include="Core\Parser\Partials2\GroupByPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\HavingPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\JoinPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\MultiPartAliasedPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\OrderByPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\OrderColumn.cs" />
+    <Compile Include="Core\Parser\Partials2\PersistenceIOType.cs" />
+    <Compile Include="Core\Parser\Partials2\SelectPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\SqlPartial.cs" />
+    <Compile Include="Core\Parser\Partials2\TablePartial.cs" />
+    <Compile Include="Core\Parser\Partials2\TemplatePartial.cs" />
+    <Compile Include="Core\Parser\Partials2\WherePartial.cs" />
+    <Compile Include="Core\Parser\Partials2\WithPartial.cs" />
     <Compile Include="Core\SqlPersistBuilder.cs" />
     <Compile Include="SessionExtensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
@@ -134,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Dialects\sql-server.json" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

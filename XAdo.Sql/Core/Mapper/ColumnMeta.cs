@@ -49,7 +49,7 @@ namespace XAdo.Quobs.Core.Mapper
          }
          if (map != null)
          {
-            alias = alias.TrimQuotes();
+            alias = alias.UnquotePartial();
             if (string.IsNullOrWhiteSpace(alias))
             {
                alias = null;
@@ -64,13 +64,13 @@ namespace XAdo.Quobs.Core.Mapper
          relativeName = relativeName ?? part;
          if (map != null)
          {
-            part = part.TrimQuotes();
+            part = part.UnquotePartial();
             parts[parts.Count - 1] = part;
             partial.Parts = parts.AsReadOnly();
 
             var raw = partial.RawParts.ToList();
             var last = raw.Last();
-            if (last.IsQuoted())
+            if (last.IsQuotedPartial())
             {
                raw[raw.Count - 1] = last[0] + part + last[last.Length - 1];
             }
@@ -98,7 +98,7 @@ namespace XAdo.Quobs.Core.Mapper
          }
 
          // optional seperator so that 'normal' characters (behind the seperator) can be interpreted as tags
-         var starterIndex = carrier.IndexOf(Constants.SpecialChars.SPECIAL_CHARS_STARTER);
+         var starterIndex = carrier.IndexOf(Constants.Syntax.Chars.SPECIAL_CHARS_STARTER);
          var meta = new ColumnMeta();
          if (distinct || @readonly)
          {
@@ -114,25 +114,25 @@ namespace XAdo.Quobs.Core.Mapper
                case '\t':
                case ' ':
                   continue;
-               case Constants.SpecialChars.PRIMARY_KEY:
+               case Constants.Syntax.Chars.PRIMARY_KEY:
                   meta.IsKey = true;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case Constants.SpecialChars.CALCULATED:
+               case Constants.Syntax.Chars.CALCULATED:
                   meta.IsCalculated = true;
                   meta.Persistency &= ~PersistencyType.Create;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case Constants.SpecialChars.AUTO_INCREMENT:
+               case Constants.Syntax.Chars.AUTO_INCREMENT:
                   meta.IsAutoIncrement = true;
                   meta.IsKey = true;
                   meta.Persistency &= ~PersistencyType.Create;
                   meta.Persistency &= ~PersistencyType.Update;
                   break;
-               case Constants.SpecialChars.OUTER_JOIN_COLUMN:
+               case Constants.Syntax.Chars.OUTER_JOIN_COLUMN:
                   meta.IsOuterJoinColumn = true;
                   break;
-               case Constants.SpecialChars.NOT_NULL:
+               case Constants.Syntax.Chars.NOT_NULL:
                   meta.NotNull = true;
                   break;
                default:
@@ -140,18 +140,18 @@ namespace XAdo.Quobs.Core.Mapper
                   {
                      switch (char.ToUpper(ch))
                      {
-                        case Constants.SpecialChars.SPECIAL_CHARS_STARTER:
+                        case Constants.Syntax.Chars.SPECIAL_CHARS_STARTER:
                            break;
-                        case Constants.SpecialChars.CREATE:
+                        case Constants.Syntax.Chars.CREATE:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Create;
                            break;
-                        case Constants.SpecialChars.UPDATE:
+                        case Constants.Syntax.Chars.UPDATE:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Update;
                            break;
-                        case Constants.SpecialChars.READ:
+                        case Constants.Syntax.Chars.READ:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Read;
                            break;
-                        case Constants.SpecialChars.DELETE:
+                        case Constants.Syntax.Chars.DELETE:
                            meta.Persistency = meta._persistencyType.GetValueOrDefault(PersistencyType.None) | PersistencyType.Delete;
                            break;
                      }
@@ -175,16 +175,16 @@ namespace XAdo.Quobs.Core.Mapper
       public override string ToString()
       {
          var sb = new StringBuilder();
-         if (IsKey) sb.Append(Constants.SpecialChars.PRIMARY_KEY);
-         if (IsAutoIncrement) sb.Append(Constants.SpecialChars.AUTO_INCREMENT);
-         if (IsCalculated) sb.Append(Constants.SpecialChars.CALCULATED);
-         if (NotNull) sb.Append(Constants.SpecialChars.NOT_NULL);
-         if (IsOuterJoinColumn) sb.Append(Constants.SpecialChars.OUTER_JOIN_COLUMN);
-         sb.Append(Constants.SpecialChars.SPECIAL_CHARS_STARTER);
-         sb.Append(Persistency.HasFlag(PersistencyType.Create) ? Constants.SpecialChars.CREATE : '-');
-         sb.Append(Persistency.HasFlag(PersistencyType.Read) ? Constants.SpecialChars.READ : '-');
-         sb.Append(Persistency.HasFlag(PersistencyType.Update) ? Constants.SpecialChars.UPDATE : '-');
-         sb.Append(Persistency.HasFlag(PersistencyType.Delete) ? Constants.SpecialChars.DELETE : '-');
+         if (IsKey) sb.Append(Constants.Syntax.Chars.PRIMARY_KEY);
+         if (IsAutoIncrement) sb.Append(Constants.Syntax.Chars.AUTO_INCREMENT);
+         if (IsCalculated) sb.Append(Constants.Syntax.Chars.CALCULATED);
+         if (NotNull) sb.Append(Constants.Syntax.Chars.NOT_NULL);
+         if (IsOuterJoinColumn) sb.Append(Constants.Syntax.Chars.OUTER_JOIN_COLUMN);
+         sb.Append(Constants.Syntax.Chars.SPECIAL_CHARS_STARTER);
+         sb.Append(Persistency.HasFlag(PersistencyType.Create) ? Constants.Syntax.Chars.CREATE : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Read) ? Constants.Syntax.Chars.READ : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Update) ? Constants.Syntax.Chars.UPDATE : '-');
+         sb.Append(Persistency.HasFlag(PersistencyType.Delete) ? Constants.Syntax.Chars.DELETE : '-');
          return sb.ToString();
       }
    }
