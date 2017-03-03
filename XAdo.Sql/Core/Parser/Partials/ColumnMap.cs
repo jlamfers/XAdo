@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class ColumnMap
+   public sealed class ColumnMap
    {
 
       public ColumnMap(string fullname)

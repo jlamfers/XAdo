@@ -1,23 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Core.Mapper;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class SelectPartial : SqlPartial
+   public sealed class SelectPartial : SqlPartial, ICloneable
    {
-      public SelectPartial(bool distinct, IList<SqlPartial> childs)
+      private SelectPartial() { }
+
+      public SelectPartial(bool distinct, IList<ColumnPartial> columns)
          : base("SELECT" + (distinct ? " DISTINCT" : "") )
       {
          Distinct = distinct;
-         Columns = ConfigureMeta(childs);
+         Columns = ConfigureMeta(columns);
       }
 
       public bool Distinct { get; private set; }
-      public IList<MetaColumnPartial> Columns { get; private set; }
+      public IList<ColumnPartial> Columns { get; private set; }
 
       public override void Write(TextWriter w, object args)
       {
@@ -34,56 +36,44 @@ namespace XAdo.Quobs.Core.Parser.Partials
          }
       }
 
-      private IList<MetaColumnPartial> ConfigureMeta(IList<SqlPartial> childs)
+      object ICloneable.Clone()
       {
-         var metaChilds = new List<MetaColumnPartial>();
+         return Clone();
+      }
+      public SelectPartial Clone()
+      {
+         return new SelectPartial{Columns = Columns.Select(c => c.Clone()).ToList().AsReadOnly(), Distinct = Distinct, Expression = Expression};
+      }
 
+      private IList<ColumnPartial> ConfigureMeta(IList<ColumnPartial> columns)
+      {
          var prevPath = "";
-         for (var i = 0; i < childs.Count; i++)
+         int ordinal = 0;
+         foreach (var column in columns)
          {
-            var column = (ColumnPartial)childs[i];
-            var metaColumnPartial = column as MetaColumnPartial;
-            if (metaColumnPartial != null)
+            column.SetIndex(ordinal++);
+            if (Distinct)
             {
-               metaChilds.Add(metaColumnPartial);
-               continue;
+               column.Meta.SetReadOnly(true);
             }
-            TagPartial tag = null;
-            ColumnMeta meta = null;
-            string relativeName = null;
-
-            if (i < childs.Count - 1 && childs[i + 1] is TagPartial)
+            if (column.Map == null && column.Path != null)
             {
-               i++;
-               tag = (TagPartial)childs[i];
-               if (string.IsNullOrEmpty(tag.Expression))
-               {
-                  tag = null;
-               }
+               var fullname = ResolvePath(prevPath, column.Path);
+               column.SetMap(new ColumnMap(fullname));
+               prevPath = column.Map.Path;
+               column.Path = null;
             }
-            if (tag != null)
-            {
-               meta = ColumnMeta.FindMeta(tag, Distinct, out relativeName);
-               if (meta != null && relativeName == null)
-               {
-                  ColumnMeta.FindMeta(column, Distinct, out relativeName);
-               }
-            }
-            meta = meta ?? ColumnMeta.FindMeta(column, Distinct, out relativeName);
-            var map = new ColumnMap(ResolvePath(prevPath, relativeName));
-            metaChilds.Add(new MetaColumnPartial(column, map, meta ?? new ColumnMeta(), metaChilds.Count));
-            prevPath = map.Path;
          }
-         var count = metaChilds.Select(m => (m.Alias ?? m.Parts.LastOrDefault() ?? "").ToLower()).Distinct().Count();
-         if (count != metaChilds.Count)
+         var count = columns.Select(m => (m.NameOrAlias).ToLower()).Distinct().Count();
+         if (count != columns.Count)
          {
             int i = 0;
-            foreach (var m in metaChilds)
+            foreach (var m in columns)
             {
                m.SetAlias("c"+ i++);
             }
          }
-         return metaChilds.AsReadOnly();
+         return columns.ToList().AsReadOnly();
       }
 
       private string ResolvePath(string previousPath, string path)

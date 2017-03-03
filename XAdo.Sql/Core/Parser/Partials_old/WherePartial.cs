@@ -1,9 +1,10 @@
 ﻿using System.IO;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public sealed class WherePartial : TemplatePartial
+   public class WherePartial : TemplatePartial
    {
+
       public WherePartial(string whereClause, string expression)
          : base(expression)
       {

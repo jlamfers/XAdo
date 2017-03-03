@@ -69,8 +69,7 @@ namespace XAdo.Quobs.Core
 
          Dialect = dialect;
          _urlParser = urlParser;
-         _partials = partials.MergeTemplate(dialect.SelectTemplate).AsReadOnly();
-         BindColumnsToTables();
+         _partials = partials.EnsureLinked().MergeTemplate(dialect.SelectTemplate).AsReadOnly();
       }
 
       public ISqlDialect Dialect { get; private set; }
@@ -79,32 +78,13 @@ namespace XAdo.Quobs.Core
       {
          var mapped = new QueryBuilder
          {
-            _partials = partials as ReadOnlyCollection<SqlPartial> ?? partials.ToList().AsReadOnly(),
+            _partials = partials.EnsureLinked().ToList().AsReadOnly(),
             Dialect = Dialect,
             _urlParser = _urlParser
          };
-         mapped.BindColumnsToTables();
          return mapped;
       }
 
-      private void BindColumnsToTables()
-      {
-         if (Joins == null || !Joins.Any())
-         {
-            foreach (MetaColumnPartial c in Select.Columns.Where(c => !c.Meta.IsCalculated && c.Meta.Persistency != PersistencyType.Read))
-            {
-               c.Table = Table;
-            }
-            return;
-         }
-         foreach (var c in Select.Columns)
-         {
-            c.Table = Tables.SingleOrDefault(t => t.OwnsColumn(c));
-            if (c.Table != null) continue;
-            c.Meta.IsCalculated = true;
-            c.Meta.Persistency = PersistencyType.Read;
-         }
-      }
 
       public WithPartial With
       {
@@ -123,7 +103,7 @@ namespace XAdo.Quobs.Core
 
       public TablePartial Table
       {
-         get { return _table ?? (_table = _partials.OfType<TablePartial>().Single()); }
+         get { return _table ?? (_table = _partials.OfType<FromTablePartial>().Single().Table); }
       }
 
       public IList<JoinPartial> Joins

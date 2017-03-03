@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class GroupByPartial : TemplatePartial
    {
@@ -23,7 +22,7 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          foreach (var c in Columns)
          {
             w.Write(comma);
-            c.WriteNonAliased(w, args);
+            c.Write(w, args);
             comma = ", ";
          }
          w.Write(" ");
@@ -32,25 +31,9 @@ namespace XAdo.Quobs.Core.Parser.Partials2
 
       public override string ToString()
       {
-         using (var w = new StringWriter())
-         {
-            w.Write("GROUP BY ");
-            var comma = "";
-            foreach (var c in Columns)
-            {
-               w.Write(comma);
-               c.WriteNonAliased(w, null);
-               comma = ", ";
-            }
-            if (Expression.Length > 0)
-            {
-               w.Write(" ?");
-               w.Write(Expression);
-            }
-            return w.GetStringBuilder().ToString();
-         }
-
+         return Expression.Length > 0
+            ? "GROUP BY " + (string.Join(", ", Columns) + "  ?" + Expression).Trim()
+            : "GROUP BY " + string.Join(", ", Columns);
       }
-
    }
 }

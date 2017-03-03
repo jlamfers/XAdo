@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json;
 using XAdo.Core;
 using XAdo.Quobs.Core.Common;
 using XAdo.Quobs.Core.Mapper;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    /*
     * -->../Address/Name*@!+#RD {onUpdate:Input,onCreate=Output,type:int,maxLength:20}
     */
-   public class ColumnMeta
+   public sealed class ColumnMeta : ICloneable
    {
 
       private class JsonAnnotation
@@ -21,6 +22,7 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          public string type { get; set; }
          public int? maxLength { get; set; }
       }
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private static IDictionary<string, Type> _typeMap = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
       {
          {"byte",typeof(byte)},
@@ -43,16 +45,26 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          {"datetimeoffset",typeof(DateTimeOffset)},
          {"timespan",typeof(TimeSpan)},
       }.AsReadOnly();
-
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private PersistencyType? _persistencyType;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private PersistenceIOType? _onUpdateIO;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private PersistenceIOType? _onCreateIO;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private bool? _isPKey;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private bool? _isAutoIncrement;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private bool? _isNotNull;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private bool? _isUnique;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private bool? _isReadOnly;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private int? _maxLength;
+
+      private ColumnMeta() { }
 
       internal ColumnMeta(bool @readonly = false)
       {
@@ -242,6 +254,33 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          sb.Append(Persistency.HasFlag(PersistencyType.Delete) ? Constants.Syntax.Chars.DELETE : '-');
          sb.Append(JsonData);
          return sb.ToString();
+      }
+
+      object ICloneable.Clone()
+      {
+         return Clone();
+      }
+
+      public ColumnMeta Clone()
+      {
+         return new ColumnMeta
+         {
+            _persistencyType = _persistencyType,
+            _onUpdateIO = _onUpdateIO,
+            _isReadOnly = _isReadOnly,
+            _isPKey = _isPKey,
+            _isUnique = _isUnique,
+            _maxLength = _maxLength,
+            _isAutoIncrement = _isAutoIncrement,
+            _isNotNull = _isNotNull,
+            _onCreateIO = _onCreateIO,
+
+            IsCalculated = IsCalculated,
+            Type = Type,
+            IsOuterJoinColumn = IsOuterJoinColumn,
+            JsonData = JsonData
+            
+        };
       }
 
    }

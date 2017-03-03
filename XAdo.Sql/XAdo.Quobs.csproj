@@ -46,23 +46,29 @@
   <ItemGroup>
     <Compile Include="Core\Impl\AdoCommandFactoryImplEx.cs" />
     <Compile Include="Core\ISqlPersistBuilder.cs" />
-    <Compile Include="Core\Parser\Partials2\ColumnMap.cs" />
-    <Compile Include="Core\Parser\Partials2\ColumnMeta.cs" />
-    <Compile Include="Core\Parser\Partials2\ColumnPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\FromTablePartial.cs" />
-    <Compile Include="Core\Parser\Partials2\GroupByPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\HavingPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\JoinPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\MultiPartAliasedPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\OrderByPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\OrderColumn.cs" />
-    <Compile Include="Core\Parser\Partials2\PersistenceIOType.cs" />
-    <Compile Include="Core\Parser\Partials2\SelectPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\SqlPartial.cs" />
-    <Compile Include="Core\Parser\Partials2\TablePartial.cs" />
-    <Compile Include="Core\Parser\Partials2\TemplatePartial.cs" />
-    <Compile Include="Core\Parser\Partials2\WherePartial.cs" />
-    <Compile Include="Core\Parser\Partials2\WithPartial.cs" />
+    <Compile Include="Core\Parser\Partials\ColumnMap.cs" />
+    <Compile Include="Core\Parser\Partials\ColumnMeta.cs" />
+    <Compile Include="Core\Parser\Partials\ColumnPartial.cs" />
+    <Compile Include="Core\Parser\Partials\FromTablePartial.cs" />
+    <Compile Include="Core\Parser\Partials\GroupByPartial.cs" />
+    <Compile Include="Core\Parser\Partials\HavingPartial.cs" />
+    <Compile Include="Core\Parser\Partials\JoinPartial.cs" />
+    <Compile Include="Core\Parser\Partials\JoinType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Parser\Partials\MultiPartAliasedPartial.cs" />
+    <Compile Include="Core\Parser\Partials\OrderByPartial.cs" />
+    <Compile Include="Core\Parser\Partials\OrderColumn.cs" />
+    <Compile Include="Core\Parser\Partials\PersistenceIOType.cs" />
+    <Compile Include="Core\Parser\Partials\SelectPartial.cs" />
+    <Compile Include="Core\Parser\Partials\SqlPartial.cs" />
+    <Compile Include="Core\Parser\Partials\SqlPartialExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Parser\Partials\TablePartial.cs" />
+    <Compile Include="Core\Parser\Partials\TemplatePartial.cs" />
+    <Compile Include="Core\Parser\Partials\WherePartial.cs" />
+    <Compile Include="Core\Parser\Partials\WithPartial.cs" />
     <Compile Include="Core\SqlPersistBuilder.cs" />
     <Compile Include="SessionExtensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
@@ -87,7 +93,6 @@
     <Compile Include="Core\Common\Annotator.cs" />
     <Compile Include="Linq\IUrlExpressionParser.cs" />
     <Compile Include="Linq\SqlMethods.cs" />
-    <Compile Include="Core\Parser\Partials\GroupByPartial.cs" />
     <Compile Include="Dialects\ISqlDialect.cs" />
     <Compile Include="Dialects\SqlDialect.cs" />
     <Compile Include="Dialects\SqlServerDialect.cs" />
@@ -95,7 +100,6 @@
     <Compile Include="Linq\SqlGenerator.cs" />
     <Compile Include="Linq\SqlFormatAttribute.cs" />
     <Compile Include="Linq\StatementFormatter.cs" />
-    <Compile Include="Core\Mapper\ColumnMap.cs" />
     <Compile Include="Core\Common\Extensions.cs" />
     <Compile Include="Core\Mapper\DataReaderException.cs" />
     <Compile Include="Core\Mapper\DataReaderGetters.cs" />
@@ -110,29 +114,10 @@
     <Compile Include="Core\QueryBuilder.cs" />
     <Compile Include="Core\Parser\SqlSelectParser.cs" />
     <Compile Include="Core\Parser\TemplateFormatter.cs" />
-    <Compile Include="Core\Mapper\ColumnMeta.cs" />
-    <Compile Include="Core\Parser\Partials\FromTablePartial.cs" />
-    <Compile Include="Core\Parser\Partials\HavingPartial.cs" />
-    <Compile Include="Core\Parser\Partials\JoinType.cs" />
-    <Compile Include="Core\Parser\Partials\ColumnPartial.cs" />
-    <Compile Include="Core\Parser\Partials\JoinPartial.cs" />
-    <Compile Include="Core\Parser\Partials\LineCommentPartial.cs" />
-    <Compile Include="Core\Parser\Partials\MetaColumnPartial.cs" />
-    <Compile Include="Core\Parser\Partials\MultiPartAliasedPartial.cs" />
-    <Compile Include="Core\Parser\Partials\OrderByPartial.cs" />
-    <Compile Include="Core\Parser\Partials\OrderColumnPartial.cs" />
-    <Compile Include="Core\Parser\Partials\SelectPartial.cs" />
     <Compile Include="Core\Parser\Scanner.cs" />
     <Compile Include="Core\Parser\SqlParserException.cs" />
     <Compile Include="Linq\UrlExpressionParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\Parser\Partials\SqlPartial.cs" />
-    <Compile Include="Core\Parser\Partials\SqlPartialExtensions.cs" />
-    <Compile Include="Core\Parser\Partials\TablePartial.cs" />
-    <Compile Include="Core\Parser\Partials\TagPartial.cs" />
-    <Compile Include="Core\Parser\Partials\TemplatePartial.cs" />
-    <Compile Include="Core\Parser\Partials\WherePartial.cs" />
-    <Compile Include="Core\Parser\Partials\WithPartial.cs" />
     <Compile Include="QuobContext.cs" />
     <Compile Include="Quob.cs" />
     <Compile Include="Quob`1.cs" />

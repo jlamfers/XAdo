@@ -36,7 +36,7 @@ namespace XAdo.Quobs.Core
          _formattedSql;
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-      private IDictionary<string, MetaColumnPartial> 
+      private IDictionary<string,ColumnPartial> 
          _mappedColumns;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
       private IDictionary<string, string> 
@@ -71,8 +71,8 @@ namespace XAdo.Quobs.Core
          if (!Select.Distinct)
          {
             var selectIndex = partials.IndexOf(Select);
-            var countColumn = new MetaColumnPartial(new[] { "COUNT(*)" }, "c1", new ColumnMap("c1"), new ColumnMeta(true), 0);
-            partials[selectIndex] = new SelectPartial(false, new SqlPartial[] { countColumn });
+            var countColumn = new ColumnPartial(new[] { "COUNT(*)" }, "c1",null,new ColumnMap("c1"),0 );
+            partials[selectIndex] = new SelectPartial(false, new []{ countColumn });
          }
          else
          {
@@ -133,17 +133,19 @@ namespace XAdo.Quobs.Core
 
             var binderInfo = GetBinderInfo(fromType);
 
-            var mapper = new MapVisitor(Select.Columns, binderInfo.MemberIndexMap);
+            var mapper = new MapVisitor(Select.Columns.Clone(), binderInfo.MemberIndexMap);
             var result = mapper.Substitute(toExpression);
             var toPathMap = toType.GetMemberToFullNameMap();
-            IList<SqlPartial> mappedColumns = new List<SqlPartial>();
+            IList<ColumnPartial> mappedColumns = new List<ColumnPartial>();
             var index = 0;
             foreach (var colMemTuple in result.ToColumns)
             {
                var column = colMemTuple.Item1;
                var member = colMemTuple.Item2;
                var fullname = member == null ? null : toPathMap[member];
-               mappedColumns.Add(new MetaColumnPartial(column, new ColumnMap(fullname), column.Meta, index++));
+               column.SetMap(new ColumnMap(fullname));
+               column.SetIndex(index++);
+               mappedColumns.Add(column);
             }
 
             var partials = Partials.ToList();
@@ -165,18 +167,20 @@ namespace XAdo.Quobs.Core
             mappedType = mappedType ?? GetBinderType(null);
 
             var columnTuples = _urlParser.SplitColumns(selectExpression);
-            var columns = new List<MetaColumnPartial>();
-            var nonAggregateColumns = new List<MetaColumnPartial>();
+            var columns = new List<ColumnPartial>();
+            var nonAggregateColumns = new List<ColumnPartial>();
             var needGrouping = false;
             foreach (var col in columnTuples)
             {
-               MetaColumnPartial column;
+               ColumnPartial column;
                if (MappedColumns.TryGetValue(col.Item1, out column))
                {
+                  column = column.Clone();
                   var alias = !string.IsNullOrEmpty(col.Item2) ? col.Item2 : column.Alias;
                   var fullname = !string.IsNullOrEmpty(col.Item2) ? col.Item2 : column.Map.FullName;
-                  column = new MetaColumnPartial(column.RawParts, alias, new ColumnMap(fullname), column.Meta,
-                     columns.Count);
+                  column.SetAlias(alias);
+                  column.SetMap(new ColumnMap(fullname));
+                  column.SetIndex(columns.Count);
                   columns.Add(column);
                   nonAggregateColumns.Add(column);
                }
@@ -190,16 +194,16 @@ namespace XAdo.Quobs.Core
                      needGrouping = true;
                   }
                   var alias = !string.IsNullOrEmpty(col.Item2) ? col.Item2 : "xado_expr_" + columns.Count;
-                  columns.Add(new MetaColumnPartial(new[] {col.Item1}, alias, new ColumnMap(alias), new ColumnMeta(true),
-                     columns.Count));
+                  // MUST be read only
+                  columns.Add(new ColumnPartial(new[] {col.Item1}, alias, null, new ColumnMap(alias), columns.Count));
                }
             }
             var partials = Partials.ToList();
-            partials[Partials.IndexOf(Select)] = new SelectPartial(Select.Distinct, columns.Cast<SqlPartial>().ToList());
+            partials[Partials.IndexOf(Select)] = new SelectPartial(Select.Distinct, columns.ToList());
             if (needGrouping)
             {
                // because of aggregates
-               var groupColumns = nonAggregateColumns.Select(c => new ColumnPartial(c.RawParts, null)).ToList();
+               var groupColumns = nonAggregateColumns;
                var current = GroupBy;
                if (current != null)
                {
@@ -215,7 +219,7 @@ namespace XAdo.Quobs.Core
          });
       }
 
-      public IDictionary<string, MetaColumnPartial> MappedColumns
+      public IDictionary<string, ColumnPartial> MappedColumns
       {
          get
          {
@@ -292,7 +296,7 @@ namespace XAdo.Quobs.Core
             {
                columnName = columnName.Substring(1);
             }
-            MetaColumnPartial column;
+            ColumnPartial column;
             if (MappedColumns.TryGetValue(columnName, out column))
             {
                sb.Append(column.Expression);
@@ -352,8 +356,8 @@ namespace XAdo.Quobs.Core
          {
             throw new InvalidOperationException("Need session here to retrieve meta data. Now session is not allowed null.");
          }
-         
-         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), Select.Columns.Select(c => c.AdoMeta.AllowDBNull ? c.AdoMeta.DataType.EnsureNullable() : c.AdoMeta.DataType).ToArray());
+
+         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), Select.Columns.Select(c => c.Meta.IsNotNull ? c.Meta.Type : c.Meta.Type.EnsureNullable()).ToArray());
          return GetBinderInfo(type).ObjectBinderDelegate;
 
       }
@@ -416,7 +420,7 @@ namespace XAdo.Quobs.Core
                   var member = refType.GetPropertyOrField(m.Map.Name);
                   var index = m.Index;
                   indices[member] = index;
-                  expressions.Add(member.GetDataRecordMemberAssignmentExpression(index, p, m.Meta.NotNull));
+                  expressions.Add(member.GetDataRecordMemberAssignmentExpression(index, p, m.Meta.IsNotNull));
                }
                catch (Exception ex)
                {
@@ -463,7 +467,7 @@ namespace XAdo.Quobs.Core
                anyNullTable = true;
                continue;
             }
-            c.AdoMeta = metaList[c.Table][c.ColumnName];
+            c.Meta.InitializeByAdoMeta(metaList[c.Table][c.ColumnName]);
          }
 
          if (anyNullTable)
@@ -476,7 +480,7 @@ namespace XAdo.Quobs.Core
                {
                   continue;
                }
-               c.AdoMeta = meta[i];
+               c.Meta.InitializeByAdoMeta(meta[i]);
             }
             _adoMetaDataBound = true;
             return;

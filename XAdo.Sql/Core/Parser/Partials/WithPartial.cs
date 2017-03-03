@@ -3,7 +3,7 @@ using System.IO;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class WithPartial : SqlPartial
+   public sealed class WithPartial : SqlPartial
    {
       public WithPartial(string expression, string alias)
          : base(expression)
@@ -23,6 +23,5 @@ namespace XAdo.Quobs.Core.Parser.Partials
          w.Write(" AS ");
          base.Write(w, args);
       }
-
    }
 }

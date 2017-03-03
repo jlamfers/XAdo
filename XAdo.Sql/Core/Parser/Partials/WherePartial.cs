@@ -2,9 +2,8 @@
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class WherePartial : TemplatePartial
+   public sealed class WherePartial : TemplatePartial
    {
-
       public WherePartial(string whereClause, string expression)
          : base(expression)
       {

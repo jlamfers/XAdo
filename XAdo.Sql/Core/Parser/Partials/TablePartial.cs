@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Core.Mapper;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class TablePartial : MultiPartAliasedPartial
+   public sealed class TablePartial : MultiPartAliasedPartial, ICloneable
    {
-      public TablePartial(IList<string> parts, string alias)
-         : base(parts, alias)
-      {
-      }
+      private TablePartial() { }
 
-      public TablePartial(MultiPartAliasedPartial other)
-         : base(other)
+      public TablePartial(IList<string> parts, string alias)
+         : base(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR,parts))
       {
-         
+         RawAlias = alias;
+         RawParts = parts.ToList().AsReadOnly();
+
+         Alias = alias.UnquotePartial();
+         Parts = parts.Select(p => p.UnquotePartial()).ToList().AsReadOnly();
+
       }
 
       public string Schema
@@ -29,23 +29,70 @@ namespace XAdo.Quobs.Core.Parser.Partials
          get { return Parts[Parts.Count - 1]; }
       }
 
-      public bool OwnsColumn(ColumnPartial column)
+      public string NameOrAlias
       {
-         var metaColumn = column as MetaColumnPartial;
-         if (metaColumn != null && (metaColumn.Meta.IsCalculated || metaColumn.Meta.Persistency==PersistencyType.Read))
+         get { return !string.IsNullOrEmpty(Alias) ? Alias : TableName; }
+      }
+
+      public IList<ColumnPartial> Columns { get; private set; }
+
+      internal void SetAlias(string alias)
+      {
+         RawAlias = Alias = alias;
+         if (Columns == null) return;
+         foreach (var c in Columns)
+         {
+            c.SetTable(this,true);
+         }
+      }
+      internal void AttchOwnedColumns(IEnumerable<ColumnPartial> columns)
+      {
+         Columns = columns.Where(IsColumnOwnerOf).ToList().AsReadOnly();
+      }
+
+
+      object ICloneable.Clone()
+      {
+         return Clone();
+      }
+
+      public TablePartial Clone()
+      {
+         // columns are NOT cloned
+         return new TablePartial { Expression = Expression, Alias = Alias, Parts = Parts.ToList().AsReadOnly(), RawAlias = RawAlias, RawParts = RawParts.ToList().AsReadOnly()};
+      }
+
+      internal bool SameTable(TablePartial other)
+      {
+         return other.Schema == Schema && other.TableName == TableName;
+      }
+
+      internal bool IsColumnOwnerOf(ColumnPartial column)
+      {
+         if (column.IsCalculated)
          {
             // readonly collumn
             return false;
          }
-         if(Alias != null)
+         bool result;
+         if (Alias != null)
          {
-            return column.Schema==null && column.TableName.EqualsOrdinalIgnoreCase(Alias);
+            result = column.Schema == null && column.TableName.EqualsOrdinalIgnoreCase(Alias);
          }
-         if (Schema != null && column.Schema != null)
+         else if (Schema != null && column.Schema != null)
          {
-            return column.Schema.EqualsOrdinalIgnoreCase(Schema) && column.TableName.EqualsOrdinalIgnoreCase(TableName);
+            result = column.Schema.EqualsOrdinalIgnoreCase(Schema) &&
+                     column.TableName.EqualsOrdinalIgnoreCase(TableName);
          }
-         return column.TableName.EqualsOrdinalIgnoreCase(TableName);
+         else
+         {
+            result = column.TableName.EqualsOrdinalIgnoreCase(TableName);
+         }
+         if (result && column.Table == null)
+         {
+            column.SetTable(this);
+         }
+         return result;
       }
 
    }

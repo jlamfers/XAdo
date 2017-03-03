@@ -1,7 +1,6 @@
 ﻿using System.IO;
-using XAdo.Quobs.Core.Parser.Partials;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class JoinPartial : SqlPartial
    {

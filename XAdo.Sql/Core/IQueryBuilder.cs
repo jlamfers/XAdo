@@ -26,7 +26,7 @@ namespace XAdo.Quobs.Core
       void Format(TextWriter w, object templateArgs);
       string Format(object templateArgs);
       IList<SqlPartial> Partials { get; }
-      IDictionary<string, MetaColumnPartial> MappedColumns { get; }
+      IDictionary<string, ColumnPartial> MappedColumns { get; }
 
       WithPartial With { get; }
       SelectPartial Select { get; }

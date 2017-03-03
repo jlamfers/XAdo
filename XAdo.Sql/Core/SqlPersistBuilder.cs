@@ -20,7 +20,7 @@ namespace XAdo.Quobs.Core
          foreach (var t in updateTables)
          {
             sb.AppendLine(sep);
-            if (q.Select.Columns.Any(c => c.Table==t && (c.Meta.IsKey || c.AdoMeta.PKey)))
+            if (q.Select.Columns.Any(c => c.Table==t && (c.Meta.IsPKey)))
             {
                BuildUpdate(q, t, sb, throwException);
             }
@@ -45,7 +45,7 @@ namespace XAdo.Quobs.Core
 
       protected virtual void BuildUpdate(IQueryBuilder q, TablePartial t, StringBuilder sb, bool throwException)
       {
-            var keys = q.Select.Columns.Where(c => c.Table==t && (c.Meta.IsKey || c.AdoMeta.PKey)).ToList();
+            var keys = q.Select.Columns.Where(c => c.Table==t && (c.Meta.IsPKey)).ToList();
             if (!keys.Any())
             {
                if (throwException)
@@ -89,7 +89,7 @@ namespace XAdo.Quobs.Core
             //TODO: generate alias if missing??
             throw new Exception("Alias for table must be set");
          }
-         var keys = q.Select.Columns.Where(c => c.Meta.IsKey || c.AdoMeta.PKey).ToList();
+         var keys = q.Select.Columns.Where(c => c.Meta.IsPKey).ToList();
 
          if (!keys.Any())
          {

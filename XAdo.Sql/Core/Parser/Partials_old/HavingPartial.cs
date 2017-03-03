@@ -1,10 +1,9 @@
-using System.IO;
+﻿using System.IO;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class HavingPartial : TemplatePartial
    {
-      protected HavingPartial(){}
 
       public HavingPartial(string havingClause, string expression)
          : base(expression)
@@ -12,7 +11,7 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          HavingClause = havingClause;
       }
 
-      public string HavingClause { get; protected set; }
+      public string HavingClause { get; private set; }
 
       public override void Write(TextWriter w, object args)
       {
@@ -24,9 +23,8 @@ namespace XAdo.Quobs.Core.Parser.Partials2
 
       public override string ToString()
       {
-         return Expression.Length > 0 ? "HAVING " + HavingClause + " ?" + Expression
+         return Expression.Length > 0 ? "HAVING " + HavingClause + " ?" + Expression 
             : "HAVING " + HavingClause;
       }
-
    }
 }

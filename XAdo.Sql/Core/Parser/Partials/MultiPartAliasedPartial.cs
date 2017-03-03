@@ -1,54 +1,40 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class MultiPartAliasedPartial : SqlPartial
+   public abstract class MultiPartAliasedPartial : SqlPartial
    {
-      public MultiPartAliasedPartial(IList<string> parts, string alias)
-         : base(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, parts))
+      protected MultiPartAliasedPartial() { }
+      protected MultiPartAliasedPartial(string expression)
+         : base(expression)
       {
-         RawParts = parts.ToList().AsReadOnly();
-         Parts = parts.Select(s => s.UnquotePartial()).ToList().AsReadOnly();
-         RawAlias = alias;
-         Alias = alias.UnquotePartial();
+         
       }
 
-      public MultiPartAliasedPartial(MultiPartAliasedPartial other)
-         : base(other.Expression)
-      {
-         Alias = other.Alias;
-         RawAlias = other.RawAlias;
-         Parts = other.Parts;
-         RawParts = other.RawParts;
-      }
+      public IList<string> RawParts { get; protected set; }
+      public string RawAlias { get; protected set; }
 
-      public IList<string> RawParts { get; internal set; }
-      public string RawAlias { get; private set; }
-      public string Alias { get; private set; }
-      public IList<string> Parts { get; internal set; }
+      public IList<string> Parts { get; protected set; }
+      public string Alias { get; protected set; }
 
-      internal MultiPartAliasedPartial SetAlias(string alias)
+      public virtual void WriteAliased(TextWriter w, object args)
       {
-         RawAlias = alias;
-         Alias = alias;
-         return this;
-      }
-
-      public void WriteAliased(TextWriter w, object args)
-      {
-         w.Write(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, RawParts));
+         w.Write(Expression);
          if (RawAlias != null)
          {
             w.Write(" AS ");
             w.Write(RawAlias);
          }
       }
+      public virtual void WriteNonAliased(TextWriter w, object args)
+      {
+         w.Write(Expression);
+      }
 
       public override void Write(TextWriter w, object args)
       {
-         WriteAliased(w,args);
+         WriteAliased(w, args);
       }
 
    }

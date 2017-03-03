@@ -67,7 +67,7 @@ namespace XAdo.Quobs.Core.Parser
 
             if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))
             {
-               partials.Add(new TemplatePartial(ReadLineComment().Expression));
+               partials.Add(new TemplatePartial(ReadLineComment()));
                continue;
             }
 
@@ -156,7 +156,7 @@ namespace XAdo.Quobs.Core.Parser
       private SelectPartial ReadSelect()
       {
          var distinct = false;
-         var selectChilds = new List<SqlPartial>();
+         var selectChilds = new List<ColumnPartial>();
 
          SkipComments();
          if (_scanner.NextIs(SQL.DISTINCT))
@@ -186,37 +186,14 @@ namespace XAdo.Quobs.Core.Parser
 
             selectChilds.Add(ReadColumn());
 
-            _scanner.SkipSpaces();
-
-            if (!_scanner.PeekAnyOf(",", SQL.TAG1,SQL.TAG2, SQL.FROM))
-            {
-               if (_scanner.PeekAnyOf(SQL.LINECOMMENT))
-               {
-                  // allow any comments
-                  SkipComments();
-               }
-               else
-               {
-                  throw new SqlParserException(_scanner.Source, _scanner.Position,"',',  '{0}' or '{1}' expected".FormatWith(SQL.TAG1, SQL.FROM));
-               }
-            }
+            SkipComments();
 
             if (_scanner.Peek() == ',')
             {
                _scanner.NextChar();
-               _scanner.SkipSpaces();
-               if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
-               {
-                  selectChilds.Add(new TagPartial(ReadLineComment().Expression));
-               }
                continue;
             }
 
-            if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
-            {
-               selectChilds.Add(new TagPartial(ReadLineComment().Expression));
-            }
-            SkipComments();
             if (!_scanner.PeekAnyOf(SQL.FROM))
             {
                throw new SqlParserException(_scanner.Source, _scanner.Position, "'{0}' expected".FormatWith(SQL.FROM));
@@ -229,7 +206,31 @@ namespace XAdo.Quobs.Core.Parser
       }
       private TablePartial ReadTable()
       {
-         return new TablePartial(ReadMultiPart(true,null));
+         SkipComments();
+         var parts = new List<string>();
+         while (true)
+         {
+            parts.Add(_scanner.IsLParen() ?
+                  _scanner.ReadParenthesed()
+                  : (_scanner.IsStartQuote() ?
+                     _scanner.ReadQuoted()
+                     : _scanner.ReadIdentifier(null)));
+
+            if (_scanner.Peek() == Constants.Syntax.Chars.COLUMN_SEP)
+            {
+               _scanner.NextChar();
+               continue;
+            }
+            _scanner.SkipSpaces();
+
+            string alias = null;
+            if (_scanner.NextIs(SQL.AS))
+            {
+               alias = ReadAlias(null);
+               _scanner.SkipSpaces();
+            }
+            return new TablePartial(parts, alias);
+         }
       }
       private JoinPartial ReadJoin()
       {
@@ -294,7 +295,7 @@ namespace XAdo.Quobs.Core.Parser
          }
          if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))
          {
-            template = ReadLineComment().Expression;
+            template = ReadLineComment();
          }
 
          return new WherePartial(whereClause.ToString(), template);
@@ -307,8 +308,7 @@ namespace XAdo.Quobs.Core.Parser
          var columns = new List<ColumnPartial>();
          while (!_scanner.Eof() && !_scanner.PeekAnyOf(SQL.TEMPLATE1, SQL.TEMPLATE2, SQL.HAVING, SQL.ORDER))
          {
-            var col = ReadColumn(false);
-            columns.Add(new ColumnPartial(col.RawParts,null));
+            columns.Add(ReadColumn(false));
             if (_scanner.Peek() == ',')
             {
                _scanner.NextChar();
@@ -318,7 +318,7 @@ namespace XAdo.Quobs.Core.Parser
          string template = null;
          if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))
          {
-            template = ReadLineComment().Expression;
+            template = ReadLineComment();
          }
          return new GroupByPartial(columns, template);
       }
@@ -333,7 +333,7 @@ namespace XAdo.Quobs.Core.Parser
          }
          if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))
          {
-            template = ReadLineComment().Expression;
+            template = ReadLineComment();
          }
 
          return new HavingPartial(havingClause.ToString(), template);
@@ -347,7 +347,7 @@ namespace XAdo.Quobs.Core.Parser
          while (!_scanner.Eof() && !_scanner.PeekAnyOf(SQL.TEMPLATE1, SQL.TEMPLATE2))
          {
             var col = ReadColumn(false);
-            var order = default(string);
+            var order = SQL.ASC;
             if (_scanner.NextIs(SQL.ASC))
             {
                order = SQL.ASC;
@@ -355,10 +355,10 @@ namespace XAdo.Quobs.Core.Parser
             }
             else if (_scanner.NextIs(SQL.DESC))
             {
-               order = SQL.ASC;
+               order = SQL.DESC;
                SkipComments();
             }
-            columns.Add(new OrderColumnPartial(col.RawParts, order));
+            columns.Add(new OrderColumnPartial(col, order == SQL.DESC));
             if (_scanner.Peek() == ',')
             {
                _scanner.NextChar();
@@ -368,7 +368,7 @@ namespace XAdo.Quobs.Core.Parser
          string template = null;
          if (_scanner.NextIs(SQL.TEMPLATE1) || _scanner.NextIs(SQL.TEMPLATE2))
          {
-            template = ReadLineComment().Expression;
+            template = ReadLineComment();
          }
          return new OrderByPartial(columns, template);
       }
@@ -379,19 +379,16 @@ namespace XAdo.Quobs.Core.Parser
          _scanner.SkipSpaces();
          return _scanner.IsStartQuote() ? _scanner.ReadQuoted() : _scanner.ReadIdentifier(specialColumnChars);
       }
-      private ColumnPartial ReadColumn(bool aliased = true)
+      private ColumnPartial ReadColumn(bool aliased = true, bool tagged = true)
       {
-         return new ColumnPartial(ReadMultiPart(aliased, aliased ? Constants.Syntax.Chars.TagCharsSet : null));
-      }
-      private MultiPartAliasedPartial ReadMultiPart(bool aliased, ICollection<char> specialColumnChars )
-      {
+         var specialColumnChars = aliased ? Constants.Syntax.Chars.TagCharsSet : null;
          SkipComments();
          var parts = new List<string>();
-         while(true)
+         while (true)
          {
-            parts.Add(_scanner.IsLParen() ? 
-                  _scanner.ReadParenthesed() 
-                  : (_scanner.IsStartQuote() ? 
+            parts.Add(_scanner.IsLParen() ?
+                  _scanner.ReadParenthesed()
+                  : (_scanner.IsStartQuote() ?
                      _scanner.ReadQuoted()
                      : _scanner.ReadIdentifier(specialColumnChars)));
 
@@ -400,27 +397,36 @@ namespace XAdo.Quobs.Core.Parser
                _scanner.NextChar();
                continue;
             }
+            _scanner.SkipSpaces();
 
+            string alias = null;
             if (aliased)
             {
-               _scanner.SkipSpaces();
                if (_scanner.NextIs(SQL.AS))
                {
-                  return new MultiPartAliasedPartial(parts, ReadAlias(specialColumnChars));
+                  alias = ReadAlias(specialColumnChars);
+                  _scanner.SkipSpaces();
                }
             }
-            return new MultiPartAliasedPartial(parts, null);
+            string tag = null;
+            if (tagged)
+            {
+               if (_scanner.NextIs(SQL.TAG1) || _scanner.NextIs(SQL.TAG2))
+               {
+                  tag = ReadLineComment();
+               }
+            }
+            return new ColumnPartial(parts, alias,tag);
          }
-
       }
-      private LineCommentPartial ReadLineComment()
+      private string ReadLineComment()
       {
          var sb = new StringBuilder();
          while (!_scanner.Eof() && !_scanner.PeekAnyOf('\r', '\n'))
          {
             _scanner.Take(sb);
          }
-         return new LineCommentPartial(sb.ToString());
+         return sb.ToString();
       }
       private void SkipComments()
       {

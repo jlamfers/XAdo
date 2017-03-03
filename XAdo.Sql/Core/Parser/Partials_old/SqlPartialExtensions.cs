@@ -2,85 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using XAdo.Quobs.Core.Common;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
    public static class SqlPartialExtensions
    {
-      internal static IList<SqlPartial> Clone(this IList<SqlPartial> self)
-      {
-         return self.Select(c => c.CloneOrElseSelf()).ToList();
-      }
-      internal static IList<SqlPartial> EnsureLinked(this IList<SqlPartial> self)
-      {
-         var selectColumns = new List<ColumnPartial>();
-         var otherColumns = new List<ColumnPartial>();
-         var tables = new List<TablePartial>();
-         var result = new List<SqlPartial>();
-         foreach (var p in self)
-         {
-            if (p is SelectPartial)
-            {
-               result.Add(p);
-               selectColumns.AddRange(p.CastTo<SelectPartial>().Columns);
-               continue;
-            }
-            if (p is FromTablePartial)
-            {
-               result.Add(p);
-               tables.Add(p.CastTo<FromTablePartial>().Table);
-               continue;
-            }
-            if (p is JoinPartial)
-            {
-               result.Add(p);
-               tables.Add(p.CastTo<JoinPartial>().RighTable);
-               continue;
-            }
-            if (p is OrderByPartial)
-            {
-               var order = p.CastTo<OrderByPartial>();
-               var cols = order.Columns.Select(c => new OrderColumnPartial(selectColumns.SingleOrDefault(c2 => c2.SameColumn(c.Column)) ?? c.Column,c.Descending)).ToList();
-               otherColumns.AddRange(cols.Select(c => c.Column).Where(c => !selectColumns.Contains(c)));
-               result.Add(new OrderByPartial(cols,order.Expression));
-               continue;
-            }
-            if (p is GroupByPartial)
-            {
-               var group = p.CastTo<GroupByPartial>();
-               var cols = group.Columns.Select(c =>selectColumns.SingleOrDefault(c2 => c2.SameColumn(c)) ?? c).ToList();
-               otherColumns.AddRange(cols.Where(c => !selectColumns.Contains(c)));
-               result.Add(new GroupByPartial(cols, group.Expression));
-               continue;
-            }
-            result.Add(p);
-         }
-         foreach (var t in tables)
-         {
-            // do not try to attach columns from additional order expressions
-            t.AttchOwnedColumns(selectColumns);
-         }
-         foreach (var c in otherColumns)
-         {
-            foreach (var t in tables)
-            {
-               if (t.IsColumnOwnerOf(c))
-               {
-                  // table now is set
-                  break;
-               }
-            }
-         }
-         return result;
-      }
-
-      internal static IList<ColumnPartial> Clone(this IList<ColumnPartial> self)
-      {
-         return self.Select(c => c.Clone()).ToList();
-      }
-
-
       public static void Format(this IList<SqlPartial> self, TextWriter w, object args)
       {
          var sw = w as StringWriter;

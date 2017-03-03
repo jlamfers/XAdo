@@ -1,11 +1,9 @@
 ﻿using System.IO;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
    public class TemplatePartial : SqlPartial
    {
-      protected TemplatePartial() { }
-
       public TemplatePartial(string expression) : base(expression)
       {
       }
@@ -19,6 +17,5 @@ namespace XAdo.Quobs.Core.Parser.Partials2
       {
          return "--$" + Expression;
       }
-
    }
 }

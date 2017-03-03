@@ -17,16 +17,16 @@ namespace XAdo.Quobs.Core
       {
          public class VisitResult
          {
-            public List<Tuple<MetaColumnPartial, MemberInfo>> ToColumns { get; set; }
+            public List<Tuple<ColumnPartial, MemberInfo>> ToColumns { get; set; }
             public LambdaExpression ToExpression { get; set; }
          }
 
-         private readonly IList<MetaColumnPartial> _fromColumns;
+         private readonly IList<ColumnPartial> _fromColumns;
          private readonly IDictionary<MemberInfo, int> _fromIndices;
          private ParameterExpression _parameter;
-         private List<Tuple<MetaColumnPartial, MemberInfo>> _toColumns;
+         private List<Tuple<ColumnPartial, MemberInfo>> _toColumns;
 
-         public MapVisitor(IList<MetaColumnPartial> fromColumns, IDictionary<MemberInfo, int> fromIndices)
+         public MapVisitor(IList<ColumnPartial> fromColumns, IDictionary<MemberInfo, int> fromIndices)
          {
             _fromColumns = fromColumns;
             _fromIndices = fromIndices;
@@ -34,7 +34,7 @@ namespace XAdo.Quobs.Core
 
          public VisitResult Substitute(LambdaExpression fromExpression)
          {
-            _toColumns = new List<Tuple<MetaColumnPartial, MemberInfo>>();
+            _toColumns = new List<Tuple<ColumnPartial, MemberInfo>>();
             _parameter = Expression.Parameter(typeof (IDataRecord), "row");
             var body = Visit(fromExpression.Body);
             return new VisitResult
@@ -75,7 +75,7 @@ namespace XAdo.Quobs.Core
                   var c = column.Clone();
                   _toColumns.Add(Tuple.Create(c, node.Members[i]));
                }
-               args.Add(node.Members[i].GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.NotNull));
+               args.Add(node.Members[i].GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.IsNotNull));
             }
             return Expression.New(node.Constructor, args, node.Members);
          }
@@ -94,7 +94,7 @@ namespace XAdo.Quobs.Core
                   var c = column.Clone();
                   _toColumns.Add(Tuple.Create(c, node.Member));
                }
-               return node.Member.GetDataRecordMemberAssignmentExpression(newIndex, _parameter, column.Meta.NotNull);
+               return node.Member.GetDataRecordMemberAssignmentExpression(newIndex, _parameter, column.Meta.IsNotNull);
             }
             return base.VisitMemberBinding(node);
          }
@@ -112,7 +112,7 @@ namespace XAdo.Quobs.Core
                   var c = column.Clone();
                   _toColumns.Add(Tuple.Create(c, (MemberInfo) null));
                }
-               return node.Member.GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.NotNull);
+               return node.Member.GetDataRecordRecordGetterExpression(newIndex, _parameter, column.Meta.IsNotNull);
             }
             return base.VisitMember(node);
          }

@@ -6,6 +6,12 @@ namespace XAdo.Quobs.Core.Common
 {
    internal static class Extensions
    {
+      public static T CloneOrElseSelf<T>(this T self)
+      {
+         var cloneable = self as ICloneable;
+         return cloneable != null ? cloneable.Clone().CastTo<T>() : self;
+      }
+
       public static bool IsNullable(this Type self)
       {
          return self != null && Nullable.GetUnderlyingType(self) != null;

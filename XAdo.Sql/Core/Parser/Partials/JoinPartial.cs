@@ -1,9 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class JoinPartial : SqlPartial
+   public sealed class JoinPartial : SqlPartial, ICloneable
    {
+
+      private JoinPartial() { }
 
       public JoinPartial(string expression, JoinType type, TablePartial righTable) : base(expression)
       {
@@ -23,6 +26,16 @@ namespace XAdo.Quobs.Core.Parser.Partials
          RighTable.Write(w,args);
          w.Write(" ON ");
          base.Write(w, args);
+      }
+
+      object ICloneable.Clone()
+      {
+         return Clone();
+      }
+
+      public JoinPartial Clone()
+      {
+         return new JoinPartial{Expression = Expression, JoinType = JoinType, RighTable = RighTable.Clone()};
       }
 
    }

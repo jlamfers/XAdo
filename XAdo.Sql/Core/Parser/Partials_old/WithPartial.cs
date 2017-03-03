@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace XAdo.Quobs.Core.Parser.Partials2
+namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public sealed class WithPartial : SqlPartial
+   public class WithPartial : SqlPartial
    {
       public WithPartial(string expression, string alias)
          : base(expression)
@@ -23,5 +23,6 @@ namespace XAdo.Quobs.Core.Parser.Partials2
          w.Write(" AS ");
          base.Write(w, args);
       }
+
    }
 }

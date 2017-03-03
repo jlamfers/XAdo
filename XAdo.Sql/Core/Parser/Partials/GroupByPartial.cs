@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class GroupByPartial : TemplatePartial
+   public sealed class GroupByPartial : TemplatePartial, ICloneable
    {
+
+      private GroupByPartial() { }
 
       public GroupByPartial(IList<ColumnPartial> columns, string expression)
          : base(expression)
@@ -22,7 +25,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
          foreach (var c in Columns)
          {
             w.Write(comma);
-            c.Write(w, args);
+            c.WriteNonAliased(w, args);
             comma = ", ";
          }
          w.Write(" ");
@@ -31,9 +34,34 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public override string ToString()
       {
-         return Expression.Length > 0
-            ? "GROUP BY " + (string.Join(", ", Columns) + "  ?" + Expression).Trim()
-            : "GROUP BY " + string.Join(", ", Columns);
+         using (var w = new StringWriter())
+         {
+            w.Write("GROUP BY ");
+            var comma = "";
+            foreach (var c in Columns)
+            {
+               w.Write(comma);
+               c.WriteNonAliased(w, null);
+               comma = ", ";
+            }
+            if (Expression.Length > 0)
+            {
+               w.Write(" ?");
+               w.Write(Expression);
+            }
+            return w.GetStringBuilder().ToString();
+         }
+
       }
+
+      object ICloneable.Clone()
+      {
+         return Clone();
+      }
+      public GroupByPartial Clone()
+      {
+         return new GroupByPartial{Columns = Columns.Select(c => c.Clone()).ToList().AsReadOnly(), Expression = Expression};
+      }
+
    }
 }

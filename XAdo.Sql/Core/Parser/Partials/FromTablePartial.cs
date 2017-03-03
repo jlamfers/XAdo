@@ -1,23 +1,37 @@
-﻿using System.Collections.Generic;
+using System;
 using System.IO;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
-   public class FromTablePartial : TablePartial
+   public sealed class FromTablePartial : SqlPartial, ICloneable
    {
-      public FromTablePartial(IList<string> parts, string alias) : base(parts, alias)
+
+      private FromTablePartial() { }
+
+      public FromTablePartial(TablePartial table)
+         : base(table.ToString())
       {
+         Table = table;
       }
 
-      public FromTablePartial(MultiPartAliasedPartial other) : base(other)
-      {
-      }
+      public TablePartial Table { get; protected set; }
 
       public override void Write(TextWriter w, object args)
       {
          w.Write("FROM ");
-         base.Write(w, args);
+         Table.Write(w,args);
       }
+
+      object ICloneable.Clone()
+      {
+         return Clone();
+      }
+
+      public FromTablePartial Clone()
+      {
+         return new FromTablePartial{Expression = Expression, Table = Table.Clone()};
+      }
+
 
    }
 }

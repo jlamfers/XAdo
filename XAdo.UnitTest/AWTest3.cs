@@ -6,6 +6,8 @@ using NUnit.Framework;
 using XAdo.Quobs;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Core.Parser.Partials;
 using XPression.Core;
 
 namespace XAdo.UnitTest
@@ -14,21 +16,21 @@ namespace XAdo.UnitTest
    {
       public const string SqlSelect = @"
 SELECT        
-   p.BusinessEntityID as id, -->*
-   p.PersonType, -->! 
-   p.Title, 
-   p.FirstName, -->! 
-   p.MiddleName, 
-   p.LastName, -->! 
-   p.ModifiedDate as ModifiedAt, 
-   a.AddressID, --> Address/Id* 
-   a.AddressLine1 as Line1, -->!
-   a.AddressLine2 as Line2, 
-   a.PostalCode, -->! 
-   a.ModifiedDate as ModifiedAt,
-   at.AddressTypeID, -->AddressType/Id*
-   at.Name, -->!
-   a.City -->../City!
+   p.BusinessEntityID as id -->*
+   ,p.PersonType -->! 
+   ,p.Title 
+   ,p.FirstName -->! 
+   ,p.MiddleName 
+   ,p.LastName -->! 
+   ,p.ModifiedDate as ModifiedAt 
+   ,a.AddressID --> Address/Id* 
+   ,a.AddressLine1 as Line1 -->!
+   ,a.AddressLine2 as Line2 
+   ,a.PostalCode -->! 
+   ,a.ModifiedDate as ModifiedAt
+   ,at.AddressTypeID -->AddressType/Id*
+   ,at.Name -->!
+   ,a.City -->../City!
 FROM Person.BusinessEntity AS be 
 INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
 INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
@@ -69,6 +71,21 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
    [TestFixture]
    public class AWTest2
    {
+      [Test]
+      public void ParseTest()
+      {
+         var p = new SqlSelectParser();
+         var result = p.Parse(Constants.SqlSelect).EnsureLinked();
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            p.Parse(Constants.SqlSelect).EnsureLinked();
+         }
+         sw.Stop();
+         result.OfType<SelectPartial>().Single().Columns.First().Table.SetAlias("oops");
+         Debug.WriteLine(sw.ElapsedMilliseconds);
+      }
 
       [Test]
       public async void MonkeyTest()
@@ -164,7 +181,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public void RegExTest()
       {
-         var m = new XAdo.Quobs.Core.Parser.Partials2.ColumnMeta();
+         var m = new ColumnMeta();
          m.InitializeByTag("* {'onupdate':'input','type':'decimal','maxlength':10}",false);
       }
    }
