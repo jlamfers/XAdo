@@ -6,16 +6,16 @@ using System.Text;
 
 namespace XAdo.Quobs.Linq
 {
-   public interface IUrlExpressionParser
+   public interface IFilterParser
    {
       Expression Parse(string filter, Type inputType, Type resultType);
       ICollection<char> ColumnSepChars { get; }
       ICollection<char> AliasSepChars { get; }
    }
 
-   public static class UrlExpressionParserExtensions
+   public static class FilterParserExtensions
    {
-      public static IList<Tuple<string, string>> SplitColumns(this IUrlExpressionParser self, string expression)
+      public static IList<Tuple<string, string>> SplitColumns(this IFilterParser self, string expression)
       {
          if (expression == null) return null;
          var result = new List<Tuple<string, string>>();

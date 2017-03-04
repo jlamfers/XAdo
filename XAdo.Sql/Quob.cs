@@ -12,23 +12,23 @@ namespace XAdo.Quobs
    public class Quob : IQuob, IAttachable
    {
 
-      protected Quob(IQueryBuilder queryBuilder, QuobContext context)
+      protected Quob(ISqlResource queryBuilder, QuobContext context)
          : this(queryBuilder)
       {
          Context = context;
          if (context == null) throw new ArgumentNullException("context");
       }
 
-      public Quob(IQueryBuilder queryBuilder)
+      public Quob(ISqlResource queryBuilder)
       {
          if (queryBuilder == null) throw new ArgumentNullException("queryBuilder");
          QueryBuilder = queryBuilder;
       }
 
       protected QuobContext Context { get; private set; }
-      protected IQueryBuilder QueryBuilder { get; private set; }
+      protected ISqlResource QueryBuilder { get; private set; }
 
-      protected virtual Quob SelfOrNew(QuobContext context, IQueryBuilder querybuilder = null)
+      protected virtual Quob SelfOrNew(QuobContext context, ISqlResource querybuilder = null)
       {
          return (querybuilder == null && context == Context) ? this : new Quob(querybuilder ?? QueryBuilder, context);
       }
@@ -37,7 +37,7 @@ namespace XAdo.Quobs
       public virtual IQuob Where(Expression expression)
       {
          var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSqlByExpression(expression,context.Arguments);
+         var compileResult = QueryBuilder.BuildSql(expression,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
@@ -45,7 +45,7 @@ namespace XAdo.Quobs
       public virtual IQuob Having(Expression expression)
       {
          var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSqlByExpression(expression, context.Arguments);
+         var compileResult = QueryBuilder.BuildSql(expression, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
@@ -219,7 +219,7 @@ namespace XAdo.Quobs
 
       public virtual IQuob Select(string expression)
       {
-         return SelfOrNew(Context.Clone(), QueryBuilder.Map(expression, QueryBuilder.GetBinderType(Context.Session)));
+         return SelfOrNew(Context.Clone(), QueryBuilder.Map(expression, QueryBuilder.GetEntityType(Context.Session)));
       }
 
       public virtual IQuob Select(LambdaExpression expression)

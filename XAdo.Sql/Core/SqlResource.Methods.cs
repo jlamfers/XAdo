@@ -21,16 +21,16 @@ namespace XAdo.Quobs.Core
 {
    // immutable object
 
-   public partial class QueryBuilder : IQueryBuilder
+   public partial class SqlResource
    {
       private readonly ICache<Type, BinderInfo>
          _binderCache = new SmallCache<Type, BinderInfo>();
 
-      private readonly LRUCache<object, QueryBuilder>
-         _mapCache = new LRUCache<object, QueryBuilder>("LRUCache.SubSet.Size", 25);
+      private readonly LRUCache<object, SqlResource>
+         _mapCache = new LRUCache<object, SqlResource>("LRUCache.SubSet.Size", 25);
 
-      private readonly LRUCache<string, SqlGenerator.Result>
-         _compiledSqlCache = new LRUCache<string, SqlGenerator.Result>("LRUCache.CompiledSql.Size", 500, StringComparer.OrdinalIgnoreCase);
+      private readonly LRUCache<string, SqlPredicateCompiler.Result>
+         _compiledSqlCache = new LRUCache<string, SqlPredicateCompiler.Result>("LRUCache.CompiledSql.Size", 500, StringComparer.OrdinalIgnoreCase);
 
       private string
          _formattedSql;
@@ -49,12 +49,12 @@ namespace XAdo.Quobs.Core
       private static readonly MethodInfo
          IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
 
-      private QueryBuilder
+      private SqlResource
          _countQuery;
 
 
 
-      public QueryBuilder AsCountQuery()
+      public SqlResource AsCountQuery()
       {
          if (_countQuery != null)
          {
@@ -119,11 +119,11 @@ namespace XAdo.Quobs.Core
          return GetBinderInfo(entityType).BinderExpression;
       }
 
-      public QueryBuilder Map<TEntity, TMap>(Expression<Func<TEntity, TMap>> toExpression)
+      public SqlResource Map<TEntity, TMap>(Expression<Func<TEntity, TMap>> toExpression)
       {
          return Map((LambdaExpression)toExpression);
       }
-      public QueryBuilder Map(LambdaExpression toExpression)
+      public SqlResource Map(LambdaExpression toExpression)
       {
          var fromType = toExpression.Parameters[0].Type;
          var toType = toExpression.Body.Type;
@@ -160,11 +160,11 @@ namespace XAdo.Quobs.Core
             return resultMap;
          });
       }
-      public QueryBuilder Map(string selectExpression, Type mappedType)
+      public SqlResource Map(string selectExpression, Type mappedType)
       {
          return _mapCache.GetOrAdd(selectExpression, x =>
          {
-            mappedType = mappedType ?? GetBinderType(null);
+            mappedType = mappedType ?? GetEntityType(null);
 
             var columnTuples = _urlParser.SplitColumns(selectExpression);
             var columns = new List<ColumnPartial>();
@@ -187,7 +187,7 @@ namespace XAdo.Quobs.Core
                else
                {
                   var expression = _urlParser.Parse(col.Item1, mappedType, typeof (object));
-                  var result = BuildSqlByExpression(expression, null);
+                  var result = BuildSql(expression, null);
                   var lparenIndex = result.Sql.IndexOf('(');
                   if (lparenIndex != -1 && Dialect.GetAggregates().Contains(result.Sql.Substring(0, lparenIndex)))
                   {
@@ -251,39 +251,39 @@ namespace XAdo.Quobs.Core
          }
       } 
 
-      public SqlGenerator.Result BuildSqlByExpression(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlPredicateCompiler.Result BuildSql(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
          var result = _compiledSqlCache.GetOrAdd(expression.GetKey(), x =>
          {
-            var generator = new SqlGenerator(Dialect, parameterPrefix, noargs);
+            var generator = new SqlPredicateCompiler(Dialect, parameterPrefix, noargs);
             return generator.Generate(expression, MappedExpressions, null);
          });
          if (arguments != null)
          {
             arguments.AddRange(result.Arguments);
-            return new SqlGenerator.Result(result.Sql, arguments);
+            return new SqlPredicateCompiler.Result(result.Sql, arguments);
          }
-         return new SqlGenerator.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
+         return new SqlPredicateCompiler.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
       }
-      public SqlGenerator.Result BuildSqlPredicate(string expression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlPredicateCompiler.Result BuildSqlPredicate(string expression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
       {
          var result = _compiledSqlCache.GetOrAdd(expression, x =>
          {
-            var expr = _urlParser.Parse(expression, mappedType ?? GetBinderType(null),typeof (bool));
-            var generator = new SqlGenerator(Dialect, parameterPrefix, noargs);
+            var expr = _urlParser.Parse(expression, mappedType ?? GetEntityType(null),typeof (bool));
+            var generator = new SqlPredicateCompiler(Dialect, parameterPrefix, noargs);
             return generator.Generate(expr, MappedExpressions, null);
          }
             );
          if (arguments != null)
          {
             arguments.AddRange(result.Arguments);
-            return new SqlGenerator.Result(result.Sql,arguments);
+            return new SqlPredicateCompiler.Result(result.Sql,arguments);
          }
-         return new SqlGenerator.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
+         return new SqlPredicateCompiler.Result(result.Sql, result.Arguments.ToDictionary(x => x.Key, x => x.Value));
       }
       public string BuildSqlOrderBy(string orderExpression, Type mappedType)
       {
-         mappedType = mappedType ?? GetBinderType(null);
+         mappedType = mappedType ?? GetEntityType(null);
          var columnTuples = _urlParser.SplitColumns(orderExpression);
          var sb = new StringBuilder();
          var comma = "";
@@ -304,7 +304,7 @@ namespace XAdo.Quobs.Core
             else
             {
                var expression = _urlParser.Parse(columnName, mappedType, typeof(object));
-               sb.Append(BuildSqlByExpression(expression));
+               sb.Append(BuildSql(expression));
             }
             if (desc)
             {
@@ -321,7 +321,7 @@ namespace XAdo.Quobs.Core
          foreach (var item1 in columns)
          {
             sb.Append(comma);
-            sb.Append(BuildSqlByExpression(item1).Sql);
+            sb.Append(BuildSql(item1).Sql);
             if (descending)
             {
                sb.Append(" DESC");
@@ -361,7 +361,8 @@ namespace XAdo.Quobs.Core
          return GetBinderInfo(type).ObjectBinderDelegate;
 
       }
-      public Type GetBinderType(IAdoSession session)
+
+      public Type GetEntityType(IAdoSession session)
       {
          if (_binderCache.Any())
          {
@@ -370,16 +371,16 @@ namespace XAdo.Quobs.Core
          }
          if (session == null)
          {
-            throw new InvalidOperationException("Cannot determine type yet. Need a specified type, or an ado-session (for retrieving meta data), first");
+            return null;
          }
-         var meta = session.QueryMetaForSql(Format(new { skip = 0, take = 0, order = Select.Columns.First().Expression }));
-         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), meta.Select(m => m.AllowDBNull ? m.DataType.EnsureNullable() : m.DataType).ToArray());
-         return GetBinderInfo(type).BinderExpression.Parameters[0].Type;
+         EnsureAdoMetaDataBound(session);
+         var type = AnonymousTypeHelper.GetOrCreateType(Select.Columns.Select(c => c.Map.FullName).ToArray(), Select.Columns.Select(c => c.Meta.Type).ToArray());
+         return GetBinderInfo(type).EntityType;
       }
 
-      public QueryBuilder<TEntity> ToGeneric<TEntity>()
+      public SqlResource<TEntity> ToGeneric<TEntity>()
       {
-         return new QueryBuilder<TEntity>(this);
+         return new SqlResource<TEntity>(this);
       }
 
       private BinderInfo GetBinderInfo(Type entityType)
@@ -448,7 +449,6 @@ namespace XAdo.Quobs.Core
          var body = Expression.MemberInit(Expression.New(ctor), expressions);
          return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, IsDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
       }
-
 
       private bool _adoMetaDataBound = false;
       private void EnsureAdoMetaDataBound(IAdoSession session)

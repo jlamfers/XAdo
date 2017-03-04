@@ -228,7 +228,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
          _isNotNull = _isNotNull ?? !meta.AllowDBNull;
          _isPKey = _isPKey ?? meta.PKey;
          _isReadOnly = _isReadOnly ?? meta.ReadOnly;
-         Type = Type ?? meta.DataType;
+         Type = Type ?? (meta.AllowDBNull ? meta.DataType.EnsureNullable() : meta.DataType);
          _isAutoIncrement = _isAutoIncrement ?? meta.AutoIncrement;
          _maxLength = _maxLength ?? meta.MaxLength;
          _isUnique = _isUnique ?? meta.Unique;

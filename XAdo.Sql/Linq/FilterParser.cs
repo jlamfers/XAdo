@@ -6,11 +6,11 @@ using XPression;
 
 namespace XAdo.Quobs.Linq
 {
-   public class UrlExpressionParser : IUrlExpressionParser
+   public class FilterParser : IFilterParser
    {
       private readonly UrlParser _parser = new UrlParser();
 
-      public UrlExpressionParser()
+      public FilterParser()
       {
          ColumnSepChars = new HashSet<char>(new[]{' ','~',','}).AsReadOnly();
          AliasSepChars = new HashSet<char>(new[] { '|', ';', ':' }).AsReadOnly();

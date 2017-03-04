@@ -3,23 +3,23 @@ using XAdo.Quobs.Core.Common;
 
 namespace XAdo.Quobs.Core
 {
-   public class QueryByConvention : IQueryByConvention
+   public class SqlResourceByConvention : ISqlResourceByConvention
    {
-      private readonly IQueryBuilderFactory _queryBuilderFactory;
+      private readonly ISqlResourceFactory _queryBuilderFactory;
 
-      public QueryByConvention(IQueryBuilderFactory queryBuilderFactory)
+      public SqlResourceByConvention(ISqlResourceFactory queryBuilderFactory)
       {
          _queryBuilderFactory = queryBuilderFactory;
       }
 
-      public IQueryBuilder GetQueryBuilder(Type type)
+      public ISqlResource Create(Type type)
       {
          var sqlSelectAttribute = type.GetAnnotation<SqlSelectAttribute>();
          if (sqlSelectAttribute == null)
          {
             throw new InvalidOperationException("Cannot get the SQL-select from type: " + type.Name+". You must annotate the type with the [SqlSelect] attribute.");
          }
-         return _queryBuilderFactory.Parse(sqlSelectAttribute.Sql,type);
+         return _queryBuilderFactory.Create(sqlSelectAttribute.Sql,type);
       }
    }
 }

@@ -10,7 +10,7 @@ using XAdo.Quobs.Dialects;
 
 namespace XAdo.Quobs.Linq
 {
-   public class SqlGenerator : ExpressionVisitor
+   public class SqlPredicateCompiler : ExpressionVisitor
    {
 
       public class Result
@@ -24,8 +24,6 @@ namespace XAdo.Quobs.Linq
          public string Sql { get; private set; }
          public IDictionary<string, object> Arguments { get; private set; }
       }
-
-
 
       private static readonly Dictionary<ExpressionType, string>
          Operators = new Dictionary<ExpressionType, string>
@@ -61,7 +59,7 @@ namespace XAdo.Quobs.Linq
       private Expression 
          _expression;
 
-      public SqlGenerator(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
+      public SqlPredicateCompiler(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          _dialect = dialect;

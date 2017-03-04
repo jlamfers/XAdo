@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using XAdo.Quobs.Core.Mapper;
 using XAdo.Quobs.Core.Parser.Partials;
 using XAdo.Quobs.Dialects;
 using XAdo.Quobs.Linq;
@@ -11,9 +9,9 @@ using XAdo.Quobs.Linq;
 namespace XAdo.Quobs.Core
 {
    // immutable object
-   public partial class QueryBuilder
+   public partial class SqlResource : ISqlResource
    {
-      private IUrlExpressionParser _urlParser;
+      private IFilterParser _urlParser;
 
       #region Hidden fields
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -46,7 +44,7 @@ namespace XAdo.Quobs.Core
       private bool _orderbyChecked;
       #endregion
 
-      protected QueryBuilder(QueryBuilder other)
+      protected SqlResource(SqlResource other)
       {
          _partials = other._partials;
          Dialect = other.Dialect;
@@ -56,12 +54,12 @@ namespace XAdo.Quobs.Core
          _urlParser = other._urlParser;
       }
 
-      private QueryBuilder()
+      private SqlResource()
       {
          
       }
 
-      public QueryBuilder(IList<SqlPartial> partials, ISqlDialect dialect, IUrlExpressionParser urlParser )
+      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser urlParser )
       {
          if (partials == null) throw new ArgumentNullException("partials");
          if (dialect == null) throw new ArgumentNullException("dialect");
@@ -74,9 +72,9 @@ namespace XAdo.Quobs.Core
 
       public ISqlDialect Dialect { get; private set; }
 
-      public QueryBuilder CreateMap(IList<SqlPartial> partials)
+      public SqlResource CreateMap(IList<SqlPartial> partials)
       {
-         var mapped = new QueryBuilder
+         var mapped = new SqlResource
          {
             _partials = partials.EnsureLinked().ToList().AsReadOnly(),
             Dialect = Dialect,
@@ -84,7 +82,6 @@ namespace XAdo.Quobs.Core
          };
          return mapped;
       }
-
 
       public WithPartial With
       {

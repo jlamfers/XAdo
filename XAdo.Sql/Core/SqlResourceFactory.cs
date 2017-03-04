@@ -6,18 +6,18 @@ using XAdo.Quobs.Linq;
 
 namespace XAdo.Quobs.Core
 {
-   public class QueryBuilderFactory : IQueryBuilderFactory
+   public class SqlResourceFactory : ISqlResourceFactory
    {
 
-      protected readonly LRUCache<object, QueryBuilder>
-         QueryBuilderCache = new LRUCache<object, QueryBuilder>("LRUCache.QueryBuilder.Size", 1000);
+      protected readonly LRUCache<object, SqlResource>
+         SqlResourceCache = new LRUCache<object, SqlResource>("LRUCache.SqlResource.Size", 1000);
 
 
 
       private readonly ISqlDialect _dialect;
-      private readonly IUrlExpressionParser _urlParser;
+      private readonly IFilterParser _urlParser;
 
-      public QueryBuilderFactory(ISqlDialect dialect, IUrlExpressionParser urlParser)
+      public SqlResourceFactory(ISqlDialect dialect, IFilterParser urlParser)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (urlParser == null) throw new ArgumentNullException("urlParser");
@@ -25,14 +25,14 @@ namespace XAdo.Quobs.Core
          _urlParser = urlParser;
       }
 
-      public virtual IQueryBuilder Parse(string sql, Type type)
+      public virtual ISqlResource Create(string sql, Type type)
       {
          if (sql == null) throw new ArgumentNullException("sql");
-         return QueryBuilderCache.GetOrAdd(sql, x =>
+         return SqlResourceCache.GetOrAdd(sql, x =>
          {
             var parser = new SqlSelectParser();
             var partials = parser.Parse(sql);
-            var queryMap = new QueryBuilder(partials,_dialect,_urlParser);
+            var queryMap = new SqlResource(partials,_dialect,_urlParser);
             if (type != null)
             {
                queryMap.GetBinder(type);
@@ -41,14 +41,14 @@ namespace XAdo.Quobs.Core
          });
       }
 
-      public virtual IQueryBuilder<T> Parse<T>(string sql)
+      public virtual ISqlResource<T> Create<T>(string sql)
       {
          if (sql == null) throw new ArgumentNullException("sql");
-         return QueryBuilderCache.GetOrAdd(sql, x =>
+         return SqlResourceCache.GetOrAdd(sql, x =>
          {
             var parser = new SqlSelectParser();
             var partials = parser.Parse(sql);
-            var queryMap = new QueryBuilder(partials, _dialect, _urlParser);
+            var queryMap = new SqlResource(partials, _dialect, _urlParser);
             queryMap.GetBinder(typeof (T));
             return queryMap;
          }).ToGeneric<T>();

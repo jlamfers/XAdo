@@ -9,7 +9,7 @@ namespace XAdo.Quobs.Core
 {
    public class SqlPersistBuilder : ISqlPersistBuilder
    {
-      public string BuildUpdate(IQueryBuilder q, bool throwException = true)
+      public string BuildUpdate(ISqlResource q, bool throwException = true)
       {
          var sb = new StringBuilder();
          var updateTables =
@@ -33,17 +33,17 @@ namespace XAdo.Quobs.Core
          return sb.ToString();
       }
 
-      public string BuildDelete(IQueryBuilder q, bool throwException = true)
+      public string BuildDelete(ISqlResource q, bool throwException = true)
       {
          throw new System.NotImplementedException();
       }
 
-      public string BuildInsert(IQueryBuilder q, bool throwException = true)
+      public string BuildInsert(ISqlResource q, bool throwException = true)
       {
          throw new System.NotImplementedException();
       }
 
-      protected virtual void BuildUpdate(IQueryBuilder q, TablePartial t, StringBuilder sb, bool throwException)
+      protected virtual void BuildUpdate(ISqlResource q, TablePartial t, StringBuilder sb, bool throwException)
       {
             var keys = q.Select.Columns.Where(c => c.Table==t && (c.Meta.IsPKey)).ToList();
             if (!keys.Any())
@@ -82,7 +82,7 @@ namespace XAdo.Quobs.Core
             }
          }
 
-      protected virtual void BuildPartialUpdate(IQueryBuilder q, TablePartial t, StringBuilder sb, bool throwException)
+      protected virtual void BuildPartialUpdate(ISqlResource q, TablePartial t, StringBuilder sb, bool throwException)
       {
          if (t.Alias == null)
          {

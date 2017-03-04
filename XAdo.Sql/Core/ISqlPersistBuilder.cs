@@ -2,8 +2,8 @@
 {
    public interface ISqlPersistBuilder
    {
-      string BuildUpdate(IQueryBuilder q, bool throwException = true);
-      string BuildDelete(IQueryBuilder q, bool throwException = true);
-      string BuildInsert(IQueryBuilder q, bool throwException = true);
+      string BuildUpdate(ISqlResource q, bool throwException = true);
+      string BuildDelete(ISqlResource q, bool throwException = true);
+      string BuildInsert(ISqlResource q, bool throwException = true);
    }
 }

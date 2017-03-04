@@ -11,23 +11,23 @@ namespace XAdo.Quobs
 {
    public class Quob<TEntity> : Quob, IQuob<TEntity>
    {
-      protected Quob(IQueryBuilder<TEntity> queryBuilder, QuobContext context) : base(queryBuilder, context)
+      protected Quob(ISqlResource<TEntity> queryBuilder, QuobContext context) : base(queryBuilder, context)
       {
       }
 
-      public Quob(IQueryByConvention convention)
-         : this(convention.GetQueryBuilder<TEntity>())
+      public Quob(ISqlResourceByConvention convention)
+         : this(convention.Create<TEntity>())
       {
       }
 
-      public Quob(IQueryBuilder<TEntity> queryBuilder)
+      public Quob(ISqlResource<TEntity> queryBuilder)
          : base(queryBuilder)
       {
       }
 
-      protected override Quob SelfOrNew(QuobContext context, IQueryBuilder querybuilder = null)
+      protected override Quob SelfOrNew(QuobContext context, ISqlResource querybuilder = null)
       {
-         return (Context == context && querybuilder == null) ? this : new Quob<TEntity>((IQueryBuilder<TEntity>)(querybuilder ?? QueryBuilder), context);
+         return (Context == context && querybuilder == null) ? this : new Quob<TEntity>((ISqlResource<TEntity>)(querybuilder ?? QueryBuilder), context);
       }
 
       public IQuob<TEntity> Where(Expression<Func<TEntity, bool>> predicate)

@@ -11,7 +11,7 @@ using XAdo.Quobs.Core.Parser.Partials;
 namespace XAdo.Quobs.Core
 {
    // immutable object
-   public partial class QueryBuilder
+   public partial class SqlResource
    {
       private class MapVisitor : ExpressionVisitor
       {

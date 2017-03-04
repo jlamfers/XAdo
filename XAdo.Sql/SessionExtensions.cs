@@ -7,18 +7,18 @@ namespace XAdo.Quobs
 {
    public static class SessionExtensions
    {
-      public static IQueryBuilder GetQueryBuilder(this IAdoSession self, string sqlSelect, Type type = null)
+      public static ISqlResource GetQueryBuilder(this IAdoSession self, string sqlSelect, Type type = null)
       {
          if (sqlSelect == null) throw new ArgumentNullException("sqlSelect");
-         var builder = self.Context.GetInstance<IQueryBuilderFactory>().Parse(sqlSelect,type);
+         var builder = self.Context.GetInstance<ISqlResourceFactory>().Create(sqlSelect,type);
          builder.GetBinder(self);
          return builder;
       }
 
-      public static IQueryBuilder GetQueryBuilder<T>(this IAdoSession self, string sqlSelect)
+      public static ISqlResource GetQueryBuilder<T>(this IAdoSession self, string sqlSelect)
       {
          if (sqlSelect == null) throw new ArgumentNullException("sqlSelect");
-         var builder = self.Context.GetInstance<IQueryBuilderFactory>().Parse<T>(sqlSelect);
+         var builder = self.Context.GetInstance<ISqlResourceFactory>().Create<T>(sqlSelect);
          builder.GetBinder(typeof(T));
          return builder;
       }

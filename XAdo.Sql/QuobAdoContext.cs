@@ -20,10 +20,10 @@ namespace XAdo.Quobs
       {
          context
             .BindSingleton<IAdoCommandFactory, AdoCommandFactoryImplEx>()
-            .BindSingleton<IUrlExpressionParser,UrlExpressionParser>()
+            .BindSingleton<IFilterParser,FilterParser>()
             .BindSingleton<ISqlDialect,SqlServerDialect>()
-            .BindSingleton<IQueryBuilderFactory, QueryBuilderFactory>()
-            .BindSingleton<IQueryByConvention,QueryByConvention>()
+            .BindSingleton<ISqlResourceFactory, SqlResourceFactory>()
+            .BindSingleton<ISqlResourceByConvention,SqlResourceByConvention>()
             .BindSingleton(typeof(IQuob<>),typeof(Quob<>));
 
          context
