@@ -75,14 +75,12 @@
     <Compile Include="Core\Common\MyReadOnlyCollection.cs" />
     <Compile Include="Core\ISqlResource.cs" />
     <Compile Include="Core\ISqlResourceFactory.cs" />
-    <Compile Include="Core\ISqlResourceByConvention.cs" />
     <Compile Include="Core\SqlResource.Methods.cs" />
     <Compile Include="Core\SqlResource.Types.cs" />
     <Compile Include="Core\SqlResourceFactory.cs" />
     <Compile Include="Core\SqlResource`1.cs" />
     <Compile Include="Core\Common\XAdoSqlException.cs" />
     <Compile Include="Core\Common\SmallCache.cs" />
-    <Compile Include="Core\SqlResourceByConvention.cs" />
     <Compile Include="Core\SqlSelectAttribute.cs" />
     <Compile Include="Dialects\SqlDialectExtensions.cs" />
     <Compile Include="Dialects\SyntaxExtender.cs" />

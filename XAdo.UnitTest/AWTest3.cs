@@ -135,7 +135,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          using (var sn = context.CreateSession())
          {
             sn.BeginTransaction();
-            var qb = sn.GetQueryBuilder(Constants.SqlSelect);
+            var qb = sn.CreateSqlResource(Constants.SqlSelect);
             var upd = persistBuilder.BuildUpdate(qb);
             var sw = new Stopwatch();
             sw.Start();

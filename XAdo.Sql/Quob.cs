@@ -12,56 +12,56 @@ namespace XAdo.Quobs
    public class Quob : IQuob, IAttachable
    {
 
-      protected Quob(ISqlResource queryBuilder, QuobContext context)
-         : this(queryBuilder)
+      protected Quob(ISqlResource sqlResource, QuobContext context)
+         : this(sqlResource)
       {
          Context = context;
          if (context == null) throw new ArgumentNullException("context");
       }
 
-      public Quob(ISqlResource queryBuilder)
+      public Quob(ISqlResource sqlResource)
       {
-         if (queryBuilder == null) throw new ArgumentNullException("queryBuilder");
-         QueryBuilder = queryBuilder;
+         if (sqlResource == null) throw new ArgumentNullException("sqlResource");
+         SqlResource = sqlResource;
       }
 
       protected QuobContext Context { get; private set; }
-      protected ISqlResource QueryBuilder { get; private set; }
+      protected ISqlResource SqlResource { get; private set; }
 
-      protected virtual Quob SelfOrNew(QuobContext context, ISqlResource querybuilder = null)
+      protected virtual Quob SelfOrNew(QuobContext context, ISqlResource sqlResource = null)
       {
-         return (querybuilder == null && context == Context) ? this : new Quob(querybuilder ?? QueryBuilder, context);
+         return (sqlResource == null && context == Context) ? this : new Quob(sqlResource ?? SqlResource, context);
       }
 
 
       public virtual IQuob Where(Expression expression)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSql(expression,context.Arguments);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var compileResult = SqlResource.BuildSql(expression,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
 
       public virtual IQuob Having(Expression expression)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSql(expression, context.Arguments);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var compileResult = SqlResource.BuildSql(expression, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
 
       public IQuob Where(string expression)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSqlPredicate(expression, null,context.Arguments);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var compileResult = SqlResource.BuildSqlPredicate(expression, null,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
 
       public IQuob Having(string expression)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var compileResult = QueryBuilder.BuildSqlPredicate(expression, null, context.Arguments);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var compileResult = SqlResource.BuildSqlPredicate(expression, null, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
       }
@@ -89,8 +89,8 @@ namespace XAdo.Quobs
 
       private IQuob OrderBy(bool descending, bool reset, params Expression[] expressions)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var sqlOrderExpression = QueryBuilder.BuildSqlOrderBy(descending,expressions);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var sqlOrderExpression = SqlResource.BuildSqlOrderBy(descending,expressions);
          if (reset)
          {
             context.Order.Clear();
@@ -101,22 +101,22 @@ namespace XAdo.Quobs
 
       public virtual IQuob Skip(int? skip)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
          context.Skip = skip;
          return SelfOrNew(context);
       }
 
       public virtual IQuob Take(int? take)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
          context.Take = take;
          return SelfOrNew(context);
       }
 
       public virtual IQuob OrderBy(string expression)
       {
-         var context = Context ?? new QuobContext(QueryBuilder.Dialect);
-         var sqlOrderExpression = QueryBuilder.BuildSqlOrderBy(expression,null);
+         var context = Context ?? new QuobContext(SqlResource.Dialect);
+         var sqlOrderExpression = SqlResource.BuildSqlOrderBy(expression,null);
          context.Order.Clear();
          context.Order.Add(sqlOrderExpression);
          return SelfOrNew(context);
@@ -125,8 +125,8 @@ namespace XAdo.Quobs
 
       public virtual IEnumerable<object> ToEnumerable()
       {
-         var sql = QueryBuilder.Format(Context.GetSqlTemplateArgs());
-         return Context.Session.Query(sql, QueryBuilder.GetBinder(Context.Session), Context.GetArguments(), false);
+         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         return Context.Session.Query(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments(), false);
       }
       public virtual IEnumerable<object> ToEnumerable(out int count)
       {
@@ -134,7 +134,7 @@ namespace XAdo.Quobs
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            QueryBuilder.GetBinder(Context.Session)
+            SqlResource.GetBinder(Context.Session)
          };
          var reader = Context.Session.QueryMultiple(sql, binders, Context.GetArguments());
          count = reader.Read<int>().Single();
@@ -143,9 +143,9 @@ namespace XAdo.Quobs
 
       protected virtual string GetDuoSql()
       {
-         var sql = QueryBuilder.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs())
-                   + QueryBuilder.Dialect.StatementSeperator
-                   + QueryBuilder.Format(Context.GetSqlTemplateArgs());
+         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs())
+                   + SqlResource.Dialect.StatementSeperator
+                   + SqlResource.Format(Context.GetSqlTemplateArgs());
          return sql;
       }
 
@@ -171,20 +171,20 @@ namespace XAdo.Quobs
 
       public virtual int Count()
       {
-         var sql = QueryBuilder.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
+         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
          return Context.Session.Query(sql, r => r.GetInt32(0), Context.GetArguments()).Single();
       }
 
       public virtual bool Exists()
       {
-         var sql = string.Format(QueryBuilder.Dialect.ExistsFormat, QueryBuilder.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
+         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
          return Context.Session.Query(sql, r => r.GetBoolean(0), Context.GetArguments()).Single();
       }
 
       public virtual async Task<List<object>> FetchAsync()
       {
-         var sql = QueryBuilder.Format(Context.GetSqlTemplateArgs());
-         return await Context.Session.QueryAsync(sql, QueryBuilder.GetBinder(Context.Session), Context.GetArguments());
+         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         return await Context.Session.QueryAsync(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments());
       }
 
       public virtual async Task<CollectionWithCountResult<object>> FetchWithCountAsync()
@@ -193,7 +193,7 @@ namespace XAdo.Quobs
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            QueryBuilder.GetBinder(Context.Session)
+            SqlResource.GetBinder(Context.Session)
          };
          var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
@@ -207,30 +207,30 @@ namespace XAdo.Quobs
 
       public virtual async Task<int> CountAsync()
       {
-         var sql = QueryBuilder.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
+         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
          return (await Context.Session.QueryAsync(sql, r => r.GetInt32(0), Context.GetArguments())).Single();
       }
 
       public virtual async Task<bool> ExistsAsync()
       {
-         var sql = string.Format(QueryBuilder.Dialect.ExistsFormat, QueryBuilder.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
+         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
          return (await Context.Session.QueryAsync(sql, r => r.GetBoolean(0), Context.GetArguments())).Single();
       }
 
       public virtual IQuob Select(string expression)
       {
-         return SelfOrNew(Context.Clone(), QueryBuilder.Map(expression, QueryBuilder.GetEntityType(Context.Session)));
+         return SelfOrNew(Context.Clone(), SqlResource.Map(expression, SqlResource.GetEntityType(Context.Session)));
       }
 
       public virtual IQuob Select(LambdaExpression expression)
       {
-         return SelfOrNew(Context.Clone(),QueryBuilder.Map(expression));
+         return SelfOrNew(Context.Clone(),SqlResource.Map(expression));
       }
 
       public virtual IQuob Attach(IAdoSession session)
       {
-         var clone = SelfOrNew(new QuobContext(QueryBuilder.Dialect) { Session = session });
-         clone.QueryBuilder.GetBinder(session);
+         var clone = SelfOrNew(new QuobContext(SqlResource.Dialect) { Session = session });
+         clone.SqlResource.GetBinder(session);
          return clone;
       }
 

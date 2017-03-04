@@ -15,19 +15,19 @@ namespace XAdo.Quobs
       {
       }
 
-      public Quob(ISqlResourceByConvention convention)
-         : this(convention.Create<TEntity>())
+      public Quob(ISqlResourceFactory factory)
+         : this(factory.Create<TEntity>())
       {
       }
 
-      public Quob(ISqlResource<TEntity> queryBuilder)
-         : base(queryBuilder)
+      public Quob(ISqlResource<TEntity> sqlResource)
+         : base(sqlResource)
       {
       }
 
       protected override Quob SelfOrNew(QuobContext context, ISqlResource querybuilder = null)
       {
-         return (Context == context && querybuilder == null) ? this : new Quob<TEntity>((ISqlResource<TEntity>)(querybuilder ?? QueryBuilder), context);
+         return (Context == context && querybuilder == null) ? this : new Quob<TEntity>((ISqlResource<TEntity>)(querybuilder ?? SqlResource), context);
       }
 
       public IQuob<TEntity> Where(Expression<Func<TEntity, bool>> predicate)
@@ -72,8 +72,8 @@ namespace XAdo.Quobs
 
       public new IEnumerable<TEntity> ToEnumerable()
       {
-         var sql = QueryBuilder.Format(Context.GetSqlTemplateArgs());
-         return Context.Session.Query(sql, QueryBuilder.GetBinder<TEntity>(), Context.GetArguments(), false);
+         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         return Context.Session.Query(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments(), false);
       }
 
       public new IEnumerable<TEntity> ToEnumerable(out int count)
@@ -82,7 +82,7 @@ namespace XAdo.Quobs
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            QueryBuilder.GetBinder<TEntity>()
+            SqlResource.GetBinder<TEntity>()
          };
          var reader = Context.Session.QueryMultiple(sql, binders, Context.GetArguments());
          count = reader.Read<int>().Single();
@@ -126,8 +126,8 @@ namespace XAdo.Quobs
 
       public async new Task<List<TEntity>> FetchAsync()
       {
-         var sql = QueryBuilder.Format(Context.GetSqlTemplateArgs());
-         return await Context.Session.QueryAsync(sql, QueryBuilder.GetBinder<TEntity>(), Context.GetArguments());
+         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         return await Context.Session.QueryAsync(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments());
       }
 
       public new async Task<CollectionWithCountResult<TEntity>> FetchWithCountAsync()
@@ -136,7 +136,7 @@ namespace XAdo.Quobs
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            QueryBuilder.GetBinder<TEntity>()
+            SqlResource.GetBinder<TEntity>()
          };
          var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
@@ -160,7 +160,7 @@ namespace XAdo.Quobs
 
       public IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> expression)
       {
-         var qb = QueryBuilder.Map(expression).ToGeneric<TMapped>();
+         var qb = SqlResource.Map(expression).ToGeneric<TMapped>();
          return new Quob<TMapped>(qb.ToGeneric<TMapped>(), Context.Clone());
       }
 

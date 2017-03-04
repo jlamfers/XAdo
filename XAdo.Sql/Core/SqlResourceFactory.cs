@@ -1,5 +1,6 @@
 ﻿using System;
 using XAdo.Core.Cache;
+using XAdo.Quobs.Core.Common;
 using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Dialects;
 using XAdo.Quobs.Linq;
@@ -12,8 +13,6 @@ namespace XAdo.Quobs.Core
       protected readonly LRUCache<object, SqlResource>
          SqlResourceCache = new LRUCache<object, SqlResource>("LRUCache.SqlResource.Size", 1000);
 
-
-
       private readonly ISqlDialect _dialect;
       private readonly IFilterParser _urlParser;
 
@@ -25,7 +24,7 @@ namespace XAdo.Quobs.Core
          _urlParser = urlParser;
       }
 
-      public virtual ISqlResource Create(string sql, Type type)
+      public virtual ISqlResource Create(string sql, Type type = null)
       {
          if (sql == null) throw new ArgumentNullException("sql");
          return SqlResourceCache.GetOrAdd(sql, x =>
@@ -41,18 +40,14 @@ namespace XAdo.Quobs.Core
          });
       }
 
-      public virtual ISqlResource<T> Create<T>(string sql)
+      public virtual ISqlResource Create(Type type)
       {
-         if (sql == null) throw new ArgumentNullException("sql");
-         return SqlResourceCache.GetOrAdd(sql, x =>
+         var sqlSelectAttribute = type.GetAnnotation<SqlSelectAttribute>();
+         if (sqlSelectAttribute == null)
          {
-            var parser = new SqlSelectParser();
-            var partials = parser.Parse(sql);
-            var queryMap = new SqlResource(partials, _dialect, _urlParser);
-            queryMap.GetBinder(typeof (T));
-            return queryMap;
-         }).ToGeneric<T>();
+            throw new InvalidOperationException("Cannot get the SQL-select from type: " + type.Name + ". You must annotate the type with the [SqlSelect] attribute.");
+         }
+         return Create(sqlSelectAttribute.Sql, type);
       }
-
    }
 }

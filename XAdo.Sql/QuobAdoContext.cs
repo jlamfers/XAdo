@@ -23,7 +23,6 @@ namespace XAdo.Quobs
             .BindSingleton<IFilterParser,FilterParser>()
             .BindSingleton<ISqlDialect,SqlServerDialect>()
             .BindSingleton<ISqlResourceFactory, SqlResourceFactory>()
-            .BindSingleton<ISqlResourceByConvention,SqlResourceByConvention>()
             .BindSingleton(typeof(IQuob<>),typeof(Quob<>));
 
          context

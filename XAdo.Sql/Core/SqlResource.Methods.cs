@@ -450,7 +450,7 @@ namespace XAdo.Quobs.Core
          return path.Length == 0 || !optional ? (Expression)body : Expression.Condition(Expression.Call(p, IsDbNull, Expression.Constant(members[0].Index)), Expression.Constant(null).Convert(refType), body);
       }
 
-      private bool _adoMetaDataBound = false;
+      private bool _adoMetaDataBound;
       private void EnsureAdoMetaDataBound(IAdoSession session)
       {
          if (_adoMetaDataBound)
