@@ -8,6 +8,7 @@ using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.Mapper;
 using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Interface;
 using XPression.Core;
 
 namespace XAdo.UnitTest
@@ -90,7 +91,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest()
       {
-         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -109,7 +110,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest2()
       {
-         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -128,14 +129,14 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest3()
       {
-         var context = new QuobAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
 
          var persistBuilder = new SqlPersistBuilder();
 
          using (var sn = context.CreateSession())
          {
             sn.BeginTransaction();
-            var qb = sn.CreateSqlResource(Constants.SqlSelect);
+            var qb = sn.GetSqlResource(Constants.SqlSelect);
             var upd = persistBuilder.BuildUpdate(qb);
             var sw = new Stopwatch();
             sw.Start();

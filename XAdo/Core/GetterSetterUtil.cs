@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using XAdo.Core.Cache;
 
 namespace XAdo.Core
 {
@@ -80,11 +79,11 @@ namespace XAdo.Core
 
             private void EnsureGetter()
             {
-                if (_getter == null) throw new AdoException(_propertyInfo + " has no getter");
+                if (_getter == null) throw new XAdoException(_propertyInfo + " has no getter");
             }
             private void EnsureSetter()
             {
-                if (_setter == null) throw new AdoException(_propertyInfo + " has no setter");
+                if (_setter == null) throw new XAdoException(_propertyInfo + " has no setter");
             }
         }
 

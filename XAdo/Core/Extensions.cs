@@ -14,7 +14,7 @@ namespace XAdo.Core
             return self == null || self == DBNull.Value ? default(T) : (T) self;
         }
 
-        internal static T CastTo<T>(this object self, IAdoTypeConverterFactory typeConverterFactory)
+        internal static T CastTo<T>(this object self, IXAdoTypeConverterFactory typeConverterFactory)
         {
 
             if (self == null || self == DBNull.Value) return default(T);
@@ -83,7 +83,7 @@ namespace XAdo.Core
             {
                 if (columnTypeMap == null)
                 {
-                    throw new AdoException("Dynamic data is empty (no rows). You must provide meta data (argument columnTypeMap) to be able to create a DataTable");
+                    throw new XAdoException("Dynamic data is empty (no rows). You must provide meta data (argument columnTypeMap) to be able to create a DataTable");
                 };
                 foreach (var kv in columnTypeMap)
                 {

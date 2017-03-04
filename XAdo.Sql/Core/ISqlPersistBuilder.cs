@@ -1,4 +1,6 @@
-﻿namespace XAdo.Quobs.Core
+﻿using XAdo.Quobs.Interface;
+
+namespace XAdo.Quobs.Core
 {
    public interface ISqlPersistBuilder
    {

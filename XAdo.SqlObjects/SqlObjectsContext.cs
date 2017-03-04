@@ -5,18 +5,18 @@ using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects
 {
-   public class SqlObjectsContext : AdoContext
+   public class SqlObjectsContext : XAdoContext
    {
       public SqlObjectsContext(string connectionStringName) : base(connectionStringName)
       {
       }
 
-      public SqlObjectsContext(Action<IAdoContextInitializer> initializer, IAdoClassBinder customClassBinder = null) 
+      public SqlObjectsContext(Action<IXAdoContextInitializer> initializer, IXAdoClassBinder customClassBinder = null) 
          : base(WrapInitializer(initializer), customClassBinder)
       {
       }
 
-      private static Action<IAdoContextInitializer> WrapInitializer(Action<IAdoContextInitializer> initializer)
+      private static Action<IXAdoContextInitializer> WrapInitializer(Action<IXAdoContextInitializer> initializer)
       {
          return i =>
          {

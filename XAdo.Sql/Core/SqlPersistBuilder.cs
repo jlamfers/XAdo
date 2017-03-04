@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using XAdo.Quobs.Core.Mapper;
 using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Interface;
 
 namespace XAdo.Quobs.Core
 {

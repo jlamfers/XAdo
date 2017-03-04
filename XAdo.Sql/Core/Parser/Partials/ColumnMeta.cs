@@ -222,7 +222,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
          }
          return this;
       }
-      internal void InitializeByAdoMeta(AdoColumnMeta meta)
+      internal void InitializeByAdoMeta(XAdoColumnMeta meta)
       {
          if (meta == null) return;
          _isNotNull = _isNotNull ?? !meta.AllowDBNull;

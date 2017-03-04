@@ -44,7 +44,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Impl\AdoCommandFactoryImplEx.cs" />
+    <Compile Include="Impl\XAdoCommandFactoryImplEx.cs" />
+    <Compile Include="Interface\ISqlResourceRepository.cs" />
+    <Compile Include="Interface\ICache.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Core\ISqlPersistBuilder.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMap.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMeta.cs" />
@@ -70,34 +74,36 @@
     <Compile Include="Core\Parser\Partials\WherePartial.cs" />
     <Compile Include="Core\Parser\Partials\WithPartial.cs" />
     <Compile Include="Core\SqlPersistBuilder.cs" />
-    <Compile Include="SessionExtensions.cs" />
+    <Compile Include="Core\Linq\ISqlPredicateGenerator.cs" />
+    <Compile Include="Core\Linq\SqlGeneratorResult.cs" />
+    <Compile Include="XAdoSessionExtensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
     <Compile Include="Core\Common\MyReadOnlyCollection.cs" />
-    <Compile Include="Core\ISqlResource.cs" />
-    <Compile Include="Core\ISqlResourceFactory.cs" />
-    <Compile Include="Core\SqlResource.Methods.cs" />
-    <Compile Include="Core\SqlResource.Types.cs" />
-    <Compile Include="Core\SqlResourceFactory.cs" />
-    <Compile Include="Core\SqlResource`1.cs" />
+    <Compile Include="Interface\ISqlResource.cs" />
+    <Compile Include="Interface\ISqlResourceFactory.cs" />
+    <Compile Include="Impl\SqlResourceImpl.Methods.cs" />
+    <Compile Include="Impl\SqlResourceImpl.Types.cs" />
+    <Compile Include="Impl\SqlResourceRepositoryImpl.cs" />
+    <Compile Include="Impl\SqlResourceImpl`1.cs" />
     <Compile Include="Core\Common\XAdoSqlException.cs" />
     <Compile Include="Core\Common\SmallCache.cs" />
     <Compile Include="Core\SqlSelectAttribute.cs" />
-    <Compile Include="Dialects\SqlDialectExtensions.cs" />
-    <Compile Include="Dialects\SyntaxExtender.cs" />
-    <Compile Include="Core\IAttachable.cs" />
-    <Compile Include="IQuob.cs" />
-    <Compile Include="Linq\CString.cs" />
-    <Compile Include="Linq\Extensions.cs" />
+    <Compile Include="Core\Dialects\SqlDialectExtensions.cs" />
+    <Compile Include="Core\Dialects\SyntaxExtender.cs" />
+    <Compile Include="Interface\IAttachable.cs" />
+    <Compile Include="Interface\IQuob.cs" />
+    <Compile Include="Core\Linq\CString.cs" />
+    <Compile Include="Core\Linq\Extensions.cs" />
     <Compile Include="Core\Common\Annotator.cs" />
-    <Compile Include="Linq\IFilterParser.cs" />
-    <Compile Include="Linq\SqlMethods.cs" />
-    <Compile Include="Dialects\ISqlDialect.cs" />
-    <Compile Include="Dialects\SqlDialect.cs" />
-    <Compile Include="Dialects\SqlServerDialect.cs" />
-    <Compile Include="Linq\KnownMembers.cs" />
-    <Compile Include="Linq\SqlPredicateCompiler.cs" />
-    <Compile Include="Linq\SqlFormatAttribute.cs" />
-    <Compile Include="Linq\StatementFormatter.cs" />
+    <Compile Include="Core\Linq\IFilterParser.cs" />
+    <Compile Include="Core\Linq\SqlMethods.cs" />
+    <Compile Include="Core\Dialects\ISqlDialect.cs" />
+    <Compile Include="Core\Dialects\SqlDialect.cs" />
+    <Compile Include="Core\Dialects\SqlServerDialect.cs" />
+    <Compile Include="Core\Linq\KnownMembers.cs" />
+    <Compile Include="Core\Linq\SqlPredicateGenerator.cs" />
+    <Compile Include="Core\Linq\SqlFormatAttribute.cs" />
+    <Compile Include="Core\Linq\StatementFormatter.cs" />
     <Compile Include="Core\Common\Extensions.cs" />
     <Compile Include="Core\Mapper\DataReaderException.cs" />
     <Compile Include="Core\Mapper\DataReaderGetters.cs" />
@@ -109,20 +115,21 @@
     <Compile Include="Core\Mapper\PersistencyType.cs" />
     <Compile Include="Core\Parser\Constants.cs" />
     <Compile Include="Core\Parser\Extensions.cs" />
-    <Compile Include="Core\SqlResource.cs" />
+    <Compile Include="Impl\SqlResourceImpl.cs" />
     <Compile Include="Core\Parser\SqlSelectParser.cs" />
     <Compile Include="Core\Parser\TemplateFormatter.cs" />
     <Compile Include="Core\Parser\Scanner.cs" />
     <Compile Include="Core\Parser\SqlParserException.cs" />
-    <Compile Include="Linq\FilterParser.cs" />
+    <Compile Include="Core\Linq\FilterParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuobContext.cs" />
-    <Compile Include="Quob.cs" />
-    <Compile Include="Quob`1.cs" />
-    <Compile Include="QuobAdoContext.cs" />
+    <Compile Include="Core\QueryContext.cs" />
+    <Compile Include="Impl\QuobImpl.cs" />
+    <Compile Include="Impl\QuobImpl`1.cs" />
+    <Compile Include="QuobXAdoContext.cs" />
     <Compile Include="Core\TemplateArgs.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\QuobException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Core\paging.sql.txt" />
@@ -138,9 +145,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Dialects\sql-server.json" />
+    <None Include="Core\Dialects\sql-server.json" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

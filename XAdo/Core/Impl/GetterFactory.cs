@@ -6,9 +6,9 @@ namespace XAdo.Core.Impl
 {
    public class GetterFactory<TSetter, TGetter> : IGetterFactory<TSetter, TGetter>
    {
-      private readonly IAdoTypeConverterFactory _typeConverterFactory;
+      private readonly IXAdoTypeConverterFactory _typeConverterFactory;
 
-      public GetterFactory(IAdoTypeConverterFactory typeConverterFactory)
+      public GetterFactory(IXAdoTypeConverterFactory typeConverterFactory)
       {
          _typeConverterFactory = typeConverterFactory;
       }

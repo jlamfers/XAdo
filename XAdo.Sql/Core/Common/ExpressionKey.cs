@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using XAdo.Core.Cache;
+using XAdo.Core;
 
 namespace XAdo.Quobs.Core.Common
 {

@@ -46,95 +46,94 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Core\AdoColumnMeta.cs" />
+    <Compile Include="Core\Impl\XAdoClassBinderImpl.cs" />
+    <Compile Include="Core\Interface\IXAdoContextInitializer.cs" />
+    <Compile Include="Core\XAdoColumnMeta.cs" />
     <Compile Include="Core\Atomic.cs" />
-    <Compile Include="Core\Cache\ICache.cs" />
-    <Compile Include="Core\Cache\LRUCache.cs" />
+    <Compile Include="Core\LRUCache.cs" />
     <Compile Include="Core\DtoTypeBuilder.cs" />
     <Compile Include="Core\AnonymousTypeHelper.cs" />
     <Compile Include="Core\GetterSetterUtil.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Impl\AdoGraphBinderCompilerImpl.cs" />
-    <Compile Include="Core\Impl\AdoSqlBatchImpl.Async.cs" />
-    <Compile Include="Core\Interface\IAdoGraphBinderCompiler.cs" />
-    <Compile Include="Core\Interface\IAdoParamHelper.cs" />
-    <Compile Include="Core\Impl\AdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
-    <Compile Include="Core\Impl\AdoParameterFactoryWithStringSanitizeImpl.cs" />
+    <Compile Include="Core\Impl\XAdoGraphBinderCompilerImpl.cs" />
+    <Compile Include="Core\Impl\XAdoSqlBatchImpl.Async.cs" />
+    <Compile Include="Core\Interface\IXAdoGraphBinderCompiler.cs" />
+    <Compile Include="Core\Interface\IXAdoParamHelper.cs" />
+    <Compile Include="Core\Impl\XAdoDataBinderFactoryPropertiesAndFieldsImpl.cs" />
+    <Compile Include="Core\Impl\XAdoParameterFactoryWithStringSanitizeImpl.cs" />
     <Compile Include="Core\Impl\GetterFactory.cs" />
-    <Compile Include="Core\Interface\IAdoSqlBatch.cs" />
+    <Compile Include="Core\Interface\IXAdoSqlBatch.cs" />
     <Compile Include="Core\Interface\IAtomic.cs" />
     <Compile Include="Core\Interface\IGetterFactory.cs" />
-    <Compile Include="Core\Interface\IAdoConcreteTypeBuilder.cs" />
-    <Compile Include="Core\Interface\IAdoRow.cs" />
-    <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
-    <Compile Include="Core\Impl\AdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
-    <Compile Include="Core\Impl\AdoConcreteTypeBuilderImpl.cs" />
-    <Compile Include="AdoContext.cs" />
-    <Compile Include="Core\AdoMultiResultReaderAsync.cs">
+    <Compile Include="Core\Interface\IXAdoConcreteTypeBuilder.cs" />
+    <Compile Include="Core\Interface\IXAdoRow.cs" />
+    <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
+    <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
+    <Compile Include="Core\Impl\XAdoConcreteTypeBuilderImpl.cs" />
+    <Compile Include="XAdoContext.cs" />
+    <Compile Include="Core\XAdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Interface\IAdoConnectionQueryManager.Async.cs">
+    <Compile Include="Core\Interface\IXAdoConnectionQueryManager.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Interface\IAdoDataReaderManager.Async.cs">
+    <Compile Include="Core\Interface\IXAdoDataReaderManager.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Interface\IAdoSession.Async.cs">
+    <Compile Include="Core\Interface\IXAdoSession.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Impl\AdoConnectionQueryManagerImpl.Async.cs">
+    <Compile Include="Core\Impl\XAdoConnectionQueryManagerImpl.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Impl\AdoDataReaderManagerImpl.Async.cs">
+    <Compile Include="Core\Impl\XAdoDataReaderManagerImpl.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Impl\AdoSessionImpl.Async.cs">
+    <Compile Include="Core\Impl\XAdoSessionImpl.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\AdoException.cs" />
+    <Compile Include="Core\XAdoException.cs" />
     <Compile Include="Core\CollectionDataReader.cs" />
-    <Compile Include="Core\Interface\IAdoSessionInitializer.cs" />
-    <Compile Include="Core\Interface\IAdoTypeConverterFactory.cs" />
-    <Compile Include="Core\Impl\AdoClassBinderImpl.cs" />
-    <Compile Include="Core\Impl\AdoParamHelperImpl.cs" />
-    <Compile Include="Core\Interface\IAdoSessionFactory.cs" />
-    <Compile Include="Core\Impl\AdoSessionFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoSessionImpl.cs" />
-    <Compile Include="Core\AdoBindingException.cs" />
-    <Compile Include="Core\AdoMultiResultReader.cs" />
-    <Compile Include="Core\AdoRow.cs" />
+    <Compile Include="Core\Interface\IXAdoSessionInitializer.cs" />
+    <Compile Include="Core\Interface\IXAdoTypeConverterFactory.cs" />
+    <Compile Include="Core\Impl\XAdoParamHelperImpl.cs" />
+    <Compile Include="Core\Interface\IXAdoSessionFactory.cs" />
+    <Compile Include="Core\Impl\XAdoSessionFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoSessionImpl.cs" />
+    <Compile Include="Core\XAdoBindingException.cs" />
+    <Compile Include="Core\XAdoMultiResultReader.cs" />
+    <Compile Include="Core\XAdoRow.cs" />
     <Compile Include="Core\Extensions.cs" />
-    <Compile Include="Core\Interface\IAdoDataBinderFactory.cs" />
-    <Compile Include="Core\Interface\IAdoCommandFactory.cs" />
-    <Compile Include="Core\Interface\IAdoConnectionFactory.cs" />
-    <Compile Include="Core\Interface\IAdoConnectionProvider.cs" />
-    <Compile Include="Core\Interface\IAdoConnectionQueryManager.cs" />
-    <Compile Include="Core\Interface\IAdoDataReaderManager.cs" />
-    <Compile Include="Core\Interface\IAdoGraphBinderFactory.cs" />
-    <Compile Include="Core\Interface\IAdoParameter.cs" />
-    <Compile Include="Core\Interface\IAdoSession.cs" />
-    <Compile Include="Core\Impl\AdoDataBinderFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoCommandFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoConnectionFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoConnectionQueryManagerImpl.cs" />
-    <Compile Include="Core\Impl\AdoDataReaderManagerImpl.cs" />
-    <Compile Include="Core\Impl\AdoGraphBinderFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoParameterFactoryImpl.cs" />
-    <Compile Include="Core\Impl\AdoParameterImpl.cs" />
-    <Compile Include="Core\Impl\AdoTypeConverterFactoryImpl.cs" />
+    <Compile Include="Core\Interface\IXAdoDataBinderFactory.cs" />
+    <Compile Include="Core\Interface\IXAdoCommandFactory.cs" />
+    <Compile Include="Core\Interface\IXAdoConnectionFactory.cs" />
+    <Compile Include="Core\Interface\IXAdoConnectionProvider.cs" />
+    <Compile Include="Core\Interface\IXAdoConnectionQueryManager.cs" />
+    <Compile Include="Core\Interface\IXAdoDataReaderManager.cs" />
+    <Compile Include="Core\Interface\IXAdoGraphBinderFactory.cs" />
+    <Compile Include="Core\Interface\IXAdoParameter.cs" />
+    <Compile Include="Core\Interface\IXAdoSession.cs" />
+    <Compile Include="Core\Impl\XAdoDataBinderFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoCommandFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoConnectionFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoConnectionQueryManagerImpl.cs" />
+    <Compile Include="Core\Impl\XAdoDataReaderManagerImpl.cs" />
+    <Compile Include="Core\Impl\XAdoGraphBinderFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoParameterFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoParameterImpl.cs" />
+    <Compile Include="Core\Impl\XAdoTypeConverterFactoryImpl.cs" />
     <Compile Include="Core\Impl\GetterDelegate.cs" />
     <Compile Include="Core\Impl\NullableGetters.cs" />
-    <Compile Include="Core\Interface\IAdoSqlBatch.Async.cs" />
-    <Compile Include="Core\AdoMetaRetriever.cs" />
+    <Compile Include="Core\Interface\IXAdoSqlBatch.Async.cs" />
+    <Compile Include="Core\XAdoMetaRetriever.cs" />
     <Compile Include="Core\Interface\ISqlInterceptor.cs" />
     <Compile Include="Core\TVoid.cs" />
-    <Compile Include="Core\Interface\IAdoParameterFactory.cs" />
-    <Compile Include="Core\Interface\IAdoClassBinder.cs" />
-    <Compile Include="Core\Interface\IAdoContextInitializer.cs" />
+    <Compile Include="Core\Interface\IXAdoParameterFactory.cs" />
+    <Compile Include="Core\Interface\IXAdoClassBinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\AdoSqlBatchItem.cs" />
-    <Compile Include="Core\Impl\AdoSqlBatchImpl.cs" />
+    <Compile Include="Core\XAdoSqlBatchItem.cs" />
+    <Compile Include="Core\Impl\XAdoSqlBatchImpl.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

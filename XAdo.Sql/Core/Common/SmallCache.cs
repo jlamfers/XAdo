@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using XAdo.Core.Cache;
+using XAdo.Core;
+using XAdo.Quobs.Interface;
 
 namespace XAdo.Quobs.Core.Common
 {

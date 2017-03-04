@@ -55,7 +55,7 @@ namespace XAdo.Core
             {
                 if (columnNameTypeMap == null)
                 {
-                    throw new AdoException("Cannot determine metadata. No items found in list of dynamic items. You must provide a meta argument (ordered list of column-name/type maps) in order to let it work with empty dynamic collections.");
+                    throw new XAdoException("Cannot determine metadata. No items found in list of dynamic items. You must provide a meta argument (ordered list of column-name/type maps) in order to let it work with empty dynamic collections.");
                 }
                 BuildMetaFromMap(columnNameTypeMap);
                 return;

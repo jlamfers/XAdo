@@ -1,0 +1,4 @@
+﻿namespace XAdo.Quobs.Interface
+{
+   
+}

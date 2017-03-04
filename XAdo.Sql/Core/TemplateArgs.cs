@@ -5,7 +5,7 @@ namespace XAdo.Quobs.Core
 {
    public class TemplateArgs
    {
-      public virtual TemplateArgs Init(QuobContext context)
+      public virtual TemplateArgs Init(QueryContext context)
       {
          var and = "";
          foreach (var wc in context.WhereClauses)
