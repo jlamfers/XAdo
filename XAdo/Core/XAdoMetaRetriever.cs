@@ -12,7 +12,7 @@ namespace XAdo.Core
       private static readonly LRUCache<string, IList<XAdoColumnMeta>>
          Cache = new LRUCache<string, IList<XAdoColumnMeta>>("LRUCache.XAdo.Meta.Size",2000);
 
-      public static IList<XAdoColumnMeta> QueryMetaForSql(this IXAdoSession self, string sql)
+      public static IList<XAdoColumnMeta> QueryMetaForSql(this IXAdoDbSession self, string sql)
       {
          var key = self.Context.GetHashCode() + ":" + sql;
 
@@ -33,7 +33,7 @@ namespace XAdo.Core
          return Cache.GetOrAdd(key, x => list);
       }
 
-      public static IList<XAdoColumnMeta> QueryMetaForTable(this IXAdoSession self, string tablename)
+      public static IList<XAdoColumnMeta> QueryMetaForTable(this IXAdoDbSession self, string tablename)
       {
          var sql = "SELECT * FROM " + tablename + " WHERE (1=2)";
          var key = self.Context.GetHashCode() + ":" + sql;

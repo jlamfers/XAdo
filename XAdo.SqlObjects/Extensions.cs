@@ -17,9 +17,9 @@ namespace XAdo.SqlObjects
    {
       private class XAdoConnection : ISqlConnection
       {
-         private readonly IXAdoSession _session;
+         private readonly IXAdoDbSession _session;
 
-         public XAdoConnection(IXAdoSession session)
+         public XAdoConnection(IXAdoDbSession session)
          {
             _session = session;
          }
@@ -126,32 +126,32 @@ namespace XAdo.SqlObjects
          #endregion
       }
 
-      public static QuerySqlObject<TTable> From<TTable>(this IXAdoSession self) where TTable : IDbTable
+      public static QuerySqlObject<TTable> From<TTable>(this IXAdoDbSession self) where TTable : IDbTable
       {
          return self
             .Context
             .GetInstance<ISqlObjectFactory>()
             .CreateReadSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static TMappedSqlObject Attach<TMappedSqlObject>(this IXAdoSession self, TMappedSqlObject mappedSqlObject) where TMappedSqlObject : IMappedSqlObject
+      public static TMappedSqlObject Attach<TMappedSqlObject>(this IXAdoDbSession self, TMappedSqlObject mappedSqlObject) where TMappedSqlObject : IMappedSqlObject
       {
          return (TMappedSqlObject)mappedSqlObject.Attach(new XAdoConnection(self));
       }
-      public static UpdateSqlObject<TTable> Update<TTable>(this IXAdoSession self) where TTable : IDbTable
+      public static UpdateSqlObject<TTable> Update<TTable>(this IXAdoDbSession self) where TTable : IDbTable
       {
          return self
             .Context
             .GetInstance<ISqlObjectFactory>()
             .CreateUpdateSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static CreateSqlObject<TTable> Insert<TTable>(this IXAdoSession self) where TTable : IDbTable
+      public static CreateSqlObject<TTable> Insert<TTable>(this IXAdoDbSession self) where TTable : IDbTable
       {
          return self
             .Context
             .GetInstance<ISqlObjectFactory>()
             .CreateCreateSqlObject<TTable>(new XAdoConnection(self));
       }
-      public static DeleteSqlObject<TTable> Delete<TTable>(this IXAdoSession self) where TTable : IDbTable
+      public static DeleteSqlObject<TTable> Delete<TTable>(this IXAdoDbSession self) where TTable : IDbTable
       {
          return self
             .Context
@@ -159,7 +159,7 @@ namespace XAdo.SqlObjects
             .CreateDeleteSqlObject<TTable>(new XAdoConnection(self));
       }
 
-      public static int? Update<TTable>(this IXAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static int? Update<TTable>(this IXAdoDbSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
       {
          return self
                     .Context
@@ -167,7 +167,7 @@ namespace XAdo.SqlObjects
                     .CreateTablePersister<TTable>(new XAdoConnection(self))
                     .Update(entity, callback);
       }
-      public static object Insert<TTable>(this IXAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static object Insert<TTable>(this IXAdoDbSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
       {
          return self
                     .Context
@@ -175,7 +175,7 @@ namespace XAdo.SqlObjects
                     .CreateTablePersister<TTable>(new XAdoConnection(self))
                     .Insert(entity,callback);
       }
-      public static int? Delete<TTable>(this IXAdoSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
+      public static int? Delete<TTable>(this IXAdoDbSession self, TTable entity, Action<object> callback = null) where TTable : IDbTable
       {
          return self
                     .Context
@@ -194,7 +194,7 @@ namespace XAdo.SqlObjects
          self.SetSqlStatementSeperator(formatter.SqlDialect.StatementSeperator);
          return self;
       }
-      public static ISqlFormatter GetSqlFormatter(this XAdoContext self, bool throwException = true)
+      public static ISqlFormatter GetSqlFormatter(this XAdoDbContext self, bool throwException = true)
       {
          object formatter;
 
@@ -217,7 +217,7 @@ namespace XAdo.SqlObjects
 
          return formatter.CastTo<ISqlFormatter>();
       }
-      public static ISqlFormatter GetSqlFormatter(this IXAdoSession self)
+      public static ISqlFormatter GetSqlFormatter(this IXAdoDbSession self)
       {
          return self.Context.GetSqlFormatter();
       }

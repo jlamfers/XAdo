@@ -50,7 +50,7 @@ namespace XAdo.Core.Impl
 
       internal protected virtual string Seperator { get; set; }
 
-      public virtual bool Flush(IXAdoSession session)
+      public virtual bool Flush(IXAdoDbSession session)
       {
          if (session == null) throw new ArgumentNullException("session");
 

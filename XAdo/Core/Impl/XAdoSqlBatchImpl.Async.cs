@@ -8,7 +8,7 @@ namespace XAdo.Core.Impl
 {
    public partial class XAdoSqlBatchImpl
    {
-      public virtual async Task<bool> FlushAsync(IXAdoSession session)
+      public virtual async Task<bool> FlushAsync(IXAdoDbSession session)
       {
          if (session == null) throw new ArgumentNullException("session");
 

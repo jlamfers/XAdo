@@ -91,7 +91,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest()
       {
-         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -110,7 +110,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest2()
       {
-         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -129,7 +129,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest3()
       {
-         var context = new QuobXAdoContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
 
          var persistBuilder = new SqlPersistBuilder();
 

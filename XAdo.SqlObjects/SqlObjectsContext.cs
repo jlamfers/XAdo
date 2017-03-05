@@ -5,7 +5,7 @@ using XAdo.SqlObjects.SqlObjects.Interface;
 
 namespace XAdo.SqlObjects
 {
-   public class SqlObjectsContext : XAdoContext
+   public class SqlObjectsContext : XAdoDbContext
    {
       public SqlObjectsContext(string connectionStringName) : base(connectionStringName)
       {

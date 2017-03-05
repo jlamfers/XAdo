@@ -71,7 +71,7 @@
     <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
     <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
     <Compile Include="Core\Impl\XAdoConcreteTypeBuilderImpl.cs" />
-    <Compile Include="XAdoContext.cs" />
+    <Compile Include="XAdoDbContext.cs" />
     <Compile Include="Core\XAdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -81,7 +81,7 @@
     <Compile Include="Core\Interface\IXAdoDataReaderManager.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Interface\IXAdoSession.Async.cs">
+    <Compile Include="Core\Interface\IXAdoDbSession.Async.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Impl\XAdoConnectionQueryManagerImpl.Async.cs">
@@ -90,7 +90,7 @@
     <Compile Include="Core\Impl\XAdoDataReaderManagerImpl.Async.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Impl\XAdoSessionImpl.Async.cs">
+    <Compile Include="Core\Impl\XAdoDbSessionImpl.Async.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\XAdoException.cs" />
@@ -98,9 +98,9 @@
     <Compile Include="Core\Interface\IXAdoSessionInitializer.cs" />
     <Compile Include="Core\Interface\IXAdoTypeConverterFactory.cs" />
     <Compile Include="Core\Impl\XAdoParamHelperImpl.cs" />
-    <Compile Include="Core\Interface\IXAdoSessionFactory.cs" />
-    <Compile Include="Core\Impl\XAdoSessionFactoryImpl.cs" />
-    <Compile Include="Core\Impl\XAdoSessionImpl.cs" />
+    <Compile Include="Core\Interface\IXAdoDbSessionFactory.cs" />
+    <Compile Include="Core\Impl\XAdoDbSessionFactoryImpl.cs" />
+    <Compile Include="Core\Impl\XAdoDbSessionImpl.cs" />
     <Compile Include="Core\XAdoBindingException.cs" />
     <Compile Include="Core\XAdoMultiResultReader.cs" />
     <Compile Include="Core\XAdoRow.cs" />
@@ -113,7 +113,7 @@
     <Compile Include="Core\Interface\IXAdoDataReaderManager.cs" />
     <Compile Include="Core\Interface\IXAdoGraphBinderFactory.cs" />
     <Compile Include="Core\Interface\IXAdoParameter.cs" />
-    <Compile Include="Core\Interface\IXAdoSession.cs" />
+    <Compile Include="Core\Interface\IXAdoDbSession.cs" />
     <Compile Include="Core\Impl\XAdoDataBinderFactoryImpl.cs" />
     <Compile Include="Core\Impl\XAdoCommandFactoryImpl.cs" />
     <Compile Include="Core\Impl\XAdoConnectionFactoryImpl.cs" />

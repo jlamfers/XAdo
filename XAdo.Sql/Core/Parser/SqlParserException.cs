@@ -6,7 +6,7 @@ using XAdo.Quobs.Core.Common;
 namespace XAdo.Quobs.Core.Parser
 {
    [Serializable]
-   public class SqlParserException : Exception
+   public class SqlParserException : QuobException
    {
       public SqlParserException()
       {
