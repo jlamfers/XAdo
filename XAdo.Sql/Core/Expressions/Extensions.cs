@@ -4,10 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using XAdo.Quobs.Core.Common;
 using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Expressions
 {
    public static class Extensions
    {

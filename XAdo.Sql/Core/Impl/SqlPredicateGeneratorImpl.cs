@@ -5,11 +5,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using XAdo.Core;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Interface;
+using XAdo.Quobs.Core.Expressions;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Impl
 {
    public class SqlPredicateGeneratorImpl : ExpressionVisitor, ISqlPredicateGenerator
    {
@@ -29,12 +28,12 @@ namespace XAdo.Quobs.Linq
          };
 
 
-      private readonly ISqlDialect
+      private ISqlDialect
          _dialect;
 
-      private readonly string _parameterPrefix;
+      private string _parameterPrefix;
 
-      private readonly bool _noargs;
+      private bool _noargs;
 
       private IDictionary<string,object> 
          _arguments;
@@ -48,6 +47,11 @@ namespace XAdo.Quobs.Linq
       private Expression 
          _expression;
 
+      protected SqlPredicateGeneratorImpl()
+      {
+         
+      }
+
       public SqlPredicateGeneratorImpl(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
@@ -57,18 +61,23 @@ namespace XAdo.Quobs.Linq
          _dialect.EnsureAnnotated();
       }
 
-      public SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, IDictionary<string, object> arguments = null)
+      public virtual SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, IDictionary<string, object> arguments = null)
       {
-         _fullnameToSqlExpressionMap = fullnameToSqlExpressionMap;
-         _arguments = arguments ?? new Dictionary<string, object>();
-         _expression = expression;
+         var context = new SqlPredicateGeneratorImpl
+         {
+            _fullnameToSqlExpressionMap = fullnameToSqlExpressionMap,
+            _arguments = arguments ?? new Dictionary<string, object>(),
+            _expression = expression,
+            _dialect = _dialect,
+            _noargs = _noargs,
+            _parameterPrefix = _parameterPrefix
+         };
+         
          using (var writer = new StringWriter())
          {
-            _writer = writer;
-            Visit(expression);
-            _writer = null;
-            _expression = null;
-            return new SqlGeneratorResult(writer.GetStringBuilder().ToString(), _arguments);
+            context._writer = writer;
+            context.Visit(expression);
+            return new SqlGeneratorResult(writer.GetStringBuilder().ToString(), context._arguments);
          }
       }
 
@@ -116,7 +125,7 @@ namespace XAdo.Quobs.Linq
             }
             catch (Exception ex)
             {
-               throw new Exception("No type map found for type: " + ((Type)node.Value).Name,ex);
+               throw new QuobException("No type map found for type: " + ((Type)node.Value).Name, ex);
             }
          }
          else
@@ -230,7 +239,7 @@ namespace XAdo.Quobs.Linq
             }
             catch (Exception ex)
             {
-               throw new Exception("Member '" + namePath+"' not found. This member could not be mapped to any database column in select expression "+_expression,ex);
+               throw new QuobException("Member '" + namePath + "' not found. This member could not be mapped to any database column in select expression " + _expression, ex);
             }
          }
          else
@@ -390,7 +399,7 @@ namespace XAdo.Quobs.Linq
          }
          catch (Exception ex)
          {
-            throw new Exception("You must compare to a constant int value, e.g., -1,0,1", ex);
+            throw new QuobException("You must compare to a constant int value, e.g., -1,0,1", ex);
          }
          return false;
       }

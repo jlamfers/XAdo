@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace XAdo.Quobs.Core.Common
+namespace XAdo.Quobs.Core
 {
    public class MyReadOnlyCollection<T> : IReadOnlyCollection<T>, ICollection<T>
    {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using XAdo.Quobs.Core.Impl;
 
 namespace XAdo.Quobs.Core.Parser
 {
@@ -10,7 +11,7 @@ namespace XAdo.Quobs.Core.Parser
          if (String.IsNullOrEmpty(self)) return self;
          var left = self[0];
          char right;
-         if (Scanner.Quotes.TryGetValue(left, out right) && self.Last() == right)
+         if (SqlScannerImpl.Quotes.TryGetValue(left, out right) && self.Last() == right)
          {
             if (self.IndexOf(right) == self.Length - 1)
             {
@@ -32,7 +33,7 @@ namespace XAdo.Quobs.Core.Parser
          if (String.IsNullOrEmpty(self)) return false;
          var left = self[0];
          char right;
-         if (Scanner.Quotes.TryGetValue(left, out right) && self.Last() == right)
+         if (SqlScannerImpl.Quotes.TryGetValue(left, out right) && self.Last() == right)
          {
             if (self.IndexOf(right) == self.Length - 1)
             {

@@ -5,10 +5,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Interface;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Impl
+namespace XAdo.Quobs.Core.Impl
 {
    public class QuobImpl : IQuob, IAttachable
    {

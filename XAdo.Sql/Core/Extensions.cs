@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace XAdo.Quobs.Core.Common
+namespace XAdo.Quobs.Core
 {
    internal static class Extensions
    {
@@ -60,6 +60,7 @@ namespace XAdo.Quobs.Core.Common
       {
          return Activator.CreateInstance(self);
       }
+
       public static T CastTo<T>(this object self)
       {
          return self == null || self == DBNull.Value ? default(T) : (T)self;

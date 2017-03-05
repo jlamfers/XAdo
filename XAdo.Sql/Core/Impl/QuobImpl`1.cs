@@ -4,11 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Interface;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Impl
+namespace XAdo.Quobs.Core.Impl
 {
    public class QuobImpl<TEntity> : QuobImpl, IQuob<TEntity>
    {
@@ -183,7 +181,7 @@ namespace XAdo.Quobs.Impl
                   }
                   catch (ArgumentException ex)
                   {
-                     throw new InvalidOperationException("You need to order by key first, before calling FetchToGroupedList", ex);
+                     throw new QuobException("You need to order by key first, before calling FetchToGroupedList", ex);
                   }
                }
                list = new List<TValue>();
@@ -203,7 +201,7 @@ namespace XAdo.Quobs.Impl
             }
             catch (ArgumentException ex)
             {
-               throw new InvalidOperationException("You need to order by key first, before calling FetchToGroupedList", ex);
+               throw new QuobException("You need to order by key first, before calling FetchToGroupedList", ex);
             }
          }
          return dictionary;

@@ -1,6 +1,6 @@
 using XAdo.Core.Interface;
 
-namespace XAdo.Quobs.Interface
+namespace XAdo.Quobs.Core.Interface
 {
    internal interface IAttachable
    {

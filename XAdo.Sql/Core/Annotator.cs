@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace XAdo.Quobs.Core.Common
+namespace XAdo.Quobs.Core
 {
    // This Annotator class lets you dynamicly (and/or additionally) annotate types and members, only if you use this Annotator
    // extension methods to retrieve all corresponding annotations (attributes).
@@ -151,7 +151,7 @@ namespace XAdo.Quobs.Core.Common
          if (attribute == null) throw new ArgumentNullException("attribute");
          if (!attribute.IsAllowMultiple() && attributeList.Contains(attribute))
          {
-            throw new Exception(string.Format("AllowMultiple==false => Attribute '{0}' already was added.", attribute.GetType()));
+            throw new QuobException(string.Format("AllowMultiple==false => Attribute '{0}' already was added.", attribute.GetType()));
          }
       }
 

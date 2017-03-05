@@ -1,10 +1,10 @@
 ﻿using System;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Impl;
-using XAdo.Quobs.Interface;
-using XAdo.Quobs.Linq;
+using XAdo.Quobs.Core.Impl;
+using XAdo.Quobs.Core.Interface;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Providers;
 
 namespace XAdo.Quobs
 {
@@ -20,10 +20,13 @@ namespace XAdo.Quobs
       {
          context
             .BindSingleton<IXAdoCommandFactory, XAdoCommandFactoryImplEx>()
-            .BindSingleton<IFilterParser,FilterParserImpl>()
-            .BindSingleton<ISqlDialect,SqlServerDialect>()
+            .BindSingleton<IFilterParser, FilterParserImpl>()
+            .BindSingleton<ISqlDialect, SqlServerDialect>()
             .BindSingleton<ISqlResourceRepository, SqlResourceRepositoryImpl>()
-            .BindSingleton(typeof(IQuob<>),typeof(QuobImpl<>));
+            .BindSingleton(typeof (IQuob<>), typeof (QuobImpl<>))
+            .BindSingleton<ISqlScanner, SqlScannerImpl>()
+            .BindSingleton<ISqlSelectParser, SqlSelectParserImpl>()
+            .BindSingleton<ISqlPredicateGenerator, SqlPredicateGeneratorImpl>();
 
          context
             .KeepConnectionAlive(true)

@@ -1,13 +1,9 @@
 ﻿using System;
 using XAdo.Core;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Interface;
-using XAdo.Quobs.Linq;
 
-namespace XAdo.Quobs.Impl
+namespace XAdo.Quobs.Core.Impl
 {
    public class SqlResourceRepositoryImpl : ISqlResourceRepository
    {
@@ -17,13 +13,19 @@ namespace XAdo.Quobs.Impl
 
       private readonly ISqlDialect _dialect;
       private readonly IFilterParser _filterParser;
+      private readonly ISqlSelectParser _sqlSelectParser;
+      private readonly ISqlPredicateGenerator _sqlPredicateGenerator;
 
-      public SqlResourceRepositoryImpl(ISqlDialect dialect, IFilterParser filterParser)
+      public SqlResourceRepositoryImpl(ISqlDialect dialect, IFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");
+         if (sqlSelectParser == null) throw new ArgumentNullException("sqlSelectParser");
+         if (sqlPredicateGenerator == null) throw new ArgumentNullException("sqlPredicateGenerator");
          _dialect = dialect;
          _filterParser = filterParser;
+         _sqlSelectParser = sqlSelectParser;
+         _sqlPredicateGenerator = sqlPredicateGenerator;
       }
 
       public virtual ISqlResource Get(string sql, Type type = null)
@@ -31,14 +33,13 @@ namespace XAdo.Quobs.Impl
          if (sql == null) throw new ArgumentNullException("sql");
          return SqlResourceCache.GetOrAdd(sql, x =>
          {
-            var parser = new SqlSelectParser();
-            var partials = parser.Parse(sql);
-            var queryMap = new SqlResourceImpl(partials,_dialect,_filterParser);
+            var partials = _sqlSelectParser.Parse(sql);
+            var sqlResource = new SqlResourceImpl(partials, _dialect, _filterParser, _sqlPredicateGenerator);
             if (type != null)
             {
-               queryMap.GetBinder(type);
+               sqlResource.GetBinder(type);
             }
-            return queryMap;
+            return sqlResource;
          });
       }
 
@@ -47,7 +48,7 @@ namespace XAdo.Quobs.Impl
          var sqlSelectAttribute = type.GetAnnotation<SqlSelectAttribute>();
          if (sqlSelectAttribute == null)
          {
-            throw new InvalidOperationException("Cannot get the SQL-select from type: " + type.Name + ". You must annotate the type with the [SqlSelect] attribute.");
+            throw new QuobException("Cannot get the SQL-select from type: " + type.Name + ". You must annotate the type with the [SqlSelect] attribute.");
          }
          return Get(sqlSelectAttribute.Sql, type);
       }

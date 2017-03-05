@@ -1,7 +1,7 @@
 using System;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Interface;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Interface;
 
 namespace XAdo.Quobs
 {

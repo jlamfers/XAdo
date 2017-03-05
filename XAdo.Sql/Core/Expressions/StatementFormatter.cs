@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Expressions
 {
    public class StatementFormatter
    {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace XAdo.Quobs.Dialects
+namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlDialect
    {

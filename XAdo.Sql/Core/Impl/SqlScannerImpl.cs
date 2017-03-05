@@ -1,60 +1,64 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using XAdo.Quobs.Core.Interface;
+using XAdo.Quobs.Core.Parser;
 
-namespace XAdo.Quobs.Core.Parser
+namespace XAdo.Quobs.Core.Impl
 {
-   public class Scanner
+   public class SqlScannerImpl : ISqlScanner
    {
       private static readonly HashSet<char> 
          Spaces = new HashSet<char>(new[] { ' ', '\t', '\n', '\r' });
 
       public static readonly IDictionary<char, char> 
          Quotes =
-         new ReadOnlyDictionary<char, char>(new Dictionary<char, char>
-         {
-            {'\'','\''},
-            {'"','"'},
-            {'`','`'},
-            {'[',']'}
-         });
+            new ReadOnlyDictionary<char, char>(new Dictionary<char, char>
+            {
+               {'\'','\''},
+               {'"','"'},
+               {'`','`'},
+               {'[',']'}
+            });
 
 
       private int _pos;
-      private readonly string _source;
+      private string _source;
 
-
-      public Scanner(string sql)
+      public virtual ISqlScanner Initialize(string sql)
       {
-         _source = sql;
+         return new SqlScannerImpl
+         {
+            _source = sql
+         };
       }
 
-      public string ReadAll()
+      public virtual string ReadAll()
       {
          var pos = _pos;
          _pos = _source.Length;
          return _source.Substring(pos);
       }
-      public string ReadIdentifier(ICollection<char> includes = null )
+      public virtual string ReadIdentifier(ICollection<char> includes = null)
       {
          var sb = new StringBuilder();
-         if (!IsLetter())
+         if (!this.IsLetter())
          {
             throw new SqlParserException(_source, _pos, "Invalid identifier start char: " + Peek());
          }
          Take(sb);
-         while (IsLetterOrDigit() || (includes != null && includes.Contains(Peek())))
+         while (this.IsLetterOrDigit() || (includes != null && includes.Contains(Peek())))
          {
             Take(sb);
          }
          return sb.ToString();
       }
-      public string ReadParenthesed()
+      public virtual string ReadParenthesed()
       {
          var sb = new StringBuilder();
-         if (!IsLParen())
+         if (!this.IsLParen())
          {
             throw new SqlParserException(_source,_pos, "Expected LParen");
          }
@@ -62,7 +66,7 @@ namespace XAdo.Quobs.Core.Parser
          var count = 1;
          while (!Eof())
          {
-            if (IsStartQuote())
+            if (this.IsStartQuote())
             {
                sb.Append(ReadQuoted());
                continue;
@@ -84,7 +88,7 @@ namespace XAdo.Quobs.Core.Parser
          }
          throw new SqlParserException(_source, _pos, "Unexpected EOF: Missing RParen");
       }
-      public string ReadQuoted()
+      public virtual string ReadQuoted()
       {
          var left = Peek();
          char right;
@@ -109,7 +113,7 @@ namespace XAdo.Quobs.Core.Parser
          }
          throw new SqlParserException(_source, _pos, "Unexpected EOF: unterminated quoted, expected: " + right);
       }
-      public int ReadInt()
+      public virtual int ReadInt()
       {
          var sb = new StringBuilder();
          while (char.IsDigit(Peek()))
@@ -125,30 +129,30 @@ namespace XAdo.Quobs.Core.Parser
             throw new SqlParserException(_source, _pos, "Invalid int value",ex);
          }
       }
-      public string ReadAnyUntilSpace()
+      public virtual string ReadAnyUntilSpace()
       {
          var sb = new StringBuilder();
-         while (!Eof() && !IsSpace())
+         while (!Eof() && !this.IsSpace())
          {
             Take(sb);
          }
          return sb.ToString();
       }
-      public void SkipSpaces()
+      public virtual void SkipSpaces()
       {
-         while (IsSpace())
+         while (this.IsSpace())
          {
             NextChar();
          }
       }
-      public void Expect(string identifier)
+      public virtual void Expect(string identifier)
       {
          if (ReadIdentifier().ToUpper() != identifier)
          {
             throw new SqlParserException(_source, _pos, "Expected identifier: " + identifier.ToUpper());
          }
       }
-      public bool NextIs(string identifier, bool proceed = true)
+      public virtual bool NextIs(string identifier, bool proceed = true)
       {
          var forward = 0;
          if (identifier.All(ch => char.ToUpper(Peek(forward++)) == ch))
@@ -159,20 +163,20 @@ namespace XAdo.Quobs.Core.Parser
          }
          return false;
       }
-      public bool ReadAnyOf(params string[] identifiers)
+      public virtual bool ReadAnyOf(params string[] identifiers)
       {
          return NextIsAnyOf(true, identifiers);
       }
-      public bool PeekAnyOf(params string[] identifiers)
+      public virtual bool PeekAnyOf(params string[] identifiers)
       {
          return NextIsAnyOf(false, identifiers);
       }
-      public bool PeekAnyOf(params char[] chrs)
+      public virtual bool PeekAnyOf(params char[] chrs)
       {
          return chrs.Contains(Peek());
       }
 
-      public bool NextIsAnyOf(bool proceed, params string[] identifiers)
+      public virtual bool NextIsAnyOf(bool proceed, params string[] identifiers)
       {
          if (identifiers.Any(i => NextIs(i, proceed)))
          {
@@ -180,69 +184,54 @@ namespace XAdo.Quobs.Core.Parser
          }
          return false;
       }
-      public bool IsLetter()
+
+      public virtual bool IsLetter(char ch)
       {
-         char ch;
-         return char.IsLetter(ch = Peek()) || ch == '_';
+         return char.IsLetter(ch) || ch == '_';
       }
-      public bool IsLetterOrDigit()
+
+      public virtual bool IsLetterOrDigit(char ch)
       {
-         char ch;
-         return char.IsLetterOrDigit(ch = Peek()) || ch == '_';
+         return char.IsLetterOrDigit(ch) || ch == '_';
       }
-      public bool IsRParen(char ch)
+
+      public virtual bool IsRParen(char ch)
       {
          return ch == ')';
       }
-      public bool IsRParen()
-      {
-         return IsRParen(Peek());
-      }
-      public bool IsLParen(char ch)
+      public virtual bool IsLParen(char ch)
       {
          return ch == '(';
       }
-      public bool IsLParen()
-      {
-         return IsLParen(Peek());
-      }
-      public bool IsSpace()
-      {
-         return IsSpace(Peek());
-      }
-      public bool IsSpace(char ch)
+      public virtual bool IsSpace(char ch)
       {
          return Spaces.Contains(ch);
       }
-      public bool IsStartQuote()
-      {
-         return IsStartQuote(Peek());
-      }
-      public bool IsStartQuote(char ch)
+      public virtual bool IsStartQuote(char ch)
       {
          return Quotes.ContainsKey(ch);
       }
-      public void Take(StringBuilder sb)
+      public virtual void Take(StringBuilder sb)
       {
          sb.Append(NextChar());
       }
-      public char NextChar()
+      public virtual char NextChar()
       {
          return Eof() ? '\0' : _source[_pos++];
       }
-      public char Peek(int forward = 0)
+      public virtual char Peek(int forward = 0)
       {
          return Eof(forward) ? '\0' : _source[_pos + forward];
       }
-      public bool Eof(int forward = 0)
+      public virtual bool Eof(int forward = 0)
       {
          return (_pos + forward) >= _source.Length;
       }
 
-      public int Position { get { return _pos; } }
-      public string Source { get { return _source; } }
+      public virtual int Position { get { return _pos; } }
+      public virtual string Source { get { return _source; } }
 
-      public string ClearBlockComments()
+      public virtual string ClearBlockComments()
       {
          if (_source == null || !_source.Contains("/*")) return _source;
          var sb = new StringBuilder();
@@ -276,5 +265,4 @@ namespace XAdo.Quobs.Core.Parser
          return "..."+_source.Substring(_pos);
       }
    }
-
 }

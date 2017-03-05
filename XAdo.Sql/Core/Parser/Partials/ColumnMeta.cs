@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json;
 using XAdo.Core;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Core.Mapper;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {

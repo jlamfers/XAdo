@@ -95,7 +95,7 @@ namespace XAdo.Quobs.Core.Parser
             }
             if (members.Count() > 1)
             {
-               throw new Exception("Ambigious member for type " + argType.Name + ": " + match.Value);
+               throw new QuobException("Ambigious member for type " + argType.Name + ": " + match.Value);
             }
             var m = members[0];
             if (m.MemberType == MemberTypes.Field)

@@ -2,9 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using XAdo.Core;
-using XAdo.Quobs.Interface;
 
-namespace XAdo.Quobs.Core.Common
+namespace XAdo.Quobs.Core
 {
    internal class SmallCache<TKey, TValue> : IEnumerable<KeyValuePair<TKey,TValue>>
    {

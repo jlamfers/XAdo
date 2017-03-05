@@ -5,9 +5,8 @@ using System.IO;
 using System.Linq.Expressions;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core.Parser.Partials;
-using XAdo.Quobs.Dialects;
 
-namespace XAdo.Quobs.Interface
+namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlResource
    {
@@ -36,8 +35,8 @@ namespace XAdo.Quobs.Interface
       ISqlResource Map(string selectExpression, Type mappedType);
       ISqlResource CreateMap(IList<SqlPartial> partials); //todo: add type, session????
 
-      SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
-      SqlGeneratorResult BuildSqlPredicate(string filterExpression, Type mappedType, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
+      SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null);
+      SqlGeneratorResult BuildSqlPredicate(string filterExpression, Type mappedType, IDictionary<string, object> arguments = null);
       string BuildSqlOrderBy(string orderExpression, Type mappedType);
 
       Expression<Func<IDataRecord, T>> GetBinderExpression<T>();
@@ -59,8 +58,8 @@ namespace XAdo.Quobs.Interface
 
       ISqlResource<TMap> Map<TMap>(Expression<Func<TEntity, TMap>> toExpression);
 
-      SqlGeneratorResult BuildSqlPredicate(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
-      SqlGeneratorResult BuildSql(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false);
+      SqlGeneratorResult BuildSqlPredicate(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null);
+      SqlGeneratorResult BuildSql(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null);
       string BuildSqlOrderBy(bool descending, params Expression<Func<TEntity, object>>[] columns);
    }
 }

@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Interface;
+using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Core.Parser.Partials;
-using XAdo.Quobs.Interface;
 
 namespace XAdo.Quobs.Core
 {
@@ -51,7 +51,7 @@ namespace XAdo.Quobs.Core
             {
                if (throwException)
                {
-                  throw new InvalidOperationException("Cannot build sql update if no key columns are included");
+                  throw new QuobException("Cannot build sql update if no key columns are included");
                }
                return;
             }
@@ -88,7 +88,7 @@ namespace XAdo.Quobs.Core
          if (t.Alias == null)
          {
             //TODO: generate alias if missing??
-            throw new Exception("Alias for table must be set");
+            throw new QuobException("Alias for table must be set");
          }
          var keys = q.Select.Columns.Where(c => c.Meta.IsPKey).ToList();
 
@@ -96,7 +96,7 @@ namespace XAdo.Quobs.Core
          {
             if (throwException)
             {
-               throw new InvalidOperationException("Cannot build sql update if no key columns are included");
+               throw new QuobException("Cannot build sql update if no key columns are included");
             }
             return;
          }

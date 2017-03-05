@@ -3,26 +3,24 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser.Partials;
-using XAdo.Quobs.Dialects;
-using XAdo.Quobs.Impl;
-using XAdo.Quobs.Interface;
-using XAdo.Quobs.Linq;
 
-namespace XAdo.Quobs.Core
+namespace XAdo.Quobs.Core.Impl
 {
    //immutable object
    public partial class SqlResource<TEntity> : SqlResourceImpl, ISqlResource<TEntity>
    {
+      
       internal SqlResource(SqlResourceImpl other)
          : base(other)
       {
          
       }
-      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser urlParser)
-         : base(partials, dialect, urlParser)
+      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser urlParser, ISqlPredicateGenerator sqlPredicateGenerator)
+         : base(partials, dialect, urlParser, sqlPredicateGenerator)
       {
-      }
+          }
 
       public Expression<Func<IDataRecord, TEntity>> GetBinderExpression()
       {
@@ -39,13 +37,13 @@ namespace XAdo.Quobs.Core
          return GetBinder<TEntity>();
       }
 
-      public SqlGeneratorResult BuildSqlPredicate(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGeneratorResult BuildSqlPredicate(Expression<Func<TEntity, bool>> expression, IDictionary<string, object> arguments = null)
       {
-         return base.BuildSql(expression, arguments, parameterPrefix, noargs);
+         return base.BuildSql(expression, arguments);
       }
-      public SqlGeneratorResult BuildSql(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null, string parameterPrefix = "xado_", bool noargs = false)
+      public SqlGeneratorResult BuildSql(Expression<Func<TEntity, object>> expression, IDictionary<string, object> arguments = null)
       {
-         return base.BuildSql(expression, arguments, parameterPrefix, noargs);
+         return base.BuildSql(expression, arguments);
       }
       public string BuildSqlOrderBy(bool descending, params Expression<Func<TEntity, object>>[] columns)
       {

@@ -54,6 +54,8 @@
     <Compile Include="Core\Interface\ISqlResourceFactory.cs" />
     <Compile Include="Core\Interface\ISqlResourceRepository.cs" />
     <Compile Include="Core\ISqlPersistBuilder.cs" />
+    <Compile Include="Core\Interface\ISqlSelectParser.cs" />
+    <Compile Include="Core\Interface\ISqlScanner.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMap.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMeta.cs" />
     <Compile Include="Core\Parser\Partials\ColumnPartial.cs" />
@@ -77,12 +79,11 @@
     <Compile Include="Core\Parser\Partials\TemplatePartial.cs" />
     <Compile Include="Core\Parser\Partials\WherePartial.cs" />
     <Compile Include="Core\Parser\Partials\WithPartial.cs" />
+    <Compile Include="Core\Impl\SqlScannerImpl.cs" />
     <Compile Include="Core\SqlPersistBuilder.cs" />
     <Compile Include="DbSessionExtensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
     <Compile Include="Core\MyReadOnlyCollection.cs" />
-    <Compile Include="Core\Impl\SqlResourceImpl.Methods.cs" />
-    <Compile Include="Core\Impl\SqlResourceImpl.Types.cs" />
     <Compile Include="Core\Impl\SqlResourceRepositoryImpl.cs" />
     <Compile Include="Core\Impl\SqlResourceImpl`1.cs" />
     <Compile Include="Core\SmallCache.cs" />
@@ -110,9 +111,8 @@
     <Compile Include="Core\Parser\Constants.cs" />
     <Compile Include="Core\Parser\Extensions.cs" />
     <Compile Include="Core\Impl\SqlResourceImpl.cs" />
-    <Compile Include="Core\Parser\SqlSelectParser.cs" />
+    <Compile Include="Core\Impl\SqlSelectParserImpl.cs" />
     <Compile Include="Core\Parser\TemplateFormatter.cs" />
-    <Compile Include="Core\Parser\Scanner.cs" />
     <Compile Include="Core\Parser\SqlParserException.cs" />
     <Compile Include="Core\Impl\FilterParserImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

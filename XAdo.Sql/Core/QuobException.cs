@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using XAdo.Core;
 
-namespace XAdo.Quobs
+namespace XAdo.Quobs.Core
 {
    [Serializable]
    public class QuobException : XAdoException

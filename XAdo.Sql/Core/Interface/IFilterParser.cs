@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Interface
 {
    public interface IFilterParser
    {

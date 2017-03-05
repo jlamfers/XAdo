@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using XAdo.Quobs.Core.Impl;
 
-namespace XAdo.Quobs.Dialects
+namespace XAdo.Quobs.Providers
 {
    public class SqlServerDialect : SqlDialectImpl
    {

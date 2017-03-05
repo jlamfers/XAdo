@@ -1,6 +1,6 @@
 using System;
 
-namespace XAdo.Quobs.Interface
+namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlResourceRepository
    {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using System.Text;
-using XAdo.Quobs.Core.Common;
 
 namespace XAdo.Quobs.Core.Parser
 {

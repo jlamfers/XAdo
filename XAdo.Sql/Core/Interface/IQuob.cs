@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using XAdo.Quobs.Core;
 
-namespace XAdo.Quobs.Interface
+namespace XAdo.Quobs.Core.Interface
 {
    public interface IQuob<TEntity>
    {

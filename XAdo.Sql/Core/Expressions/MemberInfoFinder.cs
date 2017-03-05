@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace XAdo.Quobs.Core.Common
+namespace XAdo.Quobs.Core.Expressions
 {
    public static class MemberInfoFinder
    {

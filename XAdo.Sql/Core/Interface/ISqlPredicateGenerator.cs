@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using XAdo.Quobs.Linq;
 
-namespace XAdo.Quobs.Interface
+namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlPredicateGenerator
    {

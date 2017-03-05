@@ -5,11 +5,12 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using XAdo.Quobs;
 using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.Mapper;
+using XAdo.Quobs.Core.Impl;
+using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Core.Parser.Partials;
-using XAdo.Quobs.Interface;
 using XPression.Core;
+using Scanner = XAdo.Quobs.Core.Impl.SqlScannerImpl;
 
 namespace XAdo.UnitTest
 {
@@ -75,7 +76,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public void ParseTest()
       {
-         var p = new SqlSelectParser();
+         var p = new SqlSelectParserImpl(new Scanner());
          var result = p.Parse(Constants.SqlSelect).EnsureLinked();
          var sw = new Stopwatch();
          sw.Start();

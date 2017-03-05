@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Dialects
+namespace XAdo.Quobs.Core.Impl
 {
    // JSON serializable class
    public class SqlDialectImpl : ISqlDialect

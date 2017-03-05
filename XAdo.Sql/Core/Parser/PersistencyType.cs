@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Core.Mapper
+namespace XAdo.Quobs.Core.Parser
 {
    [Flags]
    public enum PersistencyType

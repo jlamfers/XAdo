@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using XAdo.Quobs.Core.Common;
+using XAdo.Quobs.Core.Interface;
 using XPression;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Impl
 {
    public class FilterParserImpl : IFilterParser
    {

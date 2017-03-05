@@ -2,10 +2,9 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Linq;
+using XAdo.Quobs.Core.Expressions;
 
-namespace XAdo.Quobs.Core.Mapper
+namespace XAdo.Quobs.Core
 {
    public static class DataReaderGetters
    {

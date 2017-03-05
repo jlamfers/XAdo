@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs
+namespace XAdo.Quobs.Core
 {
    public class QuobSession
    {

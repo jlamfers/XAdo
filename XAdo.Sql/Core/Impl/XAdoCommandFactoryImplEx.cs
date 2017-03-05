@@ -5,11 +5,9 @@ using System.Reflection;
 using XAdo.Core;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Core.Mapper;
-using XAdo.Quobs.Linq;
+using XAdo.Quobs.Core.Expressions;
 
-namespace XAdo.Quobs.Impl
+namespace XAdo.Quobs.Core.Impl
 {
    public class XAdoCommandFactoryImplEx : XAdoCommandFactoryImpl
    {

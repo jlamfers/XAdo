@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Dialects;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core
 {
    //todo: add providername??
 
@@ -33,7 +32,7 @@ namespace XAdo.Quobs.Linq
 
             if (_formatProperty == null)
             {
-               throw new Exception("property could not be resolved on type " + typeof(ISqlDialect).Name + ": " + formatSpec);
+               throw new QuobException("property could not be resolved on type " + typeof(ISqlDialect).Name + ": " + formatSpec);
             }
          }
          else
@@ -52,7 +51,7 @@ namespace XAdo.Quobs.Linq
       {
          if (!IsDialectReference)
          {
-            throw new InvalidOperationException("This attribute instance needs a ISqlDialect instance for being able to resolve the property " + _formatProperty);
+            throw new QuobException("This attribute instance needs a ISqlDialect instance for being able to resolve the property " + _formatProperty);
          }
          return _formatValue;
       }
@@ -60,7 +59,7 @@ namespace XAdo.Quobs.Linq
       {
          if (ProviderName != null && ProviderName != provider.ProviderName)
          {
-            throw new Exception("Invalid provider: this attribute is bound to " + ProviderName + " and cannot be requested for provider " + provider.ProviderName);
+            throw new QuobException("Invalid provider: this attribute is bound to " + ProviderName + " and cannot be requested for provider " + provider.ProviderName);
          }
          return _formatValue ?? (string) _formatProperty.GetValue(provider);
       }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace XAdo.Quobs.Linq
+namespace XAdo.Quobs.Core.Expressions
 {
 
    /// <summary>

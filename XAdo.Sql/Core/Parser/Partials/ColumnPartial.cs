@@ -102,11 +102,11 @@ namespace XAdo.Quobs.Core.Parser.Partials
       {
          if (Table != null && !ReferenceEquals(Table, table))
          {
-            throw new InvalidOperationException("column table was already set to another table. You cannot switch column tables.");
+            throw new QuobException("column table was already set to another table. You cannot switch column tables.");
          }
          if (IsCalculated)
          {
-            throw new InvalidOperationException("You cannot set the table for any calculated column.");
+            throw new QuobException("You cannot set the table for any calculated column.");
          }
          Table = table;
          if (aliasChanged)

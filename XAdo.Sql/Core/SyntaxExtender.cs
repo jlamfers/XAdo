@@ -1,10 +1,9 @@
 ﻿using System;
-using XAdo.Quobs.Core.Common;
-using XAdo.Quobs.Linq;
+using XAdo.Quobs.Core.Expressions;
 using XPression.Core.Functions;
 using XPression.Language.Syntax;
 
-namespace XAdo.Quobs.Dialects
+namespace XAdo.Quobs.Core
 {
    public class XPressionSyntaxExtender : IAutoSyntaxExtender
    {

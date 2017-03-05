@@ -1,4 +1,4 @@
-﻿using XAdo.Quobs.Interface;
+﻿using XAdo.Quobs.Core.Interface;
 
 namespace XAdo.Quobs.Core
 {
