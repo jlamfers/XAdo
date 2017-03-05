@@ -3,7 +3,6 @@ using XAdo.Core.Impl;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core.Impl;
 using XAdo.Quobs.Core.Interface;
-using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Providers;
 
 namespace XAdo.Quobs
@@ -26,7 +25,9 @@ namespace XAdo.Quobs
             .BindSingleton(typeof (IQuob<>), typeof (QuobImpl<>))
             .BindSingleton<ISqlScanner, SqlScannerImpl>()
             .BindSingleton<ISqlSelectParser, SqlSelectParserImpl>()
-            .BindSingleton<ISqlPredicateGenerator, SqlPredicateGeneratorImpl>();
+            .BindSingleton<ISqlPredicateGenerator, SqlPredicateGeneratorImpl>()
+            .BindSingleton<ISqlBuilder, SqlBuilderImpl>();
+
 
          context
             .KeepConnectionAlive(true)

@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Impl\SqlBuilderImpl.cs" />
     <Compile Include="Core\Impl\XAdoCommandFactoryImplEx.cs" />
     <Compile Include="Core\Interface\IAttachable.cs" />
     <Compile Include="Core\Interface\IFilterParser.cs" />
@@ -53,7 +54,7 @@
     <Compile Include="Core\Interface\ISqlResource.cs" />
     <Compile Include="Core\Interface\ISqlResourceFactory.cs" />
     <Compile Include="Core\Interface\ISqlResourceRepository.cs" />
-    <Compile Include="Core\ISqlPersistBuilder.cs" />
+    <Compile Include="Core\Interface\ISqlBuilder.cs" />
     <Compile Include="Core\Interface\ISqlSelectParser.cs" />
     <Compile Include="Core\Interface\ISqlScanner.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMap.cs" />

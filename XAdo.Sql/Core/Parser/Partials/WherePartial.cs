@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
@@ -22,7 +23,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public override string ToString()
       {
-         return Expression.Length > 0 ? "WHERE " + WhereClause + " ?" + Expression
+         return Expression.Length > 0 ? "WHERE " + WhereClause + " -- ?" + Environment.NewLine+ Expression
             : "WHERE " + WhereClause;
       }
 

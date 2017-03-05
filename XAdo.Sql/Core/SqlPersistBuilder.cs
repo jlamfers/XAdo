@@ -8,8 +8,13 @@ using XAdo.Quobs.Core.Parser.Partials;
 
 namespace XAdo.Quobs.Core
 {
-   public class SqlPersistBuilder : ISqlPersistBuilder
+   public class SqlPersistBuilder : ISqlBuilder
    {
+      public string BuildSelect(ISqlResource sqlResource, bool throwException = true)
+      {
+         throw new NotImplementedException();
+      }
+
       public string BuildUpdate(ISqlResource q, bool throwException = true)
       {
          var sb = new StringBuilder();
