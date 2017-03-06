@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace XAdo.Quobs.Core.Parser.Partials
+namespace XAdo.Quobs.Core
 {
    [Flags]
    [JsonConverter(typeof(StringEnumConverter))]

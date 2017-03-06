@@ -12,8 +12,7 @@ namespace XAdo.Quobs.Core.Interface
    {
       ISqlResource AsCountQuery();
 
-      void Format(TextWriter w, object templateArgs);
-      string Format(object templateArgs);
+      string BuildSqlSelect(object templateArgs);
 
       IList<SqlPartial> Partials { get; }
       IDictionary<string, ColumnPartial> MappedColumns { get; }

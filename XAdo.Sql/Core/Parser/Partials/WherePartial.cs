@@ -13,18 +13,12 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public string WhereClause { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("WHERE ");
          w.Write(WhereClause);
          w.Write(" ");
-         base.Write(w, args);
-      }
-
-      public override string ToString()
-      {
-         return Expression.Length > 0 ? "WHERE " + WhereClause + " -- ?" + Environment.NewLine+ Expression
-            : "WHERE " + WhereClause;
+         base.Write(w);
       }
 
    }

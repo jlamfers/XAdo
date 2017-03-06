@@ -16,18 +16,9 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public string Expression { get; protected set; }
 
-      public virtual void Write(TextWriter w, object args)
+      public virtual void Write(TextWriter w)
       {
          w.Write(Expression);
-      }
-
-      public override string ToString()
-      {
-         using (var sw = new StringWriter())
-         {
-            Write(sw, null);
-            return sw.GetStringBuilder().ToString();
-         }
       }
 
    }

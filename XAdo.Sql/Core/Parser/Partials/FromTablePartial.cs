@@ -16,10 +16,10 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public TablePartial Table { get; protected set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("FROM ");
-         Table.Write(w,args);
+         Table.Write(w);
       }
 
       object ICloneable.Clone()

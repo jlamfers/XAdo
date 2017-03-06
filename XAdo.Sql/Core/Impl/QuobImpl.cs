@@ -125,7 +125,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IEnumerable<object> ToEnumerable()
       {
-         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
          return Context.Session.Query(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments(), false);
       }
       public virtual IEnumerable<object> ToEnumerable(out int count)
@@ -143,9 +143,9 @@ namespace XAdo.Quobs.Core.Impl
 
       protected virtual string GetDuoSql()
       {
-         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs())
+         var sql = SqlResource.AsCountQuery().BuildSqlSelect(Context.Clone(true).GetSqlTemplateArgs())
                    + SqlResource.Dialect.StatementSeperator
-                   + SqlResource.Format(Context.GetSqlTemplateArgs());
+                   + SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
          return sql;
       }
 
@@ -171,19 +171,19 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual int Count()
       {
-         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
+         var sql = SqlResource.AsCountQuery().BuildSqlSelect(Context.Clone(true).GetSqlTemplateArgs());
          return Context.Session.Query(sql, r => r.GetInt32(0), Context.GetArguments()).Single();
       }
 
       public virtual bool Exists()
       {
-         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
+         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().BuildSqlSelect(Context.Clone(true).GetSqlTemplateArgs()));
          return Context.Session.Query(sql, r => r.GetBoolean(0), Context.GetArguments()).Single();
       }
 
       public virtual async Task<List<object>> FetchAsync()
       {
-         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
          return await Context.Session.QueryAsync(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments());
       }
 
@@ -207,13 +207,13 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual async Task<int> CountAsync()
       {
-         var sql = SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs());
+         var sql = SqlResource.AsCountQuery().BuildSqlSelect(Context.Clone(true).GetSqlTemplateArgs());
          return (await Context.Session.QueryAsync(sql, r => r.GetInt32(0), Context.GetArguments())).Single();
       }
 
       public virtual async Task<bool> ExistsAsync()
       {
-         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().Format(Context.Clone(true).GetSqlTemplateArgs()));
+         var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.AsCountQuery().BuildSqlSelect(Context.Clone(true).GetSqlTemplateArgs()));
          return (await Context.Session.QueryAsync(sql, r => r.GetBoolean(0), Context.GetArguments())).Single();
       }
 

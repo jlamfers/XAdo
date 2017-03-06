@@ -18,9 +18,9 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public ColumnPartial Column { get; private set; }
       public bool Descending { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
-         Column.WriteNonAliased(w,args);
+         Column.WriteNonAliased(w);
          if (Descending)
          {
             w.Write(" DESC");

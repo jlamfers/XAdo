@@ -26,7 +26,8 @@ namespace XAdo.Quobs
             .BindSingleton<ISqlScanner, SqlScannerImpl>()
             .BindSingleton<ISqlSelectParser, SqlSelectParserImpl>()
             .BindSingleton<ISqlPredicateGenerator, SqlPredicateGeneratorImpl>()
-            .BindSingleton<ISqlBuilder, SqlBuilderImpl>();
+            .BindSingleton<ISqlBuilder, SqlBuilderImpl>()
+            .BindSingleton<ITemplateFormatter, SqlTemplateFormatter>();
 
 
          context

@@ -186,6 +186,7 @@ namespace XAdo.Quobs.Core.Impl
       #endregion
       private IFilterParser _filterParser;
       private ISqlPredicateGenerator _sqlPredicateGenerator;
+      private ITemplateFormatter _templateFormatter;
 
       #region Hidden fields
 
@@ -215,6 +216,7 @@ namespace XAdo.Quobs.Core.Impl
          _subResourcesCache = other._subResourcesCache;
          _filterParser = other._filterParser;
          _sqlPredicateGenerator = other._sqlPredicateGenerator;
+         _templateFormatter = other._templateFormatter;
       }
 
       private SqlResourceImpl()
@@ -222,17 +224,19 @@ namespace XAdo.Quobs.Core.Impl
 
       }
 
-      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator)
+      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter)
       {
          if (partials == null) throw new ArgumentNullException("partials");
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");
          if (sqlPredicateGenerator == null) throw new ArgumentNullException("sqlPredicateGenerator");
+         if (templateFormatter == null) throw new ArgumentNullException("templateFormatter");
 
          Dialect = dialect;
          _filterParser = filterParser;
          _sqlPredicateGenerator = sqlPredicateGenerator;
          _partials = partials.EnsureLinked().MergeTemplate(dialect.SelectTemplate).AsReadOnly();
+         _templateFormatter = templateFormatter;
       }
 
       public ISqlDialect Dialect { get; private set; }
@@ -244,7 +248,8 @@ namespace XAdo.Quobs.Core.Impl
             _partials = partials.EnsureLinked().ToList().AsReadOnly(),
             Dialect = Dialect,
             _filterParser = _filterParser,
-            _sqlPredicateGenerator = _sqlPredicateGenerator
+            _sqlPredicateGenerator = _sqlPredicateGenerator,
+            _templateFormatter = _templateFormatter
          };
          return mapped;
       }
@@ -327,7 +332,7 @@ namespace XAdo.Quobs.Core.Impl
             StringComparer.OrdinalIgnoreCase);
 
       private string
-         _formattedSql;
+         _sqlSelectTemplate;
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, ColumnPartial>
          _mappedColumns;
@@ -375,28 +380,19 @@ namespace XAdo.Quobs.Core.Impl
          return _countQuery = CreateMap(partials);
       }
 
-      public void Format(TextWriter w, object args)
+      public string BuildSqlSelect(object args)
       {
-         if (args == null)
-         {
-            w.Write(Format(null));
-         }
-         else
-         {
-            _partials.Format(w, args);
-         }
+         return _templateFormatter.Format(SqlSelectTemplate, args);
       }
 
-      public string Format(object args)
+      public string SqlSelectTemplate
       {
-         return args == null
-            ? (_formattedSql ?? (_formattedSql = _partials.Format(null)))
-            : _partials.Format(args);
+         get { return _sqlSelectTemplate ?? (_sqlSelectTemplate = _partials.ToTemplate()); }
       }
 
       public override string ToString()
       {
-         return _partials.ToStringRepresentation();
+         return SqlSelectTemplate;
       }
 
       public IList<SqlPartial> Partials
@@ -791,7 +787,7 @@ namespace XAdo.Quobs.Core.Impl
          if (anyNullTable)
          {
             var meta =
-               session.QueryMetaForSql(Format(new {skip = 0, take = 0, order = Select.Columns.First().Expression}));
+               session.QueryMetaForSql(BuildSqlSelect(new {skip = 0, take = 0, order = Select.Columns.First().Expression}));
             for (var i = 0; i < Select.Columns.Count; i++)
             {
                var c = Select.Columns[i];

@@ -71,7 +71,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public new IEnumerable<TEntity> ToEnumerable()
       {
-         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
          return Context.Session.Query(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments(), false);
       }
 
@@ -125,7 +125,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public async new Task<List<TEntity>> FetchAsync()
       {
-         var sql = SqlResource.Format(Context.GetSqlTemplateArgs());
+         var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
          return await Context.Session.QueryAsync(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments());
       }
 

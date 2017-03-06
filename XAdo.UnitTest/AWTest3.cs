@@ -150,7 +150,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
             Debug.WriteLine(sw.ElapsedMilliseconds);
             qb.GetBinder(sn);
             var sql =
-               qb.Format(
+               qb.BuildSqlSelect(
                   new
                   {
                      where = qb.BuildSqlPredicate("firstname ne null", null).Sql,

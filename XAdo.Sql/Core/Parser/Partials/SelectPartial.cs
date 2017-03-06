@@ -20,7 +20,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public bool Distinct { get; private set; }
       public IList<ColumnPartial> Columns { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("SELECT ");
          if(Distinct) w.Write("DISTINCT ");
@@ -30,7 +30,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
          {
             w.WriteLine(comma);
             w.Write("   ");
-            c.Write(w,args);
+            c.Write(w);
             comma = ",";
          }
       }

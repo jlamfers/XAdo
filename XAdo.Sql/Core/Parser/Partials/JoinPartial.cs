@@ -17,15 +17,15 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public JoinType JoinType { get; private set; }
       public TablePartial RighTable { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write(JoinType.ToString().ToUpper());
          w.Write(" ");
          w.Write(JoinType != JoinType.Inner ? "OUTER " : "");
          w.Write("JOIN ");
-         RighTable.Write(w,args);
+         RighTable.Write(w);
          w.Write(" ON ");
-         base.Write(w, args);
+         base.Write(w);
       }
 
       object ICloneable.Clone()

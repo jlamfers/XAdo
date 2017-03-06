@@ -73,21 +73,18 @@ namespace XAdo.Quobs.Core.Parser.Partials
          }
          return result;
       }
-
       internal static IList<ColumnPartial> Clone(this IList<ColumnPartial> self)
       {
          return self.Select(c => c.Clone()).ToList();
       }
-
-
-      public static void Format(this IList<SqlPartial> self, TextWriter w, object args)
+      public static void ToTemplate(this IList<SqlPartial> self, TextWriter w)
       {
          var sw = w as StringWriter;
          var sb = sw != null ? sw.GetStringBuilder() : null;
          var pos = sb != null ? sb.Length : -1;
          foreach (var t in self)
          {
-            t.Write(w,args);
+            t.Write(w);
             if (sb != null)
             {
                if (sb.Length > pos)
@@ -102,32 +99,15 @@ namespace XAdo.Quobs.Core.Parser.Partials
             }
          }
       }
-
-      public static string Format(this IList<SqlPartial> self, object args)
+      public static string ToTemplate(this IList<SqlPartial> self)
       {
          using (var sw = new StringWriter())
          {
-            self.Format(sw, args);
+            self.ToTemplate(sw);
             return sw.GetStringBuilder().ToString();
          }
       }
 
-      public static string ToStringRepresentation(this IList<SqlPartial> self)
-      {
-         var w = new StringWriter();
-         var sb = w.GetStringBuilder();
-         var pos = 0;
-         foreach (var t in self)
-         {
-            w.Write(t);
-            if (sb.Length > pos)
-            {
-               w.WriteLine();
-            }
-            pos = sb.Length;
-         }
-         return sb.ToString();
-      }
 
 
 /*

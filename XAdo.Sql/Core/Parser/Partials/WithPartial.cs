@@ -16,12 +16,12 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public string Alias { get; private set; }
       public string RawAlias { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("WITH ");
          w.Write(RawAlias);
          w.Write(" AS ");
-         base.Write(w, args);
+         base.Write(w);
       }
    }
 }

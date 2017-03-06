@@ -41,7 +41,7 @@ namespace XAdo.Quobs.Core.Impl
       {
          if (self != null)
          {
-            self.Write(w,TemplatePartial.AsTemplate);
+            self.Write(w);
             w.WriteLine();
          }
       }

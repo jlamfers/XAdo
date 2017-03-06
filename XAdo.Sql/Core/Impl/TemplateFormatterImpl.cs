@@ -5,20 +5,21 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using XAdo.Quobs.Core.Interface;
 
-namespace XAdo.Quobs.Core.Parser
+namespace XAdo.Quobs.Core.Impl
 {
-   public static class TemplateFormatter
+   public class TemplateFormatterImpl : ITemplateFormatter
    {
 
-      private static readonly ConcurrentDictionary<Tuple<string,Type>,Tuple<string,Func<object, object>[]>>
-         Cache = new ConcurrentDictionary<Tuple<string, Type>, Tuple<string, Func<object, object>[]>>();
+      private readonly ConcurrentDictionary<Tuple<string,Type>,Tuple<string,Func<object, object>[]>>
+         _cache = new ConcurrentDictionary<Tuple<string, Type>, Tuple<string, Func<object, object>[]>>();
 
       private static readonly Regex
          // finds anything between curly braces {...}
          PlaceholderRegex = new Regex(@"\{[^\}]*\}", RegexOptions.Compiled);
 
-      public static string FormatTemplate(this string template, object argumentsObject)
+      public string Format(string template, object argumentsObject)
       {
 
          if (string.IsNullOrEmpty(template))
@@ -28,7 +29,7 @@ namespace XAdo.Quobs.Core.Parser
 
          argumentsObject = argumentsObject ?? new object();
 
-         var tuple = Cache.GetOrAdd(Tuple.Create(template, argumentsObject.GetType()), t =>
+         var tuple = _cache.GetOrAdd(Tuple.Create(template, argumentsObject.GetType()), t =>
          {
             List<Func<object, object>> argumentsList;
             var f = TryTransformFormatString(t.Item1, t.Item2, out argumentsList);

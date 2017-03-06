@@ -18,7 +18,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public IList<string> Parts { get; protected set; }
       public string Alias { get; protected set; }
 
-      public virtual void WriteAliased(TextWriter w, object args)
+      public virtual void WriteAliased(TextWriter w)
       {
          w.Write(Expression);
          if (RawAlias != null)
@@ -27,14 +27,14 @@ namespace XAdo.Quobs.Core.Parser.Partials
             w.Write(RawAlias);
          }
       }
-      public virtual void WriteNonAliased(TextWriter w, object args)
+      public virtual void WriteNonAliased(TextWriter w)
       {
          w.Write(Expression);
       }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
-         WriteAliased(w, args);
+         WriteAliased(w);
       }
 
    }

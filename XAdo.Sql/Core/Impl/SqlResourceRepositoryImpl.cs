@@ -15,17 +15,20 @@ namespace XAdo.Quobs.Core.Impl
       private readonly IFilterParser _filterParser;
       private readonly ISqlSelectParser _sqlSelectParser;
       private readonly ISqlPredicateGenerator _sqlPredicateGenerator;
+      private readonly ITemplateFormatter _templateFormatter;
 
-      public SqlResourceRepositoryImpl(ISqlDialect dialect, IFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator)
+      public SqlResourceRepositoryImpl(ISqlDialect dialect, IFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");
          if (sqlSelectParser == null) throw new ArgumentNullException("sqlSelectParser");
          if (sqlPredicateGenerator == null) throw new ArgumentNullException("sqlPredicateGenerator");
+         if (templateFormatter == null) throw new ArgumentNullException("templateFormatter");
          _dialect = dialect;
          _filterParser = filterParser;
          _sqlSelectParser = sqlSelectParser;
          _sqlPredicateGenerator = sqlPredicateGenerator;
+         _templateFormatter = templateFormatter;
       }
 
       public virtual ISqlResource Get(string sql, Type type = null)
@@ -34,7 +37,7 @@ namespace XAdo.Quobs.Core.Impl
          return SqlResourceCache.GetOrAdd(sql, x =>
          {
             var partials = _sqlSelectParser.Parse(sql);
-            var sqlResource = new SqlResourceImpl(partials, _dialect, _filterParser, _sqlPredicateGenerator);
+            var sqlResource = new SqlResourceImpl(partials, _dialect, _filterParser, _sqlPredicateGenerator, _templateFormatter);
             if (type != null)
             {
                sqlResource.GetBinder(type);

@@ -12,18 +12,12 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public string HavingClause { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("HAVING ");
          w.Write(HavingClause);
          w.Write(" ");
-         base.Write(w, args);
-      }
-
-      public override string ToString()
-      {
-         return Expression.Length > 0 ? "HAVING " + HavingClause + " ?" + Expression
-            : "HAVING " + HavingClause;
+         base.Write(w);
       }
 
    }

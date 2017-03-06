@@ -122,11 +122,11 @@ namespace XAdo.Quobs.Core
          sb.AppendLine();
          comma = "";
          w.Write("FROM ");
-         q.Table.WriteAliased(w,null);
+         q.Table.WriteAliased(w);
          w.WriteLine();
          foreach (var j in q.Joins)
          {
-            j.Write(w,null);
+            j.Write(w);
             w.WriteLine();
          }
          sb.Append("WHERE ");

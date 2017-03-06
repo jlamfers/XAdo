@@ -18,40 +18,18 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public IList<ColumnPartial> Columns { get; private set; }
 
-      public override void Write(TextWriter w, object args)
+      public override void Write(TextWriter w)
       {
          w.Write("GROUP BY ");
          var comma = "";
          foreach (var c in Columns)
          {
             w.Write(comma);
-            c.WriteNonAliased(w, args);
+            c.WriteNonAliased(w);
             comma = ", ";
          }
          w.Write(" ");
-         base.Write(w, args);
-      }
-
-      public override string ToString()
-      {
-         using (var w = new StringWriter())
-         {
-            w.Write("GROUP BY ");
-            var comma = "";
-            foreach (var c in Columns)
-            {
-               w.Write(comma);
-               c.WriteNonAliased(w, null);
-               comma = ", ";
-            }
-            if (Expression.Length > 0)
-            {
-               w.Write(" ?");
-               w.Write(Expression);
-            }
-            return w.GetStringBuilder().ToString();
-         }
-
+         base.Write(w);
       }
 
       object ICloneable.Clone()
