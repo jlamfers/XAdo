@@ -97,6 +97,8 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          using (var sn = context.CreateSession())
          {
             var persons = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).Fetch();
+            var count = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).TotalCount();
+
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)

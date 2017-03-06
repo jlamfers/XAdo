@@ -27,7 +27,7 @@ namespace XAdo.Quobs.Core.Interface
       IDictionary<TKey, TValue> FetchToDictionary<TKey, TValue>(Func<TEntity, TKey> keySelector, Func<TEntity, TValue> elementSelector, out int count);
       IDictionary<TKey, List<TValue>> FetchToGroupedList<TKey, TValue>(Func<TEntity, TKey> groupKeySelector,Func<TEntity, TValue> listElementSelector);
 
-      int Count();
+      int TotalCount();
       bool Exists();
 
       // async
@@ -35,7 +35,7 @@ namespace XAdo.Quobs.Core.Interface
       Task<CollectionWithCountResult<TEntity>> FetchWithCountAsync();
       Task<IDictionary<TKey, TValue>> FetchToDictionaryAsync<TKey, TValue>(Func<TEntity, TKey> keySelector, Func<TEntity, TValue> elementSelector);
       Task<IDictionary<TKey, List<TValue>>> FetchToGroupedListAsync<TKey, TValue>(Func<TEntity, TKey> groupKeySelector, Func<TEntity, TValue> listElementSelector);
-      Task<int> CountAsync();
+      Task<int> TotalCountAsync();
       Task<bool> ExistsAsync();
 
       IQuob<TMapped> Select<TMapped>(Expression<Func<TEntity, TMapped>> expression);
@@ -64,13 +64,13 @@ namespace XAdo.Quobs.Core.Interface
       object[] FetchToArray();
       object[] FetchToArray(out int count);
 
-      int Count();
+      int TotalCount();
       bool Exists();
 
       // async
       Task<List<object>> FetchAsync();
       Task<CollectionWithCountResult<object>> FetchWithCountAsync();
-      Task<int> CountAsync();
+      Task<int> TotalCountAsync();
       Task<bool> ExistsAsync();
 
       IQuob Select(string expression);

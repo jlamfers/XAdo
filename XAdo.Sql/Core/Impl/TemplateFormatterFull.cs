@@ -1,50 +1,90 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using XAdo.Core;
 using XAdo.Quobs.Core.Interface;
 
 namespace XAdo.Quobs.Core.Impl
 {
-   public class TemplateFormatterImpl : ITemplateFormatter
+   public class TemplateFormatterFull : ITemplateFormatter
    {
 
-      private readonly ConcurrentDictionary<Tuple<string,Type>,Tuple<string,Func<object, object>[]>>
-         _cache = new ConcurrentDictionary<Tuple<string, Type>, Tuple<string, Func<object, object>[]>>();
-
       private static readonly Regex
+
          // finds anything between curly braces {...}
-         PlaceholderRegex = new Regex(@"\{[^\}]*\}", RegexOptions.Compiled);
+         PlaceholderRegex = new Regex(@"\{[^\}]*\}", RegexOptions.Compiled),
 
-      public string Format(string template, object argumentsObject)
+         // finds anything that starts with --$ until end of line
+         TemplateRegex = new Regex(@"\-\-\s?\$.*(\r\n?|\n)", RegexOptions.Compiled | RegexOptions.Multiline);
+
+      private static readonly LRUCache<Tuple<string, Type>, object>
+         Cache = new LRUCache<Tuple<string, Type>, object>("LRUCache.Templates.Size",1000);
+
+      public string Format(string template, object args)
       {
-
-         if (string.IsNullOrEmpty(template))
+         args = args ?? new object();
+         var formatter = (Action<TextWriter, object>)Cache.GetOrAdd(Tuple.Create(template, args.GetType()), t => BuildTemplateFormatter(t.Item1,args.GetType()));
+         using (var sw = new StringWriter())
          {
-            return null;
+            formatter(sw, args);
+            return sw.GetStringBuilder().ToString();
          }
 
-         argumentsObject = argumentsObject ?? new object();
+      }
+      private static Action<TextWriter, object> BuildTemplateFormatter(string source, Type argType)
+      {
+         if (source == null) throw new ArgumentNullException("source");
 
-         var tuple = _cache.GetOrAdd(Tuple.Create(template, argumentsObject.GetType()), t =>
+         // the compiled formatter has an internal array of seperate writers which all are invoked 
+         // each time the compiled formatter is invoked
+         var writers = new List<Action<TextWriter, object>>();
+
+         var templateMatches = TemplateRegex.Matches(source);
+         var index = 0;
+
+         foreach (Match match in templateMatches)
          {
-            List<Func<object, object>> argumentsList;
-            var f = TryTransformFormatString(t.Item1, t.Item2, out argumentsList);
-            return Tuple.Create(f, argumentsList.ToArray());
-         });
-
-         var format = tuple.Item1;
-         if (format == null) return null;
-         var args = tuple.Item2.Select(x => x(argumentsObject)).ToArray();
-
-         for (var i = 0; i < args.Length; i++)
-         {
-            if (args[i] == null) return "";
+            var literal = source.Substring(index, match.Index - index);
+            if (literal.Length > 0)
+            {
+               writers.Add((w, a) => w.Write(literal));
+            }
+            index = match.Index + match.Value.Length;
+            var formatString = match.Value.Substring(match.Value.IndexOf('$') + 1); // strip "--$" or "-- $"
+            List<Func<object, object>> arguments;
+            var normalizedFormatString = TryTransformFormatString(formatString, argType, out arguments);
+            if (!string.IsNullOrEmpty(normalizedFormatString))
+            {
+               writers.Add(
+                  (w, e) =>
+                  {
+                     var args = new object[arguments.Count];
+                     for (var i = 0; i < args.Length; i++)
+                     {
+                        if ( (args[i]=arguments[i](e)) == null) return;
+                     }
+                     w.WriteLine(normalizedFormatString, args);
+                  });
+            }
          }
-         return string.Format(format, args);
+         if (index < source.Length - 1)
+         {
+            var literal = source.Substring(index);
+            writers.Add((w, a) => w.Write(literal));
+         }
+
+         var writerArray = writers.ToArray();
+         return (w, a) =>
+         {
+            foreach (var writer in writerArray)
+            {
+               writer(w, a);
+            }
+         };
       }
 
       private static string TryTransformFormatString(string formatstring, Type argType, out List<Func<object, object>> arguments)
@@ -101,7 +141,7 @@ namespace XAdo.Quobs.Core.Impl
             var m = members[0];
             if (m.MemberType == MemberTypes.Field)
             {
-               var f = (FieldInfo) m;
+               var f = (FieldInfo)m;
                if (notExists)
                {
                   arguments.Add(obj => f.GetValue(obj) == null ? new object() : null);
@@ -113,7 +153,7 @@ namespace XAdo.Quobs.Core.Impl
             }
             else
             {
-               var p = (PropertyInfo) m;
+               var p = (PropertyInfo)m;
                if (notExists)
                {
                   arguments.Add(obj => p.GetValue(obj) == null ? new object() : null);

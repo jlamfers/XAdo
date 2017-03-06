@@ -10,13 +10,15 @@ namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlResource
    {
-      ISqlResource AsCountQuery();
-
       string BuildSqlSelect(object templateArgs);
+      string BuildSqlCount(object templateArgs);
 
       IList<SqlPartial> Partials { get; }
       IDictionary<string, ColumnPartial> MappedColumns { get; }
       IList<TablePartial> Tables { get; }
+
+      string SqlSelectTemplate { get; }
+      string SqlCountTemplate { get; }
 
 
       WithPartial With { get; }

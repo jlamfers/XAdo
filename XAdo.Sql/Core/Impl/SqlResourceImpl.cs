@@ -184,12 +184,35 @@ namespace XAdo.Quobs.Core.Impl
       }
 
       #endregion
-      private IFilterParser _filterParser;
-      private ISqlPredicateGenerator _sqlPredicateGenerator;
-      private ITemplateFormatter _templateFormatter;
+
+      private IFilterParser 
+         _filterParser;
+
+      private ISqlPredicateGenerator 
+         _sqlPredicateGenerator;
+
+      private ITemplateFormatter
+         _templateFormatter;
+
+      private ISqlBuilder 
+         _sqlBuilder;
+
+      private readonly SmallCache<Type, BinderInfo>
+         _binderCache = new SmallCache<Type, BinderInfo>();
+
+      private readonly LRUCache<object, ISqlResource>
+         _subResourcesCache = new LRUCache<object, ISqlResource>("LRUCache.SubResource.Size", 25);
+
+      private readonly LRUCache<string, SqlGeneratorResult>
+         _compiledSqlCache = new LRUCache<string, SqlGeneratorResult>("LRUCache.CompiledSql.Size", 500,
+            StringComparer.OrdinalIgnoreCase);
+
+      private string
+         _sqlSelectTemplate,
+         _sqlCountTemplate;
+
 
       #region Hidden fields
-
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IList<SqlPartial> _partials;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private WithPartial _with;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private bool _withChecked;
@@ -204,39 +227,47 @@ namespace XAdo.Quobs.Core.Impl
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private bool _havingChecked;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private HavingPartial _orderBy;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private bool _orderbyChecked;
-
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, ColumnPartial> _mappedColumns;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, string> _mappedExpressions;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IList<TablePartial> _tables;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private static readonly MethodInfo IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
       #endregion
 
-      internal SqlResourceImpl(SqlResourceImpl other)
+      protected SqlResourceImpl(SqlResourceImpl other)
       {
          _partials = other._partials;
          Dialect = other.Dialect;
-         _countQuery = other._countQuery;
          _binderCache = other._binderCache;
          _subResourcesCache = other._subResourcesCache;
          _filterParser = other._filterParser;
          _sqlPredicateGenerator = other._sqlPredicateGenerator;
          _templateFormatter = other._templateFormatter;
+         _sqlBuilder = other._sqlBuilder;
+
+         _sqlSelectTemplate = other._sqlSelectTemplate;
+         _sqlCountTemplate = other._sqlCountTemplate;
       }
 
-      private SqlResourceImpl()
+      protected SqlResourceImpl()
       {
 
       }
 
-      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter)
+      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
       {
          if (partials == null) throw new ArgumentNullException("partials");
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");
          if (sqlPredicateGenerator == null) throw new ArgumentNullException("sqlPredicateGenerator");
          if (templateFormatter == null) throw new ArgumentNullException("templateFormatter");
+         if (sqlBuilder == null) throw new ArgumentNullException("sqlBuilder");
 
          Dialect = dialect;
          _filterParser = filterParser;
          _sqlPredicateGenerator = sqlPredicateGenerator;
          _partials = partials.EnsureLinked().MergeTemplate(dialect.SelectTemplate).AsReadOnly();
          _templateFormatter = templateFormatter;
+         _sqlBuilder = sqlBuilder;
       }
 
       public ISqlDialect Dialect { get; private set; }
@@ -249,7 +280,8 @@ namespace XAdo.Quobs.Core.Impl
             Dialect = Dialect,
             _filterParser = _filterParser,
             _sqlPredicateGenerator = _sqlPredicateGenerator,
-            _templateFormatter = _templateFormatter
+            _templateFormatter = _templateFormatter,
+            _sqlBuilder = _sqlBuilder
          };
          return mapped;
       }
@@ -321,73 +353,22 @@ namespace XAdo.Quobs.Core.Impl
 
       #region Methods
 
-      private readonly SmallCache<Type, BinderInfo>
-         _binderCache = new SmallCache<Type, BinderInfo>();
-
-      private readonly LRUCache<object, ISqlResource>
-         _subResourcesCache = new LRUCache<object, ISqlResource>("LRUCache.SubResource.Size", 25);
-
-      private readonly LRUCache<string, SqlGeneratorResult>
-         _compiledSqlCache = new LRUCache<string, SqlGeneratorResult>("LRUCache.CompiledSql.Size", 500,
-            StringComparer.OrdinalIgnoreCase);
-
-      private string
-         _sqlSelectTemplate;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, ColumnPartial>
-         _mappedColumns;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, string>
-         _mappedExpressions;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IList<TablePartial>
-         _tables;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private static readonly MethodInfo
-         IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
-
-      private ISqlResource
-         _countQuery;
-
-
-
-      public ISqlResource AsCountQuery()
-      {
-         if (_countQuery != null)
-         {
-            return _countQuery;
-         }
-
-         if (Select.Distinct && With != null)
-         {
-            throw new SqlParserException(
-               "Cannot build count query. DISTINCT must be moved to the CTE (must be moved inside the WITH part)");
-         }
-
-         var partials = _partials.Where(t => !(t is OrderByPartial)).ToList();
-
-         if (!Select.Distinct)
-         {
-            var selectIndex = partials.IndexOf(Select);
-            var countColumn = new ColumnPartial(new[] {"COUNT(*)"}, "c1", null, new ColumnMap("c1"), 0);
-            partials[selectIndex] = new SelectPartial(false, new[] {countColumn});
-         }
-         else
-         {
-            partials.Insert(0, new SqlPartial("SELECT COUNT(*) AS c1 FROM ("));
-            partials.Add(new SqlPartial(") AS __inner"));
-         }
-         return _countQuery = CreateMap(partials);
-      }
-
       public string BuildSqlSelect(object args)
       {
          return _templateFormatter.Format(SqlSelectTemplate, args);
       }
+      public string BuildSqlCount(object args)
+      {
+         return _templateFormatter.Format(SqlCountTemplate, args);
+      }
 
       public string SqlSelectTemplate
       {
-         get { return _sqlSelectTemplate ?? (_sqlSelectTemplate = _partials.ToTemplate()); }
+         get { return _sqlSelectTemplate ?? (_sqlSelectTemplate = _sqlBuilder.BuildSelect(this)); }
+      }
+      public string SqlCountTemplate
+      {
+         get { return _sqlCountTemplate ?? (_sqlCountTemplate = _sqlBuilder.BuildCount(this)); }
       }
 
       public override string ToString()

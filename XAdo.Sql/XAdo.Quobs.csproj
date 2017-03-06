@@ -45,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Impl\SqlBuilderImpl.cs" />
-    <Compile Include="Core\Impl\SqlTemplateFormatter.cs" />
+    <Compile Include="Core\Impl\TemplateFormatterFull.cs" />
     <Compile Include="Core\Impl\XAdoCommandFactoryImplEx.cs" />
     <Compile Include="Core\Interface\IAttachable.cs" />
     <Compile Include="Core\Interface\IFilterParser.cs" />
@@ -115,7 +115,7 @@
     <Compile Include="Core\Parser\Extensions.cs" />
     <Compile Include="Core\Impl\SqlResourceImpl.cs" />
     <Compile Include="Core\Impl\SqlSelectParserImpl.cs" />
-    <Compile Include="Core\Impl\TemplateFormatterImpl.cs" />
+    <Compile Include="Core\Impl\TemplateFormatterSingleImpl.cs" />
     <Compile Include="Core\Parser\SqlParserException.cs" />
     <Compile Include="Core\Impl\FilterParserImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

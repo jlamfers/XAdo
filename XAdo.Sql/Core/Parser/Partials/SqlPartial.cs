@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
@@ -21,5 +22,13 @@ namespace XAdo.Quobs.Core.Parser.Partials
          w.Write(Expression);
       }
 
+      public override string ToString()
+      {
+         using (var sw = new StringWriter())
+         {
+            Write(sw);
+            return sw.GetStringBuilder().ToString();
+         }
+      }
    }
 }

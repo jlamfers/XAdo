@@ -10,12 +10,17 @@ namespace XAdo.Quobs.Core
 {
    public class SqlPersistBuilder : ISqlBuilder
    {
-      public string BuildSelect(ISqlResource sqlResource, bool throwException = true)
+      public string BuildSelect(ISqlResource sqlResource)
       {
          throw new NotImplementedException();
       }
 
-      public string BuildUpdate(ISqlResource q, bool throwException = true)
+      public string BuildCount(ISqlResource sqlResource)
+      {
+         throw new NotImplementedException();
+      }
+
+      public string BuildUpdate(ISqlResource q)
       {
          var sb = new StringBuilder();
          var updateTables =
@@ -28,37 +33,33 @@ namespace XAdo.Quobs.Core
             sb.AppendLine(sep);
             if (q.Select.Columns.Any(c => c.Table==t && (c.Meta.IsPKey)))
             {
-               BuildUpdate(q, t, sb, throwException);
+               BuildUpdate(q, t, sb);
             }
             else
             {
-               BuildPartialUpdate(q,t,sb,throwException);
+               BuildPartialUpdate(q,t,sb);
             }
             sep = q.Dialect.StatementSeperator;
          }
          return sb.ToString();
       }
 
-      public string BuildDelete(ISqlResource q, bool throwException = true)
+      public string BuildDelete(ISqlResource q)
       {
          throw new System.NotImplementedException();
       }
 
-      public string BuildInsert(ISqlResource q, bool throwException = true)
+      public string BuildInsert(ISqlResource q)
       {
          throw new System.NotImplementedException();
       }
 
-      protected virtual void BuildUpdate(ISqlResource q, TablePartial t, StringBuilder sb, bool throwException)
+      protected virtual void BuildUpdate(ISqlResource q, TablePartial t, StringBuilder sb)
       {
             var keys = q.Select.Columns.Where(c => c.Table==t && (c.Meta.IsPKey)).ToList();
             if (!keys.Any())
             {
-               if (throwException)
-               {
-                  throw new QuobException("Cannot build sql update if no key columns are included");
-               }
-               return;
+               throw new QuobException("Cannot build sql update if no key columns are included");
             }
             var w = new StringWriter(sb);
             w.Write("UPDATE ");
@@ -88,7 +89,7 @@ namespace XAdo.Quobs.Core
             }
          }
 
-      protected virtual void BuildPartialUpdate(ISqlResource q, TablePartial t, StringBuilder sb, bool throwException)
+      protected virtual void BuildPartialUpdate(ISqlResource q, TablePartial t, StringBuilder sb)
       {
          if (t.Alias == null)
          {
@@ -99,11 +100,7 @@ namespace XAdo.Quobs.Core
 
          if (!keys.Any())
          {
-            if (throwException)
-            {
-               throw new QuobException("Cannot build sql update if no key columns are included");
-            }
-            return;
+            throw new QuobException("Cannot build sql update if no key columns are included");
          }
          var w = new StringWriter(sb);
          w.Write("UPDATE ");

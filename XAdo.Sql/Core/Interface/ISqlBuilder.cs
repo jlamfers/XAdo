@@ -2,9 +2,10 @@
 {
    public interface ISqlBuilder
    {
-      string BuildSelect(ISqlResource sqlResource, bool throwException = true);
-      string BuildUpdate(ISqlResource sqlResource, bool throwException = true);
-      string BuildDelete(ISqlResource sqlResource, bool throwException = true);
-      string BuildInsert(ISqlResource sqlResource, bool throwException = true);
+      string BuildSelect(ISqlResource sqlResource);
+      string BuildCount(ISqlResource sqlResource);
+      string BuildUpdate(ISqlResource sqlResource);
+      string BuildDelete(ISqlResource sqlResource);
+      string BuildInsert(ISqlResource sqlResource);
    }
 }
