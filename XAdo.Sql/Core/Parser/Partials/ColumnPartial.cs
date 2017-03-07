@@ -39,11 +39,11 @@ namespace XAdo.Quobs.Core.Parser.Partials
          var partsList = parts.ToList();
          if (Tag == null)
          {
-            var last = partsList.Last();
+            var last = partsList.Last().UnquotePartial();
             Tag = FindAnnotation(ref last);
             if (string.IsNullOrEmpty(Path))
             {
-               Path = last.Trim();
+               Path = last.UnquotePartial().Trim();
             }
             partsList[partsList.Count - 1] = last;
          }

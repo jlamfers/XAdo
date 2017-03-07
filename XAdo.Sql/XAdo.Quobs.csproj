@@ -30,10 +30,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -84,7 +80,7 @@
     <Compile Include="Core\Parser\Partials\WithPartial.cs" />
     <Compile Include="Core\Impl\SqlScannerImpl.cs" />
     <Compile Include="Core\SqlPersistBuilder.cs" />
-    <Compile Include="DbSessionExtensions.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Core\CollectionWithCountResult.cs" />
     <Compile Include="Core\MyReadOnlyCollection.cs" />
     <Compile Include="Core\Impl\SqlResourceRepositoryImpl.cs" />
@@ -122,11 +118,13 @@
     <Compile Include="Core\QuobSession.cs" />
     <Compile Include="Core\Impl\QuobImpl.cs" />
     <Compile Include="Core\Impl\QuobImpl`1.cs" />
-    <Compile Include="DbContext.cs" />
+    <Compile Include="QuobsContext.cs" />
     <Compile Include="Core\TemplateArgs.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\QuobException.cs" />
+    <Compile Include="Services\IRestfulApi.cs" />
+    <Compile Include="Services\RestfulApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Core\paging.sql.txt" />

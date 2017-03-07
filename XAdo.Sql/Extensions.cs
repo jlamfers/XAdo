@@ -5,7 +5,7 @@ using XAdo.Quobs.Core.Interface;
 
 namespace XAdo.Quobs
 {
-   public static class DbSessionExtensions
+   public static class Extensions
    {
       public static ISqlResource GetSqlResource(this IXAdoDbSession self, string sqlSelect, Type type = null)
       {

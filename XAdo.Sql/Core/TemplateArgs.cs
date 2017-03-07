@@ -33,7 +33,6 @@ namespace XAdo.Quobs.Core
             Skip = context.Dialect.ParameterFormat.FormatWith(context.SkipParameterName);
             Take = context.Dialect.ParameterFormat.FormatWith(context.TakeParameterName);
          }
-         Inner = context.Inner;
          return this;
       }
 
@@ -43,6 +42,5 @@ namespace XAdo.Quobs.Core
       public virtual string Order { get; set; }
       public virtual object Skip { get; set; }
       public virtual object Take { get; set; }
-      public virtual bool? Inner { get; set; }
-   }
+      }
 }

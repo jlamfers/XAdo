@@ -72,7 +72,7 @@ namespace XAdo.Quobs.Core.Impl
       public new IEnumerable<TEntity> ToEnumerable()
       {
          var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
-         return Context.Session.Query(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments(), false);
+         return Context.DbSession.Query(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments(), false);
       }
 
       public new IEnumerable<TEntity> ToEnumerable(out int count)
@@ -83,7 +83,7 @@ namespace XAdo.Quobs.Core.Impl
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
             SqlResource.GetBinder<TEntity>()
          };
-         var reader = Context.Session.QueryMultiple(sql, binders, Context.GetArguments());
+         var reader = Context.DbSession.QueryMultiple(sql, binders, Context.GetArguments());
          count = reader.Read<int>().Single();
          return reader.Read<TEntity>(false);
       }
@@ -126,7 +126,7 @@ namespace XAdo.Quobs.Core.Impl
       public async new Task<List<TEntity>> FetchAsync()
       {
          var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
-         return await Context.Session.QueryAsync(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments());
+         return await Context.DbSession.QueryAsync(sql, SqlResource.GetBinder<TEntity>(), Context.GetArguments());
       }
 
       public new async Task<CollectionWithCountResult<TEntity>> FetchWithCountAsync()
@@ -137,7 +137,7 @@ namespace XAdo.Quobs.Core.Impl
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
             SqlResource.GetBinder<TEntity>()
          };
-         var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
+         var reader = await Context.DbSession.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
          var collection = await reader.ReadAsync<TEntity>();
          return new CollectionWithCountResult<TEntity>

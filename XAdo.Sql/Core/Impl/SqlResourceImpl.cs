@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -576,7 +575,7 @@ namespace XAdo.Quobs.Core.Impl
             else
             {
                var expression = _filterParser.Parse(columnName, mappedType, typeof (object));
-               sb.Append(BuildSql(expression));
+               sb.Append(BuildSql(expression).Sql);
             }
             if (desc)
             {

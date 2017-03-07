@@ -126,7 +126,7 @@ namespace XAdo.Quobs.Core.Impl
       public virtual IEnumerable<object> ToEnumerable()
       {
          var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
-         return Context.Session.Query(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments(), false);
+         return Context.DbSession.Query(sql, SqlResource.GetBinder(Context.DbSession), Context.GetArguments(), false);
       }
       public virtual IEnumerable<object> ToEnumerable(out int count)
       {
@@ -134,9 +134,9 @@ namespace XAdo.Quobs.Core.Impl
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            SqlResource.GetBinder(Context.Session)
+            SqlResource.GetBinder(Context.DbSession)
          };
-         var reader = Context.Session.QueryMultiple(sql, binders, Context.GetArguments());
+         var reader = Context.DbSession.QueryMultiple(sql, binders, Context.GetArguments());
          count = reader.Read<int>().Single();
          return reader.Read<object>(false);
       }
@@ -172,19 +172,19 @@ namespace XAdo.Quobs.Core.Impl
       public virtual int TotalCount()
       {
          var sql = SqlResource.BuildSqlCount(Context.GetSqlTemplateArgs());
-         return Context.Session.Query(sql, r => r.GetInt32(0), Context.GetArguments()).Single();
+         return Context.DbSession.Query(sql, r => r.GetInt32(0), Context.GetArguments()).Single();
       }
 
       public virtual bool Exists()
       {
          var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.BuildSqlCount(Context.GetSqlTemplateArgs()));
-         return Context.Session.Query(sql, r => r.GetBoolean(0), Context.GetArguments()).Single();
+         return Context.DbSession.Query(sql, r => r.GetBoolean(0), Context.GetArguments()).Single();
       }
 
       public virtual async Task<List<object>> FetchAsync()
       {
          var sql = SqlResource.BuildSqlSelect(Context.GetSqlTemplateArgs());
-         return await Context.Session.QueryAsync(sql, SqlResource.GetBinder(Context.Session), Context.GetArguments());
+         return await Context.DbSession.QueryAsync(sql, SqlResource.GetBinder(Context.DbSession), Context.GetArguments());
       }
 
       public virtual async Task<CollectionWithCountResult<object>> FetchWithCountAsync()
@@ -193,9 +193,9 @@ namespace XAdo.Quobs.Core.Impl
          var binders = new List<Delegate>
          {
             new Func<IDataRecord, int>(r => r.GetInt32(0)), 
-            SqlResource.GetBinder(Context.Session)
+            SqlResource.GetBinder(Context.DbSession)
          };
-         var reader = await Context.Session.QueryMultipleAsync(sql, binders, Context.GetArguments());
+         var reader = await Context.DbSession.QueryMultipleAsync(sql, binders, Context.GetArguments());
          var count = (await reader.ReadAsync<int>()).Single();
          var collection = await reader.ReadAsync();
          return new CollectionWithCountResult<object>
@@ -208,18 +208,18 @@ namespace XAdo.Quobs.Core.Impl
       public virtual async Task<int> TotalCountAsync()
       {
          var sql = SqlResource.BuildSqlCount(Context.GetSqlTemplateArgs());
-         return (await Context.Session.QueryAsync(sql, r => r.GetInt32(0), Context.GetArguments())).Single();
+         return (await Context.DbSession.QueryAsync(sql, r => r.GetInt32(0), Context.GetArguments())).Single();
       }
 
       public virtual async Task<bool> ExistsAsync()
       {
          var sql = string.Format(SqlResource.Dialect.ExistsFormat, SqlResource.BuildSqlCount(Context.GetSqlTemplateArgs()));
-         return (await Context.Session.QueryAsync(sql, r => r.GetBoolean(0), Context.GetArguments())).Single();
+         return (await Context.DbSession.QueryAsync(sql, r => r.GetBoolean(0), Context.GetArguments())).Single();
       }
 
       public virtual IQuob Select(string expression)
       {
-         return SelfOrNew(Context.Clone(), SqlResource.Map(expression, SqlResource.GetEntityType(Context.Session)));
+         return SelfOrNew(Context.Clone(), SqlResource.Map(expression, SqlResource.GetEntityType(Context.DbSession)));
       }
 
       public virtual IQuob Select(LambdaExpression expression)
@@ -229,7 +229,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IQuob Attach(IXAdoDbSession session)
       {
-         var clone = SelfOrNew(new QuobSession(SqlResource.Dialect) { Session = session });
+         var clone = SelfOrNew(new QuobSession(SqlResource.Dialect) { DbSession = session });
          clone.SqlResource.GetBinder(session);
          return clone;
       }

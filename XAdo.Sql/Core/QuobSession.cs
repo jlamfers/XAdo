@@ -35,8 +35,8 @@ namespace XAdo.Quobs.Core
       public IList<string> Order { get; private set; }
       public int? Skip { get; set; }
       public int? Take { get; set; }
-      public IXAdoDbSession Session { get; set; }
-      public bool? Inner { get; set; }
+
+      public IXAdoDbSession DbSession { get; set; }
 
       public virtual IDictionary<string, object> GetArguments()
       {
@@ -55,23 +55,19 @@ namespace XAdo.Quobs.Core
       }
 
 
-      public virtual QuobSession Clone(bool forInnerQuery = false)
+      public virtual QuobSession Clone()
       {
          var clone = new QuobSession(Dialect)
          {
             WhereClauses = WhereClauses.ToList(),
             HavingClauses = HavingClauses.ToList(),
-            Session = Session,
+            DbSession = DbSession,
             Arguments = Arguments.ToDictionary(x => x.Key, x => x.Value),
-            Inner = forInnerQuery ? (bool?)true : null,
-            Group = Group.ToList()
+            Group = Group.ToList(),
+            Skip = Skip,
+            Take = Take,
+            Order = Order.ToList()
          };
-         if (!forInnerQuery)
-         {
-            clone.Skip = Skip;
-            clone.Take = Take;
-            clone.Order = Order.ToList();
-         }
          return clone;
          
       }

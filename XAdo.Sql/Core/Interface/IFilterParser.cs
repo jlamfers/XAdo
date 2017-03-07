@@ -9,6 +9,7 @@ namespace XAdo.Quobs.Core.Interface
    public interface IFilterParser
    {
       Expression Parse(string filter, Type inputType, Type resultType);
+      IList<KeyValuePair<string, string>> SplitQuery(string query);
       ICollection<char> ColumnSepChars { get; }
       ICollection<char> AliasSepChars { get; }
    }
@@ -82,6 +83,7 @@ namespace XAdo.Quobs.Core.Interface
          return result;
       }
 
+      //todo: remove Trim???
       private static string Trim(this StringBuilder self)
       {
          var expression = self.ToString();

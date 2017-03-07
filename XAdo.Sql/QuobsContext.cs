@@ -7,10 +7,10 @@ using XAdo.Quobs.Providers;
 
 namespace XAdo.Quobs
 {
-   public class DbContext : XAdoDbContext
+   public class QuobsContext : XAdoDbContext
    {
 
-      public DbContext(Action<IXAdoContextInitializer> initializer, IXAdoClassBinder customClassBinder = null)
+      public QuobsContext(Action<IXAdoContextInitializer> initializer, IXAdoClassBinder customClassBinder = null)
          : base(ctx => MyInitialize(ctx,initializer), customClassBinder)
       {
       }

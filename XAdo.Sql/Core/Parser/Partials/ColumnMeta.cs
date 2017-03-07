@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 using XAdo.Core;
 
 namespace XAdo.Quobs.Core.Parser.Partials
@@ -156,21 +156,21 @@ namespace XAdo.Quobs.Core.Parser.Partials
                      jsonData.Append(tag[i++]);
                   }
                   JsonData = jsonData.ToString();
-                  var jobj = JsonConvert.DeserializeObject<JsonAnnotation>(JsonData);
-                  if (jobj.maxLength != null)
-                  {
-                     MaxLength = jobj.maxLength.Value;
-                  }
-                  OnCreate = jobj.onCreate.GetValueOrDefault(PersistenceIOType.Default);
-                  OnUpdate = jobj.onUpdate.GetValueOrDefault(PersistenceIOType.Default);
-                  if (jobj.type != null)
-                  {
-                     Type type;
-                     if (_typeMap.TryGetValue(jobj.type, out type))
-                     {
-                        Type = type;
-                     }
-                  }
+                  //var jobj = JsonConvert.DeserializeObject<JsonAnnotation>(JsonData);
+                  //if (jobj.maxLength != null)
+                  //{
+                  //   MaxLength = jobj.maxLength.Value;
+                  //}
+                  //OnCreate = jobj.onCreate.GetValueOrDefault(PersistenceIOType.Default);
+                  //OnUpdate = jobj.onUpdate.GetValueOrDefault(PersistenceIOType.Default);
+                  //if (jobj.type != null)
+                  //{
+                  //   Type type;
+                  //   if (_typeMap.TryGetValue(jobj.type, out type))
+                  //   {
+                  //      Type = type;
+                  //   }
+                  //}
 
                   break;
                case Constants.Syntax.Chars.PRIMARY_KEY:
