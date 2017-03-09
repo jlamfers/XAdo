@@ -184,7 +184,7 @@ namespace XAdo.Quobs.Core.Impl
 
       #endregion
 
-      private IFilterParser 
+      private IUrlFilterParser 
          _filterParser;
 
       private ISqlPredicateGenerator 
@@ -208,7 +208,8 @@ namespace XAdo.Quobs.Core.Impl
 
       private string
          _sqlSelectTemplate,
-         _sqlCountTemplate;
+         _sqlTotalCountTemplate,
+         _sqlUpdateTemplate;
 
 
       #region Hidden fields
@@ -244,7 +245,7 @@ namespace XAdo.Quobs.Core.Impl
          _sqlBuilder = other._sqlBuilder;
 
          _sqlSelectTemplate = other._sqlSelectTemplate;
-         _sqlCountTemplate = other._sqlCountTemplate;
+         _sqlTotalCountTemplate = other._sqlTotalCountTemplate;
       }
 
       protected SqlResourceImpl()
@@ -252,7 +253,7 @@ namespace XAdo.Quobs.Core.Impl
 
       }
 
-      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
       {
          if (partials == null) throw new ArgumentNullException("partials");
          if (dialect == null) throw new ArgumentNullException("dialect");
@@ -352,22 +353,34 @@ namespace XAdo.Quobs.Core.Impl
 
       #region Methods
 
-      public string BuildSqlSelect(object args)
+      public string BuildSqlSelect(object templateArgs)
       {
-         return _templateFormatter.Format(SqlSelectTemplate, args);
+         return _templateFormatter.Format(SqlSelectTemplate, templateArgs);
       }
-      public string BuildSqlCount(object args)
+
+      public string BuildSqlUpdate(object templateArgs)
       {
-         return _templateFormatter.Format(SqlCountTemplate, args);
+         return _templateFormatter.Format(SqlUpdateTemplate, templateArgs);
+      }
+
+      public string BuildSqlCount(object templateArgs)
+      {
+         return _templateFormatter.Format(SqlCountTemplate, templateArgs);
       }
 
       public string SqlSelectTemplate
       {
          get { return _sqlSelectTemplate ?? (_sqlSelectTemplate = _sqlBuilder.BuildSelect(this)); }
       }
+
+      public string SqlUpdateTemplate
+      {
+         get { return _sqlUpdateTemplate ?? (_sqlUpdateTemplate = _sqlBuilder.BuildUpdate(this)); }
+      }
+
       public string SqlCountTemplate
       {
-         get { return _sqlCountTemplate ?? (_sqlCountTemplate = _sqlBuilder.BuildCount(this)); }
+         get { return _sqlTotalCountTemplate ?? (_sqlTotalCountTemplate = _sqlBuilder.BuildTotalCount(this)); }
       }
 
       public override string ToString()
@@ -417,7 +430,7 @@ namespace XAdo.Quobs.Core.Impl
 
             var partials = Partials.ToList();
             index = partials.IndexOf(Select);
-            partials[index] = new SelectPartial(Select.Distinct, mappedColumns);
+            partials[index] = new SelectPartial(Select.Distinct, mappedColumns,Select.MaxRows,Select.WriteColumnsOnly);
             var resultMap = (SqlResourceImpl) CreateMap(partials);
             resultMap._binderCache.GetOrAdd(toType, z => new BinderInfo
             {
@@ -454,8 +467,8 @@ namespace XAdo.Quobs.Core.Impl
                }
                else
                {
-                  var expression = _filterParser.Parse(col.Item1, entityType, typeof (object));
-                  var result = BuildSql(expression, null);
+                  var expression = _filterParser.ParseExpression(col.Item1, entityType, typeof (object));
+                  var result = BuildSql(expression, null,true);
                   var lparenIndex = result.Sql.IndexOf('(');
                   if (lparenIndex != -1 && Dialect.GetAggregates().Contains(result.Sql.Substring(0, lparenIndex)))
                   {
@@ -463,12 +476,12 @@ namespace XAdo.Quobs.Core.Impl
                   }
                   var alias = !string.IsNullOrEmpty(col.Item2) ? col.Item2 : "xado_expr_" + columns.Count;
                   // MUST be read only
-                  columns.Add(new ColumnPartial(new[] {col.Item1}, alias, null, new ColumnMap(alias), columns.Count));
+                  columns.Add(new ColumnPartial(new[] {result.Sql}, alias, null, new ColumnMap(alias), columns.Count));
                }
             }
             var partials = Partials.ToList();
-            partials[Partials.IndexOf(Select)] = new SelectPartial(Select.Distinct, columns.ToList());
-            if (needGrouping)
+            partials[Partials.IndexOf(Select)] = new SelectPartial(Select.Distinct, columns.ToList(),Select.MaxRows,Select.WriteColumnsOnly);
+            if (needGrouping && nonAggregateColumns.Any())
             {
                // because of aggregates
                var groupColumns = nonAggregateColumns;
@@ -523,10 +536,10 @@ namespace XAdo.Quobs.Core.Impl
          }
       }
 
-      public SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null)
+      public SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null, bool parametersAsLiterals = false)
       {
-         var result = _compiledSqlCache.GetOrAdd(expression.GetKey(),
-            x => _sqlPredicateGenerator.Generate(expression, MappedExpressions, null));
+         var result = _compiledSqlCache.GetOrAdd(expression.GetKey() + parametersAsLiterals,
+            x => _sqlPredicateGenerator.Generate(expression, MappedExpressions, parametersAsLiterals, null));
          if (arguments != null)
          {
             arguments.AddRange(result.Arguments);
@@ -540,8 +553,8 @@ namespace XAdo.Quobs.Core.Impl
       {
          var result = _compiledSqlCache.GetOrAdd(expression, x =>
          {
-            var expr = _filterParser.Parse(expression, mappedType ?? GetEntityType(null), typeof (bool));
-            return _sqlPredicateGenerator.Generate(expr, MappedExpressions, null);
+            var expr = _filterParser.ParseExpression(expression, mappedType ?? GetEntityType(null), typeof (bool));
+            return _sqlPredicateGenerator.Generate(expr, MappedExpressions, false, null);
          }
             );
          if (arguments != null)
@@ -574,8 +587,8 @@ namespace XAdo.Quobs.Core.Impl
             }
             else
             {
-               var expression = _filterParser.Parse(columnName, mappedType, typeof (object));
-               sb.Append(BuildSql(expression).Sql);
+               var expression = _filterParser.ParseExpression(columnName, mappedType, typeof (object));
+               sb.Append(BuildSql(expression,null,true).Sql);
             }
             if (desc)
             {

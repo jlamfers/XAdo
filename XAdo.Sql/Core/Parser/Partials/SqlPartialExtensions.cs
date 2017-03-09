@@ -7,7 +7,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
 {
    public static class SqlPartialExtensions
    {
-      internal static IList<SqlPartial> Clone(this IList<SqlPartial> self)
+      internal static List<SqlPartial> Clone(this IList<SqlPartial> self)
       {
          return self.Select(c => c.CloneOrElseSelf()).ToList();
       }
@@ -33,42 +33,86 @@ namespace XAdo.Quobs.Core.Parser.Partials
             }
             if (p is JoinPartial)
             {
-               result.Add(p);
-               tables.Add(p.CastTo<JoinPartial>().RighTable);
+               var jp = p.CastTo<JoinPartial>();
+               tables.Add(jp.RighTable);
+               var cols1 = jp.EquiJoinColumns.Select(c => selectColumns.SingleOrDefault(c2 => c2.SameColumn(c.Item1)) ?? otherColumns.SingleOrDefault(c2 => c2.SameColumn(c.Item1)) ?? c.Item1).ToList();
+               var cols2 = jp.EquiJoinColumns.Select(c => selectColumns.SingleOrDefault(c2 => c2.SameColumn(c.Item2)) ?? otherColumns.SingleOrDefault(c2 => c2.SameColumn(c.Item2)) ?? c.Item2).ToList();
+               otherColumns.AddRange(cols1.Where(c => !selectColumns.Contains(c) && !otherColumns.Contains(c)));
+               otherColumns.AddRange(cols2.Where(c => !selectColumns.Contains(c) && !otherColumns.Contains(c)));
+               var tuples = new List<Tuple<ColumnPartial, ColumnPartial>>();
+               for(var n = 0; n < cols1.Count; n++)
+               {
+                  tuples.Add(Tuple.Create(cols1[n], cols2[n]));
+               }
+               result.Add(new JoinPartial(jp.Expression,jp.JoinType,jp.RighTable,tuples));
                continue;
             }
             if (p is OrderByPartial)
             {
                var order = p.CastTo<OrderByPartial>();
-               var cols = order.Columns.Select(c => new OrderColumnPartial(selectColumns.SingleOrDefault(c2 => c2.SameColumn(c.Column)) ?? c.Column,c.Descending)).ToList();
-               otherColumns.AddRange(cols.Select(c => c.Column).Where(c => !selectColumns.Contains(c)));
+               var cols = order.Columns.Select(c => new OrderColumnPartial(selectColumns.SingleOrDefault(c2 => c2.SameColumn(c.Column)) ?? otherColumns.SingleOrDefault(c2 => c2.SameColumn(c.Column)) ?? c.Column, c.Descending)).ToList();
+               otherColumns.AddRange(cols.Select(c => c.Column).Where(c => !selectColumns.Contains(c) && !otherColumns.Contains(c)));
                result.Add(new OrderByPartial(cols,order.Expression));
                continue;
             }
             if (p is GroupByPartial)
             {
                var group = p.CastTo<GroupByPartial>();
-               var cols = group.Columns.Select(c =>selectColumns.SingleOrDefault(c2 => c2.SameColumn(c)) ?? c).ToList();
-               otherColumns.AddRange(cols.Where(c => !selectColumns.Contains(c)));
+               var cols = group.Columns.Select(c => selectColumns.SingleOrDefault(c2 => c2.SameColumn(c)) ?? otherColumns.SingleOrDefault(c2 => c2.SameColumn(c)) ?? c).ToList();
+               otherColumns.AddRange(cols.Where(c => !selectColumns.Contains(c) && !otherColumns.Contains(c)));
                result.Add(new GroupByPartial(cols, group.Expression));
                continue;
             }
             result.Add(p);
          }
-         foreach (var t in tables)
+
+
+         selectColumns.AddRange(otherColumns);
+         if (tables.Count == 1)
+         {
+            tables[0].AttchColumns(selectColumns.Where(c => !c.IsCalculated));
+         }
+         else foreach (var t in tables)
          {
             // do not try to attach columns from additional order expressions
             t.AttchOwnedColumns(selectColumns);
          }
-         foreach (var c in otherColumns)
+
+         //foreach (var c in otherColumns)
+         //{
+         //   if (tables.Count == 1)
+         //   {
+         //      if (!c.IsCalculated)
+         //      {
+         //         c.SetTable(tables[0]);
+         //      }
+         //   }
+         //   else foreach (var t in tables)
+         //   {
+         //      if (t.IsColumnOwnerOf(c))
+         //      {
+         //         // table now is set
+         //         break;
+         //      }
+         //   }
+         //}
+
+         // ensure all tables are aliased
+         string[] tableAliases = null;
+         var i = 1;
+         const string aliasPrefix = "t";
+         foreach (var table in tables)
          {
-            foreach (var t in tables)
+            // ensure that all tables are aliased
+            if (string.IsNullOrEmpty(table.Alias))
             {
-               if (t.IsColumnOwnerOf(c))
+               tableAliases = tableAliases ?? tables.Select(t => t.Alias).Where(a => a != null).ToArray();
+               var alias = aliasPrefix + (i++);
+               while (tableAliases.Contains(alias))
                {
-                  // table now is set
-                  break;
+                  alias = aliasPrefix + (i++);
                }
+               table.SetAlias(alias);
             }
          }
          return result;
@@ -132,6 +176,7 @@ HAVING {having}
       {
          public const string
             SELECT = "@SELECT",
+            SELECT_COLUMNS = "@SELECT_COLUMNS",
             FROM = "@FROM",
             WHERE = "@WHERE",
             GROUP_BY = "@GROUP_BY",
@@ -139,11 +184,11 @@ HAVING {having}
             ORDER_BY = "@ORDER_BY";
       }
 
-      private static readonly HashSet<string> _markers = new HashSet<string>(new[] { Markers.SELECT, Markers.FROM, Markers.WHERE, Markers.GROUP_BY, Markers.HAVING, Markers.ORDER_BY });
+      private static readonly HashSet<string> _markers = new HashSet<string>(new[] { Markers.SELECT, Markers.SELECT_COLUMNS, Markers.FROM, Markers.WHERE, Markers.GROUP_BY, Markers.HAVING, Markers.ORDER_BY });
       private static readonly Dictionary<Type, string> _typeMarkers = new Dictionary<Type, string>
       {
          {typeof(SelectPartial),Markers.SELECT},
-         {typeof(TablePartial), Markers.FROM},
+         {typeof(FromTablePartial), Markers.FROM},
          {typeof(JoinPartial),Markers.FROM},
          {typeof(WherePartial),Markers.WHERE},
          {typeof(GroupByPartial),Markers.GROUP_BY},
@@ -159,7 +204,7 @@ HAVING {having}
             .Where(s => s.Length > 0)
             .ToArray();
 
-         var partials = self.ToList();
+         var partials = self.ToList();//.Clone();
          SqlPartial partial = null;
          var includeOrderBy = false;
          var markerLookup = new Dictionary<string, int>();
@@ -171,10 +216,15 @@ HAVING {having}
             if (_typeMarkers.TryGetValue(p.GetType(), out marker))
             {
                markerLookup[marker] = idx;
+               if (marker == Markers.SELECT)
+               {
+                  markerLookup[Markers.SELECT_COLUMNS] = idx;
+               }
             }
          }
          var index = 0;
          var addedCount = 0;
+         var columnsOnly = false;
          foreach (var p in parts)
          {
             var upperP = p.ToUpper();
@@ -184,6 +234,11 @@ HAVING {having}
 
                includeOrderBy = includeOrderBy || upperP == Markers.ORDER_BY;
                // is it an ORDER_BY marker?
+
+               if (upperP == Markers.SELECT_COLUMNS)
+               {
+                  columnsOnly = true;
+               }
 
                if (markerLookup.TryGetValue(upperP, out idx))
                {
@@ -296,6 +351,15 @@ HAVING {having}
                partials.Remove(partial);
             }
          }
+         if (columnsOnly)
+         {
+            var sp = partials.OfType<SelectPartial>().SingleOrDefault();
+            if (sp != null)
+            {
+               sp.WriteColumnsOnly = true;
+            }
+         }
+
          return partials;
       }
 

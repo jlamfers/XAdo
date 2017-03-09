@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 // ReSharper disable StringCompareIsCultureSpecific.1
@@ -15,6 +16,7 @@ namespace XAdo.Quobs.Core.Expressions
              StartsWith = MemberInfoFinder.GetMethodInfo<string>(s => s.StartsWith("")),
              EndsWith = MemberInfoFinder.GetMethodInfo<string>(s => s.EndsWith("")),
              Contains = MemberInfoFinder.GetMethodInfo<string>(s => s.Contains("")),
+             Concat = MemberInfoFinder.GetMethodInfo(() => string.Concat("", "")),
              Compare = MemberInfoFinder.GetMethodInfo(() => string.Compare("", "")),
              CompareTo = MemberInfoFinder.GetMethodInfo<string>(s => s.CompareTo("")),
              Equals = MemberInfoFinder.GetMethodInfo<string>(s => s.Equals("")),

@@ -17,7 +17,7 @@ namespace XAdo.Quobs.Core.Impl
       {
          
       }
-      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IFilterParser urlParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser urlParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
          : base(partials, dialect, urlParser, sqlPredicateGenerator, templateFormatter, sqlBuilder)
       {
           }

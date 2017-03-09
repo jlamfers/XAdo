@@ -15,7 +15,7 @@ namespace XAdo.Quobs.Core
          throw new NotImplementedException();
       }
 
-      public string BuildCount(ISqlResource sqlResource)
+      public string BuildTotalCount(ISqlResource sqlResource)
       {
          throw new NotImplementedException();
       }

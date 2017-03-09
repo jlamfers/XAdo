@@ -10,21 +10,53 @@ namespace XAdo.Quobs.Core.Parser.Partials
    {
       private SelectPartial() { }
 
-      public SelectPartial(bool distinct, IList<ColumnPartial> columns)
+      public SelectPartial(bool distinct, IList<ColumnPartial> columns, int? maxRows, bool writeColumnsOnly)
          : base("SELECT" + (distinct ? " DISTINCT" : "") )
       {
          Distinct = distinct;
          Columns = ConfigureMeta(columns);
+         MaxRows = maxRows;
+         WriteColumnsOnly = writeColumnsOnly;
       }
 
       public bool Distinct { get; private set; }
+      public bool WriteColumnsOnly { get; internal set; }
+      public int? MaxRows { get; internal set; }
       public IList<ColumnPartial> Columns { get; private set; }
 
       public override void Write(TextWriter w)
       {
+         if (WriteColumnsOnly)
+         {
+            WriteColumns(w);
+         }
+         else
+         {
+            WriteComplete(w);
+         }
+      }
+
+      public void WriteComplete(TextWriter w)
+      {
          w.Write("SELECT ");
-         if(Distinct) w.Write("DISTINCT ");
+         if (Distinct) w.Write("DISTINCT ");
+         if (MaxRows != null)
+         {
+            w.Write("TOP ");
+            w.Write(MaxRows + 1);
+         }
          w.WriteLine();
+         var comma = "";
+         foreach (var c in Columns)
+         {
+            w.WriteLine(comma);
+            w.Write("   ");
+            c.Write(w);
+            comma = ",";
+         }
+      }
+      public void WriteColumns(TextWriter w)
+      {
          var comma = "";
          foreach (var c in Columns)
          {
@@ -41,7 +73,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       }
       public SelectPartial Clone()
       {
-         return new SelectPartial{Columns = Columns.Select(c => c.Clone()).ToList().AsReadOnly(), Distinct = Distinct, Expression = Expression};
+         return new SelectPartial{Columns = Columns.Select(c => c.Clone()).ToList().AsReadOnly(), Distinct = Distinct, Expression = Expression, MaxRows = MaxRows, WriteColumnsOnly = WriteColumnsOnly};
       }
 
       private IList<ColumnPartial> ConfigureMeta(IList<ColumnPartial> columns)
@@ -121,7 +153,13 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       }
 
-
+      public override string ToString()
+      {
+         using (var sw = new StringWriter())
+         {
+            WriteComplete(sw);
+            return sw.GetStringBuilder().ToString();
+         }
+      }
    }
-
 }

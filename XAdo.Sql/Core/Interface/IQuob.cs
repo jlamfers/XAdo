@@ -75,5 +75,7 @@ namespace XAdo.Quobs.Core.Interface
 
       IQuob Select(string expression);
       IQuob Select(LambdaExpression expression);
+
+      ISqlResource SqlResource { get; }
    }
 }

@@ -19,7 +19,7 @@ namespace XAdo.Quobs
       {
          context
             .BindSingleton<IXAdoCommandFactory, XAdoCommandFactoryImplEx>()
-            .BindSingleton<IFilterParser, FilterParserImpl>()
+            .BindSingleton<IUrlFilterParser, UrlFilterParserImpl>()
             .BindSingleton<ISqlDialect, SqlServerDialect>()
             .BindSingleton<ISqlResourceRepository, SqlResourceRepositoryImpl>()
             .BindSingleton(typeof (IQuob<>), typeof (QuobImpl<>))

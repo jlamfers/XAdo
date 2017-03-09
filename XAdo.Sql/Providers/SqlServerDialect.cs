@@ -36,8 +36,13 @@ OFFSET {skip} ROWS FETCH NEXT {take} ROWS ONLY
          {
             return @"
 {?take}{!order}raiserror ('no order specified', 16, 10);
-{?take}SELECT * FROM (
-@SELECT
+{?take}SELECT 
+{?take}TOP({top}+1)
+{?take} * FROM (
+SELECT 
+{!take}TOP({top}+1)
+{distinct}DISTINCT
+@SELECT_COLUMNS
 {?take},ROW_NUMBER() OVER (ORDER BY {order}) AS __rownum
 @FROM
 @WHERE
@@ -49,7 +54,7 @@ HAVING {having}
 //any @ORDER_BY from original sql is ignored
 {!take}ORDER BY {order}
 {?take}) AS __paged
-{?order}WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum
+WHERE __rowNum > {skip} AND __rowNum <= {skip}+{take} ORDER BY __rowNum
 ";
          }
       }

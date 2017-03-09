@@ -8,9 +8,9 @@ namespace XAdo.Quobs.Core
    public class QuobSession
    {
 
-      public QuobSession(ISqlDialect dialect)
+      public QuobSession(IQuob quob)
       {
-         Dialect = dialect;
+         Quob = quob;
          WhereClauses = new List<string>();
          HavingClauses = new List<string>();
          Arguments = new Dictionary<string, object>();
@@ -26,7 +26,7 @@ namespace XAdo.Quobs.Core
          get { return "__xado_take"; }
       }
 
-      public ISqlDialect Dialect { get; private set; }
+      public IQuob Quob { get; private set; }
 
       public List<string> WhereClauses { get; private set; }
       public IList<string> Group { get; private set; }
@@ -57,7 +57,7 @@ namespace XAdo.Quobs.Core
 
       public virtual QuobSession Clone()
       {
-         var clone = new QuobSession(Dialect)
+         var clone = new QuobSession(Quob)
          {
             WhereClauses = WhereClauses.ToList(),
             HavingClauses = HavingClauses.ToList(),

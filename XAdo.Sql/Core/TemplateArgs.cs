@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace XAdo.Quobs.Core
 {
@@ -30,9 +31,12 @@ namespace XAdo.Quobs.Core
          }
          if (context.Skip != null || context.Take != null)
          {
-            Skip = context.Dialect.ParameterFormat.FormatWith(context.SkipParameterName);
-            Take = context.Dialect.ParameterFormat.FormatWith(context.TakeParameterName);
+            var d = context.Quob.SqlResource.Dialect;
+            Skip = d.ParameterFormat.FormatWith(context.SkipParameterName);
+            Take = d.ParameterFormat.FormatWith(context.TakeParameterName);
          }
+         Distinct = context.Quob.SqlResource.Select.Distinct ? (bool?)true : null;
+         Top = context.Quob.SqlResource.Select.MaxRows;
          return this;
       }
 
@@ -42,5 +46,7 @@ namespace XAdo.Quobs.Core
       public virtual string Order { get; set; }
       public virtual object Skip { get; set; }
       public virtual object Take { get; set; }
-      }
+      public virtual bool? Distinct { get; set; }
+      public virtual int? Top { get; set; }
+   }
 }

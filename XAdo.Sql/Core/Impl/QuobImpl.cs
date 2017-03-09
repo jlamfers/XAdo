@@ -26,7 +26,7 @@ namespace XAdo.Quobs.Core.Impl
       }
 
       protected QuobSession Context { get; private set; }
-      protected ISqlResource SqlResource { get; private set; }
+      public ISqlResource SqlResource { get; private set; }
 
       protected virtual QuobImpl SelfOrNew(QuobSession context, ISqlResource sqlResource = null)
       {
@@ -36,7 +36,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IQuob Where(Expression expression)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          var compileResult = SqlResource.BuildSql(expression,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -44,7 +44,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IQuob Having(Expression expression)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          var compileResult = SqlResource.BuildSql(expression, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -52,7 +52,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public IQuob Where(string expression)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          var compileResult = SqlResource.BuildSqlPredicate(expression, null,context.Arguments);
          context.WhereClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -60,7 +60,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public IQuob Having(string expression)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          var compileResult = SqlResource.BuildSqlPredicate(expression, null, context.Arguments);
          context.HavingClauses.Add(compileResult.Sql);
          return SelfOrNew(context);
@@ -89,7 +89,7 @@ namespace XAdo.Quobs.Core.Impl
 
       private IQuob OrderBy(bool descending, bool reset, params Expression[] expressions)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          var sqlOrderExpression = SqlResource.BuildSqlOrderBy(descending,expressions);
          if (reset)
          {
@@ -101,22 +101,22 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IQuob Skip(int? skip)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          context.Skip = skip;
          return SelfOrNew(context);
       }
 
       public virtual IQuob Take(int? take)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
+         var context = Context ?? new QuobSession(this);
          context.Take = take;
          return SelfOrNew(context);
       }
 
       public virtual IQuob OrderBy(string expression)
       {
-         var context = Context ?? new QuobSession(SqlResource.Dialect);
-         var sqlOrderExpression = SqlResource.BuildSqlOrderBy(expression,null);
+         var context = Context ?? new QuobSession(this);
+         var sqlOrderExpression = SqlResource.BuildSqlOrderBy(expression, SqlResource.GetEntityType(context.DbSession));
          context.Order.Clear();
          context.Order.Add(sqlOrderExpression);
          return SelfOrNew(context);
@@ -229,7 +229,7 @@ namespace XAdo.Quobs.Core.Impl
 
       public virtual IQuob Attach(IXAdoDbSession session)
       {
-         var clone = SelfOrNew(new QuobSession(SqlResource.Dialect) { DbSession = session });
+         var clone = SelfOrNew(new QuobSession(this) { DbSession = session });
          clone.SqlResource.GetBinder(session);
          return clone;
       }

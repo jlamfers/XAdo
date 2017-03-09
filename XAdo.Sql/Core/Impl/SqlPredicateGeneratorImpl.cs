@@ -33,8 +33,6 @@ namespace XAdo.Quobs.Core.Impl
 
       private string _parameterPrefix;
 
-      private bool _noargs;
-
       private IDictionary<string,object> 
          _arguments;
 
@@ -47,21 +45,23 @@ namespace XAdo.Quobs.Core.Impl
       private Expression 
          _expression;
 
+      private bool
+         _parametersAsLiterals;
+
       protected SqlPredicateGeneratorImpl()
       {
          
       }
 
-      public SqlPredicateGeneratorImpl(ISqlDialect dialect, string parameterPrefix="p_", bool noargs = false)
+      public SqlPredicateGeneratorImpl(ISqlDialect dialect, string parameterPrefix="p_")
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          _dialect = dialect;
          _parameterPrefix = parameterPrefix;
-         _noargs = noargs;
          _dialect.EnsureAnnotated();
       }
 
-      public virtual SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, IDictionary<string, object> arguments = null)
+      public virtual SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, bool parametersAsLiterals, IDictionary<string, object> arguments = null)
       {
          var context = new SqlPredicateGeneratorImpl
          {
@@ -69,8 +69,8 @@ namespace XAdo.Quobs.Core.Impl
             _arguments = arguments ?? new Dictionary<string, object>(),
             _expression = expression,
             _dialect = _dialect,
-            _noargs = _noargs,
-            _parameterPrefix = _parameterPrefix
+            _parameterPrefix = _parameterPrefix,
+            _parametersAsLiterals = parametersAsLiterals
          };
          
          using (var writer = new StringWriter())
@@ -340,7 +340,7 @@ namespace XAdo.Quobs.Core.Impl
 
       protected virtual void HandleValue(object value, string name)
       {
-         if (_noargs)
+         if (_parametersAsLiterals)
          {
             _dialect.FormatValue(_writer, value);
          }

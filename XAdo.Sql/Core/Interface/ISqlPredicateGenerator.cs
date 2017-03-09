@@ -5,7 +5,7 @@ namespace XAdo.Quobs.Core.Interface
 {
    public interface ISqlPredicateGenerator
    {
-      SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, IDictionary<string, object> arguments = null);
+      SqlGeneratorResult Generate(Expression expression, IDictionary<string, string> fullnameToSqlExpressionMap, bool parametersAsLiterals, IDictionary<string, object> arguments = null);
    }
 
    public class SqlGeneratorResult

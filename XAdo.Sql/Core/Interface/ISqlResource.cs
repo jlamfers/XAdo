@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq.Expressions;
 using XAdo.Core.Interface;
 using XAdo.Quobs.Core.Parser.Partials;
@@ -11,15 +10,16 @@ namespace XAdo.Quobs.Core.Interface
    public interface ISqlResource
    {
       string BuildSqlSelect(object templateArgs);
+      string BuildSqlUpdate(object templateArgs);
       string BuildSqlCount(object templateArgs);
+
+      string SqlSelectTemplate { get; }
+      string SqlUpdateTemplate { get; }
+      string SqlCountTemplate { get; }
 
       IList<SqlPartial> Partials { get; }
       IDictionary<string, ColumnPartial> MappedColumns { get; }
       IList<TablePartial> Tables { get; }
-
-      string SqlSelectTemplate { get; }
-      string SqlCountTemplate { get; }
-
 
       WithPartial With { get; }
       SelectPartial Select { get; }
@@ -36,7 +36,7 @@ namespace XAdo.Quobs.Core.Interface
       ISqlResource Map(string selectExpression, Type mappedType);
       ISqlResource CreateMap(IList<SqlPartial> partials); //todo: add type, session????
 
-      SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null);
+      SqlGeneratorResult BuildSql(Expression expression, IDictionary<string, object> arguments = null, bool parametersAsLiterals = false);
       SqlGeneratorResult BuildSqlPredicate(string filterExpression, Type mappedType, IDictionary<string, object> arguments = null);
       string BuildSqlOrderBy(string orderExpression, Type mappedType);
 

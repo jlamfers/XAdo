@@ -162,6 +162,7 @@ namespace XAdo.Quobs.Core.Impl
       {
          var distinct = false;
          var selectChilds = new List<ColumnPartial>();
+         int? limit = null;
 
          SkipComments(scanner);
          if (scanner.NextIs(SQL.DISTINCT))
@@ -172,7 +173,8 @@ namespace XAdo.Quobs.Core.Impl
 
          if (scanner.NextIs(SQL.TOP))
          {
-            throw new SqlParserException(scanner.Source, scanner.Position, "TOP in select is not allowed, use paging instead");
+            SkipComments(scanner);
+            limit = scanner.ReadInt();
          }
 
          while (true)
@@ -204,7 +206,7 @@ namespace XAdo.Quobs.Core.Impl
                throw new SqlParserException(scanner.Source, scanner.Position, "'{0}' expected".FormatWith(SQL.FROM));
             }
 
-            return new SelectPartial(distinct, selectChilds);
+            return new SelectPartial(distinct, selectChilds,limit,false);
 
          }
 
@@ -234,7 +236,13 @@ namespace XAdo.Quobs.Core.Impl
                alias = ReadAlias(scanner,null);
                scanner.SkipSpaces();
             }
-            return new TablePartial(parts, alias);
+            string tag = null;
+            if (scanner.NextIs(SQL.TAG1) || scanner.NextIs(SQL.TAG2))
+            {
+               tag = ReadLineComment(scanner);
+               scanner.SkipSpaces();
+            }
+            return new TablePartial(parts, alias,tag);
          }
       }
       protected virtual JoinPartial ReadJoin(ISqlScanner scanner)
@@ -276,6 +284,16 @@ namespace XAdo.Quobs.Core.Impl
          var expression = new StringBuilder();
          while (!scanner.Eof() && !scanner.PeekAnyOf(SQL.INNER, SQL.LEFT, SQL.RIGHT, SQL.FULL, SQL.JOIN, SQL.WHERE, SQL.GROUP, SQL.ORDER, SQL.TEMPLATE1, SQL.TEMPLATE2))
          {
+            if (scanner.NextIs(SQL.TAG1) || scanner.NextIs(SQL.TAG2))
+            {
+               var tag = ReadLineComment(scanner);
+               table.Tag = tag;
+               scanner.NextChar();
+               scanner.NextChar();
+               expression.Append(" ");
+               continue;
+            }
+
             if (scanner.NextIs(SQL.LINECOMMENT))
             {
                ReadLineComment(scanner);
@@ -287,7 +305,45 @@ namespace XAdo.Quobs.Core.Impl
             ReadAnyPartial(scanner,expression);
          }
 
-         return new JoinPartial(expression.ToString(), joinType, table);
+         var expr = expression.ToString();
+         return new JoinPartial(expr, joinType, table, ReadEquiJoinColumns(expr));
+      }
+      protected virtual List<Tuple<ColumnPartial, ColumnPartial>> ReadEquiJoinColumns(string expression)
+      {
+         var result = new List<Tuple<ColumnPartial, ColumnPartial>>();
+         if (expression.IndexOfAny(new []{ '(',')'}) != -1)
+         {
+            // parentheses are not accepted (since these are not needed with conjunct equi joins)
+            return result;
+         }
+         var scanner = _scanner.Initialize(expression);
+         while (!scanner.Eof())
+         {
+            scanner.SkipSpaces();
+            var c1 = ReadColumn(scanner, false, false);
+            scanner.SkipSpaces();
+            if (!scanner.PeekAnyOf(SQL.EQUAL))
+            {
+               // only accepting equi joins 
+               result.Clear();
+               break;
+            }
+            scanner.NextChar();
+            scanner.SkipSpaces();
+            var c2 = ReadColumn(scanner, false, false);
+            result.Add(Tuple.Create(c1, c2));
+            if (scanner.PeekAnyOf(SQL.OR))
+            {
+               // only accepting conjunctions
+               result.Clear();
+               break;
+            }
+            if (!scanner.Eof())
+            {
+               scanner.Expect(SQL.AND);
+            }
+         }
+         return result;
       }
       protected virtual WherePartial ReadWhere(ISqlScanner scanner)
       {

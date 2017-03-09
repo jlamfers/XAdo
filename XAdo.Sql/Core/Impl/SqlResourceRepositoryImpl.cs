@@ -12,13 +12,13 @@ namespace XAdo.Quobs.Core.Impl
          SqlResourceCache = new LRUCache<object, SqlResourceImpl>("LRUCache.SqlResource.Size", 1000);
 
       private readonly ISqlDialect _dialect;
-      private readonly IFilterParser _filterParser;
+      private readonly IUrlFilterParser _filterParser;
       private readonly ISqlSelectParser _sqlSelectParser;
       private readonly ISqlPredicateGenerator _sqlPredicateGenerator;
       private readonly ITemplateFormatter _templateFormatter;
       private readonly ISqlBuilder _sqlBuilder;
 
-      public SqlResourceRepositoryImpl(ISqlDialect dialect, IFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResourceRepositoryImpl(ISqlDialect dialect, IUrlFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");

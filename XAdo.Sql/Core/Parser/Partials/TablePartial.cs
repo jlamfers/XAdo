@@ -8,9 +8,11 @@ namespace XAdo.Quobs.Core.Parser.Partials
    {
       private TablePartial() { }
 
-      public TablePartial(IList<string> parts, string alias)
+      public TablePartial(IList<string> parts, string alias, string tag)
          : base(string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR,parts))
       {
+         Tag = tag;
+
          RawAlias = alias;
          RawParts = parts.ToList().AsReadOnly();
 
@@ -18,6 +20,8 @@ namespace XAdo.Quobs.Core.Parser.Partials
          Parts = parts.Select(p => p.UnquotePartial()).ToList().AsReadOnly();
 
       }
+
+      public string Tag { get; internal set; }
 
       public string Schema
       {
@@ -48,6 +52,10 @@ namespace XAdo.Quobs.Core.Parser.Partials
       {
          Columns = columns.Where(IsColumnOwnerOf).ToList().AsReadOnly();
       }
+      internal void AttchColumns(IEnumerable<ColumnPartial> columns)
+      {
+         Columns = columns.ToList().AsReadOnly();
+      }
 
 
       object ICloneable.Clone()
@@ -58,7 +66,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public TablePartial Clone()
       {
          // columns are NOT cloned
-         return new TablePartial { Expression = Expression, Alias = Alias, Parts = Parts.ToList().AsReadOnly(), RawAlias = RawAlias, RawParts = RawParts.ToList().AsReadOnly()};
+         return new TablePartial { Expression = Expression, Alias = Alias, Parts = Parts.ToList().AsReadOnly(), RawAlias = RawAlias, RawParts = RawParts.ToList().AsReadOnly(), Tag = Tag};
       }
 
       internal bool SameTable(TablePartial other)

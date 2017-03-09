@@ -32,6 +32,7 @@ namespace XAdo.Quobs.Core
          //todo: enum/flag handling
          self.Annotate(KnownMembers.String.Length, self.StringLength);
          self.Annotate(KnownMembers.String.Contains, self.StringContains);
+         self.Annotate(KnownMembers.String.Concat, self.StringConcat);
          self.Annotate(KnownMembers.String.StartsWith, self.StringStartsWith);
          self.Annotate(KnownMembers.String.EndsWith, self.StringEndsWith);
          self.Annotate(KnownMembers.String.ToLower, self.StringToLower);

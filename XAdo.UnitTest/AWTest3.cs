@@ -9,6 +9,7 @@ using XAdo.Quobs.Core.Impl;
 using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser;
 using XAdo.Quobs.Core.Parser.Partials;
+using XAdo.Quobs.Providers;
 using XPression.Core;
 using Scanner = XAdo.Quobs.Core.Impl.SqlScannerImpl;
 
@@ -33,11 +34,11 @@ SELECT
    ,at.AddressTypeID -->AddressType/Id*
    ,at.Name -->!
    ,a.City -->../City!
-FROM Person.BusinessEntity AS be 
-INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
-INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
-INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
-INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
+FROM Person.BusinessEntity AS be -->@
+INNER JOIN Person.Person AS p ON @be.BusinessEntityID = p.BusinessEntityID 
+INNER JOIN Person.BusinessEntityAddress AS bea ON @be.BusinessEntityID = bea.BusinessEntityID 
+INNER JOIN Person.Address AS a ON bea.AddressID = @a.AddressID 
+INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = @at.AddressTypeID
 ";
    }
    [SqlSelect(Constants.SqlSelect)]
@@ -87,12 +88,15 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          sw.Stop();
          result.OfType<SelectPartial>().Single().Columns.First().Table.SetAlias("oops");
          Debug.WriteLine(sw.ElapsedMilliseconds);
+         var q = new SqlResourceImpl(result, new SqlServerDialect(), new UrlFilterParserImpl(),
+            new SqlPredicateGeneratorImpl(new SqlDialectImpl()), new TemplateFormatterFull(), new SqlBuilderImpl());
+
       }
 
       [Test]
       public async void MonkeyTest()
       {
-         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -113,7 +117,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest2()
       {
-         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW"));
 
          using (var sn = context.CreateSession())
          {
@@ -132,7 +136,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       [Test]
       public async void MonkeyTest3()
       {
-         var context = new DbContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW"));
 
          var persistBuilder = new SqlPersistBuilder();
 
