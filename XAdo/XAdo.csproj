@@ -48,6 +48,8 @@
     </Compile>
     <Compile Include="Core\Impl\XAdoClassBinderImpl.cs" />
     <Compile Include="Core\Interface\IXAdoContextInitializer.cs" />
+    <Compile Include="Core\Sorting\TopologicalSort.cs" />
+    <Compile Include="Core\Sorting\TopologicalSortNode.cs" />
     <Compile Include="Core\XAdoColumnMeta.cs" />
     <Compile Include="Core\Atomic.cs" />
     <Compile Include="Core\LRUCache.cs" />
@@ -71,6 +73,14 @@
     <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.Async.cs" />
     <Compile Include="Core\Impl\XAdoDataReaderManagerEmittedDynamicTypesImpl.cs" />
     <Compile Include="Core\Impl\XAdoConcreteTypeBuilderImpl.cs" />
+    <Compile Include="DbSchema\DbProviderInfo.cs" />
+    <Compile Include="DbSchema\DbColumnItem.cs" />
+    <Compile Include="DbSchema\DbFKeyItem.cs" />
+    <Compile Include="DbSchema\DbItem.cs" />
+    <Compile Include="DbSchema\DbSchema.cs" />
+    <Compile Include="DbSchema\DbSchemaReader.cs" />
+    <Compile Include="DbSchema\DbTableItem.cs" />
+    <Compile Include="DbSchema\Extensions.cs" />
     <Compile Include="XAdoDbContext.cs" />
     <Compile Include="Core\XAdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>

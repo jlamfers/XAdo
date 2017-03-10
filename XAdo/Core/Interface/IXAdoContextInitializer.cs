@@ -20,6 +20,8 @@ namespace XAdo.Core.Interface
       IXAdoContextInitializer BindSingleton(Type serviceType, Func<IXAdoClassBinder, object> factory);
       IXAdoContextInitializer SetItem(object key, object value);
       IXAdoContextInitializer SetSqlStatementSeperator(string seperator);
+      IXAdoContextInitializer OnInitialized(Action<XAdoDbContext> handler);
+      bool CanResolve(Type serviceType);
    }
 
    public static partial class Extensions

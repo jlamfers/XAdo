@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using XAdo.DbSchema;
 using XAdo.Quobs;
 using XAdo.Quobs.Core;
 using XAdo.Quobs.Core.Impl;
@@ -94,12 +96,32 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = @at.AddressTypeID
       }
 
       [Test]
-      public async void MonkeyTest()
+      public void MonkeyTest()
       {
-         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobsContext(cfg => cfg
+            .SetConnectionStringName("AW")
+            .EnableDbSchema()
+         );
 
          using (var sn = context.CreateSession())
          {
+            var schema = sn.GetDbSchema();
+
+            var sorted = schema.Tables.SortDeleteOrder();
+           
+
+            var copy = sorted.ToList();
+            foreach (var t in sorted)
+            {
+               var childs = t.ChildTables;
+               var result = childs.Any(c => c != t && copy.Contains(c));
+               if (result)
+               {
+                  throw new Exception("expected false");
+               }
+               copy.Remove(t);
+            }
+
             var persons = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).Fetch();
             var count = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).TotalCount();
 
@@ -192,6 +214,58 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = @at.AddressTypeID
       {
          var m = new ColumnMeta();
          m.InitializeByTag("* {'onupdate':'input','type':'decimal','maxlength':10}",false);
+      }
+
+      [Test]
+      public void SortTest()
+      {
+         var context = new QuobsContext(cfg => cfg
+            .SetConnectionStringName("AW")
+            .EnableDbSchema()
+         );
+         DbSchema.DbSchema schema;
+         using (var sn = context.CreateSession())
+         {
+            schema = sn.GetDbSchema();
+         }
+
+         var sorted = schema.Tables.SortDeleteOrder();
+
+         var copy = sorted.ToList();
+         foreach (var t in sorted)
+         {
+            var childs = t.ChildTables;
+            var result = childs.Any(c => c != t && copy.Contains(c));
+            if (result)
+            {
+               throw new Exception("expected false");
+            }
+            copy.Remove(t);
+         }
+
+         sorted = schema.Tables.SortInsertOrder();
+
+         copy = new List<DbTableItem>();
+         foreach (var t in sorted)
+         {
+            var childs = t.Columns.Where(c => c.References != null && c.References.Table!=t).Select(c => c.References.Table).ToList();
+            var result = childs.All(c => copy.Contains(c));
+            if (!result)
+            {
+               throw new Exception("expected false");
+            }
+            copy.Add(t);
+         }
+
+         
+         var sw = new Stopwatch();
+         sw.Start();
+         for (var i = 0; i < 1000; i++)
+         {
+            schema.Tables.SortDeleteOrder();
+         }
+         sw.Stop();
+         Debug.WriteLine(sw.ElapsedMilliseconds);
       }
    }
 }

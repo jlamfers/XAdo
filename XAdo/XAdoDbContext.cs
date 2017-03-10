@@ -35,6 +35,7 @@ namespace XAdo
       private class ContextInitializer : IXAdoContextInitializer
       {
          private readonly XAdoDbContext _context;
+         private readonly IList<Action<XAdoDbContext>> _initializeCompletedHandlers = new List<Action<XAdoDbContext>>();
 
          public ContextInitializer(XAdoDbContext context)
          {
@@ -152,11 +153,30 @@ namespace XAdo
             return this;
          }
 
+         public IXAdoContextInitializer OnInitialized(Action<XAdoDbContext> handler)
+         {
+            _initializeCompletedHandlers.Add(handler);
+            return this;
+         }
+
+         public bool CanResolve(Type serviceType)
+         {
+            return _context._binder.CanResolve(serviceType);
+         }
+
          public IXAdoContextInitializer Bind(Type serviceType, Func<IXAdoClassBinder, object> factory)
          {
             if (factory == null) throw new ArgumentNullException("factory");
             _context._binder.Bind(serviceType, factory);
             return this;
+         }
+
+         public void Initialized(XAdoDbContext context)
+         {
+            foreach (var handler in _initializeCompletedHandlers)
+            {
+               handler(context);
+            }
          }
       }
 
@@ -165,13 +185,13 @@ namespace XAdo
          Items = new Dictionary<object, object>();
          if (connectionStringName == null) throw new ArgumentNullException("connectionStringName");
          ConnectionStringName = connectionStringName;
-         Initialize(null);
          var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
          if (cs != null)
          {
             ConnectionString = cs.ConnectionString;
             ProviderName = cs.ProviderName;
          }
+         Initialize(null);
 
       }
 
@@ -241,6 +261,9 @@ namespace XAdo
          AdoParamHelper = _binder.Get<IXAdoParamHelper>();
 
          Items = new ReadOnlyDictionary<object, object>(Items);
+
+         contextInitializer.Initialized(this);
+
       }
 
       private void TryBindSingleton<TService, TImpl>() where TImpl : TService
