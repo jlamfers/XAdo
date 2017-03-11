@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 //using Newtonsoft.Json;
 using XAdo.Core;
+using XAdo.DbSchema;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
@@ -231,12 +232,25 @@ namespace XAdo.Quobs.Core.Parser.Partials
          _maxLength = _maxLength ?? meta.MaxLength;
          _isUnique = _isUnique ?? meta.Unique;
       }
+
+      internal void InitializeByDbColumn(DbColumnItem column)
+      {
+         DbColumn = column;
+         if (column == null) return;
+         _isNotNull = _isNotNull ?? !column.IsNullable;
+         _isPKey = _isPKey ?? column.IsPkey;
+         //_isReadOnly = _isReadOnly ?? column.;
+         Type = Type ?? (column.IsNullable ? column.Type.EnsureNullable() : column.Type);
+         _isAutoIncrement = _isAutoIncrement ?? column.IsAutoIncrement;
+         _maxLength = _maxLength ?? column.MaxLength;
+         _isUnique = _isUnique ?? column.IsUnique;
+      }
       internal void SetReadOnly(bool value)
       {
          IsReadOnly = value;
       }
 
-
+      public DbColumnItem DbColumn { get; private set; }
       public override string ToString()
       {
          var sb = new StringBuilder();
@@ -272,6 +286,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
             _isAutoIncrement = _isAutoIncrement,
             _isNotNull = _isNotNull,
             _onCreateIO = _onCreateIO,
+            DbColumn = DbColumn,
 
             IsCalculated = IsCalculated,
             Type = Type,

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace XAdo.Core.Sorting
+namespace XAdo.Core
 {
    /// <summary>
    /// https://en.wikipedia.org/wiki/Topological_sorting
@@ -10,33 +10,43 @@ namespace XAdo.Core.Sorting
    /// http://tawani.blogspot.nl/2009/02/topological-sorting-and-cyclic.html
    /// 
    /// to be used for determining delete order/insert order
+   /// NOTE: I tried other simpler implementations, unfortunately all of these did not work under all circumstances
    /// 
    /// </summary>
    public class TopologicalSort
    {
 
-      private readonly int[] _vertices; // list of vertices
-      private readonly int[,] _matrix; // adjacency matrix
-      private int _numVerts; // current number of vertices
-      private readonly int[] _sortedArray;
+      public static IEnumerable<T> Sort<T>(IList<TopologicalSortNode<T>> nodes)
+      {
+         var sorter = GetSorter(nodes);
+         var index = sorter.Sort();
+         return index.Select(i => nodes[i].Item);
+      }
+
+      private readonly int[] 
+         _vertices; // list of vertices
+
+      private readonly int[,] 
+         _matrix; // adjacency matrix
+
+      private int 
+         _actualVertsCount; // current number of vertices
+
+      private readonly int[] 
+         _sortedArray;
 
       private TopologicalSort(int size)
       {
          _vertices = new int[size];
          _matrix = new int[size, size];
-         _numVerts = 0;
+         _actualVertsCount = 0;
          for (var i = 0; i < size; i++)
             for (var j = 0; j < size; j++)
                _matrix[i, j] = 0;
          _sortedArray = new int[size]; // sorted vert labels
       }
 
-      public static IEnumerable<T> Sort<T>(IList<TopologicalSortNode<T>> nodes)
-      {
-         return GetTopologicalSortOrder(nodes).Select(index => nodes[index].Item);
-      }
-
-      private static int[] GetTopologicalSortOrder<T>(IList<TopologicalSortNode<T>> nodes)
+      private static TopologicalSort GetSorter<T>(IList<TopologicalSortNode<T>> nodes)
       {
          var sorter = new TopologicalSort(nodes.Count);
          var lookup = new Dictionary<T, int>(nodes.Count);
@@ -58,14 +68,14 @@ namespace XAdo.Core.Sorting
                }
             }
          }
-         return sorter.Sort();
+         return sorter;
 
       }
 
       private int AddVertex(int vertex)
       {
-         _vertices[_numVerts++] = vertex;
-         return _numVerts - 1;
+         _vertices[_actualVertsCount++] = vertex;
+         return _actualVertsCount - 1;
       }
 
       private void AddEdge(int start, int end)
@@ -77,7 +87,7 @@ namespace XAdo.Core.Sorting
       {
          var count = _sortedArray.Length;
 
-         while (_numVerts > 0) // while vertices remain,
+         while (_actualVertsCount > 0) // while vertices remain,
          {
             // get a vertex with no successors, or -1
             var currentVertex = NoSuccessors();
@@ -87,7 +97,7 @@ namespace XAdo.Core.Sorting
             }
 
             // insert vertex label in sorted array 
-            _sortedArray[count - _numVerts] = _vertices[currentVertex];
+            _sortedArray[count - _actualVertsCount] = _vertices[currentVertex];
 
             DeleteVertex(currentVertex); // delete vertex
          }
@@ -99,10 +109,10 @@ namespace XAdo.Core.Sorting
       // returns vert with no successors (or -1 if no such verts)
       private int NoSuccessors()
       {
-         for (int row = 0; row < _numVerts; row++)
+         for (int row = 0; row < _actualVertsCount; row++)
          {
             bool isEdge = false; // edge from row to column in adjMat
-            for (int col = 0; col < _numVerts; col++)
+            for (int col = 0; col < _actualVertsCount; col++)
             {
                if (_matrix[row, col] > 0) // if edge to another,
                {
@@ -116,21 +126,21 @@ namespace XAdo.Core.Sorting
          return -1; // no
       }
 
-      private void DeleteVertex(int delVert)
+      private void DeleteVertex(int vertex)
       {
          // if not last vertex, delete from vertexList
-         if (delVert != _numVerts - 1)
+         if (vertex != _actualVertsCount - 1)
          {
-            for (var j = delVert; j < _numVerts - 1; j++)
+            for (var j = vertex; j < _actualVertsCount - 1; j++)
                _vertices[j] = _vertices[j + 1];
 
-            for (var row = delVert; row < _numVerts - 1; row++)
-               MoveRowUp(row, _numVerts);
+            for (var row = vertex; row < _actualVertsCount - 1; row++)
+               MoveRowUp(row, _actualVertsCount);
 
-            for (var col = delVert; col < _numVerts - 1; col++)
-               MoveColLeft(col, _numVerts - 1);
+            for (var col = vertex; col < _actualVertsCount - 1; col++)
+               MoveColLeft(col, _actualVertsCount - 1);
          }
-         _numVerts--; // one less vertex
+         _actualVertsCount--; // one less vertex
       }
 
       private void MoveRowUp(int row, int length)

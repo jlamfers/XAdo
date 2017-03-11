@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using XAdo.Core;
 using XAdo.Core.Interface;
-using XAdo.Core.Sorting;
 
 namespace XAdo.DbSchema
 {
@@ -30,7 +29,7 @@ namespace XAdo.DbSchema
                lock (_syncRoot)
                {
                   if (_schema != null) return _schema;
-                  _schema = _reader.Read(_context.ConnectionString, _context.ProviderName);
+                  _schema = _reader.ReadSchema(_context.ConnectionString, _context.ProviderName);
                }
             }
             return _schema;
@@ -49,6 +48,14 @@ namespace XAdo.DbSchema
 
          return self;
       }
+      public static IXAdoContextInitializer EnableDbProvider(this IXAdoContextInitializer self)
+      {
+         if (!self.CanResolve(typeof(DbSchemaReader)))
+         {
+            self.BindSingleton<DbSchemaReader, DbSchemaReader>();
+         }
+         return self;
+      }
 
       public static DbSchema GetDbSchema(this IXAdoDbSession self)
       {
@@ -58,7 +65,18 @@ namespace XAdo.DbSchema
          }
          catch (Exception ex)
          {
-            throw new XAdoException("Cannot resolve DbSchemaGetter, Did you invoke 'cfg.EnableDbSchema()' at the initializer?",ex);
+            throw new XAdoException("Cannot resolve DbSchema, Did you invoke 'cfg.EnableDbSchema()' at the initializer?",ex);
+         }
+      }
+      public static DbProviderInfo GetDbProviderInfo(this IXAdoDbSession self)
+      {
+         try
+         {
+            return self.Context.GetInstance<DbSchemaReader>().ReadProviderInfo(self.Context.ConnectionString,self.Context.ProviderName);
+         }
+         catch (Exception ex)
+         {
+            throw new XAdoException("Cannot resolve DbProviderInfo, Did you invoke 'cfg.EnableDbProvider()' at the initializer?", ex);
          }
       }
 
@@ -73,7 +91,6 @@ namespace XAdo.DbSchema
 
          return TopologicalSort.Sort(graph).ToList();
       }
-
       public static IList<DbTableItem> SortDeleteOrder(this IList<DbTableItem> self)
       {
          var graph = self.Select(table =>

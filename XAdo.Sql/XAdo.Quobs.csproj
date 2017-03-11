@@ -40,8 +40,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Sorting\ITopologicalNode.cs" />
-    <Compile Include="Core\Sorting\TopologicalSorter.cs" />
     <Compile Include="Core\Impl\SqlBuilderImpl.cs" />
     <Compile Include="Core\Impl\TemplateFormatterFull.cs" />
     <Compile Include="Core\UrlQuery.cs" />

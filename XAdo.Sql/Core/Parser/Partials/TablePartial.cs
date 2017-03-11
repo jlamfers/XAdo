@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using XAdo.DbSchema;
 
 namespace XAdo.Quobs.Core.Parser.Partials
 {
@@ -38,6 +39,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       }
 
       public IList<ColumnPartial> Columns { get; private set; }
+      public DbTableItem DbTable { get; internal set; }
 
       internal void SetAlias(string alias)
       {
@@ -66,7 +68,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
       public TablePartial Clone()
       {
          // columns are NOT cloned
-         return new TablePartial { Expression = Expression, Alias = Alias, Parts = Parts.ToList().AsReadOnly(), RawAlias = RawAlias, RawParts = RawParts.ToList().AsReadOnly(), Tag = Tag};
+         return new TablePartial { Expression = Expression, Alias = Alias, Parts = Parts.ToList().AsReadOnly(), RawAlias = RawAlias, RawParts = RawParts.ToList().AsReadOnly(), Tag = Tag, DbTable = DbTable};
       }
 
       internal bool SameTable(TablePartial other)

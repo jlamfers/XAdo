@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -35,15 +37,18 @@ namespace XAdo.DbSchema
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _parameterNamePattern;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _quotedIdentifierPattern;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _statementSeparatorPattern;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private Regex _quotedIdentifierCase;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private Regex _stringLiteralPattern;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _stringLiteralPattern;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _quotedIdentifierCase;
+     
 
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private GroupByBehavior _groupByBehavior;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IdentifierCase _identifierCase;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private bool _orderByColumnsInSelect;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private int _parameterNameMaxLength;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private SupportedJoinOperators _supportedJoinOperators;
+
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _formatIdentifierPattern;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _compositeIdentifierSeparator;
 
       public virtual DbProviderInfo Initialize(DbConnection cn)
       {
@@ -72,10 +77,7 @@ namespace XAdo.DbSchema
             switch (columnName)
             {
                case "QuotedIdentifierCase":
-                  _quotedIdentifierCase = new Regex(value.ToString());
-                  break;
-               case "StringLiteralPattern":
-                  _stringLiteralPattern = new Regex(value.ToString());
+                  _quotedIdentifierCase = value.ToString();
                   break;
                case "GroupByBehavior":
                   value = Convert.ChangeType(value, GroupByBehaviorType);
@@ -91,7 +93,7 @@ namespace XAdo.DbSchema
                   break;
                default:
                   var field = typeof (DbProviderInfo).GetField("_" + columnName, BindingFlags.IgnoreCase | BindingFlags.NonPublic | BindingFlags.Instance);
-                  if (field != null)
+                  if (field != null && field.FieldType.IsAssignableFrom(value.GetType()))
                   {
                      field.SetValue(this, value);
                   }
@@ -105,87 +107,113 @@ namespace XAdo.DbSchema
          return this;
       }
 
-      public string CompositeIdentifierSeparatorPattern
+
+      public virtual string FormatIdentifier(string identifier)
+      {
+         if (_formatIdentifierPattern == null)
+         {
+            var probes = new[] {"[a]", "`a`", "\"a\"", "'a'"};
+            var match = probes.FirstOrDefault(p => Regex.IsMatch(p,QuotedIdentifierPattern)) ?? "a";
+            _formatIdentifierPattern = match.Replace("a", "{0}");
+         }
+         return string.Format(_formatIdentifierPattern,identifier);
+      }
+
+      public virtual string FormatIdentifier(IEnumerable<string> parts)
+      {
+         if (_compositeIdentifierSeparator == null)
+         {
+            _compositeIdentifierSeparator = CompositeIdentifierSeparatorPattern ?? ".";
+            if (_compositeIdentifierSeparator.First() == '\\')
+            {
+               _compositeIdentifierSeparator = _compositeIdentifierSeparator.Substring(1);
+            }
+         }
+         return string.Join(_compositeIdentifierSeparator, parts.Select(FormatIdentifier));
+
+      }
+
+      public virtual string CompositeIdentifierSeparatorPattern
       {
          get { return _compositeIdentifierSeparatorPattern; }
       }
 
-      public string DataSourceProductName
+      public virtual string DataSourceProductName
       {
          get { return _dataSourceProductName; }
       }
 
-      public string DataSourceProductVersion
+      public virtual string DataSourceProductVersion
       {
          get { return _dataSourceProductVersion; }
       }
 
-      public string DataSourceProductVersionNormalized
+      public virtual string DataSourceProductVersionNormalized
       {
          get { return _dataSourceProductVersionNormalized; }
       }
 
-      public GroupByBehavior GroupByBehavior
+      public virtual GroupByBehavior GroupByBehavior
       {
          get { return _groupByBehavior; }
       }
 
-      public string IdentifierPattern
+      public virtual string IdentifierPattern
       {
          get { return _identifierPattern; }
       }
 
-      public IdentifierCase IdentifierCase
+      public virtual IdentifierCase IdentifierCase
       {
          get { return _identifierCase; }
       }
 
-      public bool OrderByColumnsInSelect
+      public virtual bool OrderByColumnsInSelect
       {
          get { return _orderByColumnsInSelect; }
       }
 
-      public string ParameterMarkerFormat
+      public virtual string ParameterMarkerFormat
       {
          get { return _parameterMarkerFormat; }
       }
 
-      public string ParameterMarkerPattern
+      public virtual string ParameterMarkerPattern
       {
          get { return _parameterMarkerPattern; }
       }
 
-      public int ParameterNameMaxLength
+      public virtual int ParameterNameMaxLength
       {
          get { return _parameterNameMaxLength; }
       }
 
-      public string ParameterNamePattern
+      public virtual string ParameterNamePattern
       {
          get { return _parameterNamePattern; }
       }
 
-      public string QuotedIdentifierPattern
+      public virtual string QuotedIdentifierPattern
       {
          get { return _quotedIdentifierPattern; }
       }
 
-      public Regex QuotedIdentifierCase
+      public virtual string QuotedIdentifierCase
       {
          get { return _quotedIdentifierCase; }
       }
 
-      public string StatementSeparatorPattern
+      public virtual string StatementSeparatorPattern
       {
          get { return _statementSeparatorPattern; }
       }
 
-      public Regex StringLiteralPattern
+      public virtual string StringLiteralPattern
       {
          get { return _stringLiteralPattern; }
       }
 
-      public SupportedJoinOperators SupportedJoinOperators
+      public virtual SupportedJoinOperators SupportedJoinOperators
       {
          get { return _supportedJoinOperators; }
       }

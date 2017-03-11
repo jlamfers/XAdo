@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace XAdo.Core.Sorting
+namespace XAdo.Core
 {
    public class TopologicalSortNode<T>
    {

@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using XAdo.Core;
 using XAdo.Core.Interface;
+using XAdo.DbSchema;
 using XAdo.Quobs.Core.Expressions;
 using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser;
@@ -761,11 +762,16 @@ namespace XAdo.Quobs.Core.Impl
          {
             return;
          }
-         var metaList = Tables.ToDictionary(t => t,
-            t =>
-               session.QueryMetaForTable(t.Expression)
-                  .ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
+         //var metaList = Tables.ToDictionary(t => t,
+         //   t =>
+         //      session.QueryMetaForTable(t.Expression)
+         //         .ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
          var anyNullTable = false;
+         var schema = session.GetDbSchema();
+         foreach (var table in Tables)
+         {
+            table.DbTable = schema.FindTable(table.Parts);
+         }
          for (var i = 0; i < Select.Columns.Count; i++)
          {
             var c = Select.Columns[i];
@@ -774,13 +780,22 @@ namespace XAdo.Quobs.Core.Impl
                anyNullTable = true;
                continue;
             }
-            c.Meta.InitializeByAdoMeta(metaList[c.Table][c.ColumnName]);
+            var parts = c.Table.Parts.ToList();
+            parts.Add(c.ColumnName);
+            var column = schema.FindColumn(parts);
+            if (column != null)
+            {
+               c.Meta.InitializeByDbColumn(column);
+            }
+            else
+            {
+               //c.Meta.InitializeByAdoMeta(metaList[c.Table][c.ColumnName]);
+            }
          }
 
          if (anyNullTable)
          {
-            var meta =
-               session.QueryMetaForSql(BuildSqlSelect(new {skip = 0, take = 0, order = Select.Columns.First().Expression}));
+            var meta = session.QueryMetaForSql(BuildSqlSelect(new {skip = 0, take = 0, order = Select.Columns.First().Expression}));
             for (var i = 0; i < Select.Columns.Count; i++)
             {
                var c = Select.Columns[i];

@@ -1,12 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using XAdo.Core;
 
 namespace XAdo.DbSchema
 {
+
+   //todo: refacor format table name, use quotes from dbprovider
    public class DbSchemaReader
    {
+      private readonly ConcurrentDictionary<string,DbProviderInfo>
+         _providerInfoCache = new ConcurrentDictionary<string, DbProviderInfo>();
+   
+
       public class InformationSchemaTable
       {
          public string TABLE_TYPE { get; set; }
@@ -27,7 +36,7 @@ namespace XAdo.DbSchema
          public string REF_COLUMN_NAME { get; set; }
       }
 
-      public virtual DbSchema Read(string connectionString, string providerInvariantName)
+      public virtual DbSchema ReadSchema(string connectionString, string providerInvariantName)
       {
          var f = DbProviderFactories.GetFactory(providerInvariantName);
 
@@ -38,11 +47,28 @@ namespace XAdo.DbSchema
             return BuildDbSchema(cn, f);
          }
       }
-
-      protected virtual string FormatTableName(string schema, string name)
+      public virtual DbProviderInfo ReadProviderInfo(string connectionString, string providerInvariantName)
       {
-         return string.Format("\"{0}\".\"{1}\"", schema, name);
+         DbProviderInfo providerInfo;
+         if (_providerInfoCache.TryGetValue(connectionString, out providerInfo))
+         {
+            return providerInfo;
+         }
+
+         var f = DbProviderFactories.GetFactory(providerInvariantName);
+
+         using (var cn = f.CreateConnection())
+         {
+            cn.ConnectionString = connectionString;
+            cn.Open();
+            return GetProviderInfo(cn);
+         }
       }
+
+      //protected virtual string FormatTableName(string schema, string name)
+      //{
+      //   return string.Format("\"{0}\".\"{1}\"", schema, name);
+      //}
 
       protected virtual DbSchema BuildDbSchema(DbConnection cn, DbProviderFactory f)
       {
@@ -114,9 +140,24 @@ namespace XAdo.DbSchema
          }
       }
 
+      protected virtual DbProviderInfo GetProviderInfo(DbConnection cn)
+      {
+         if (cn == null) throw new ArgumentNullException("cn");
+         DbProviderInfo providerInfo;
+         if (_providerInfoCache.TryGetValue(cn.ConnectionString, out providerInfo))
+         {
+            return providerInfo;
+         }
+          _providerInfoCache.TryAdd(cn.ConnectionString, new DbProviderInfo().Initialize(cn));
+         return _providerInfoCache[cn.ConnectionString];
+      }
+
       protected virtual void BuildDbTableSchema(DbConnection cn, DbProviderFactory f, DbSchema schema, InformationSchemaTable table)
       {
-         var tablename = FormatTableName(table.TABLE_SCHEMA, table.TABLE_NAME);
+         schema.ProviderInfo = GetProviderInfo(cn);
+
+         var tablename = schema.ProviderInfo.FormatIdentifier(new[]{table.TABLE_SCHEMA, table.TABLE_NAME});
+
          var sql = "SELECT * FROM " + tablename + " WHERE 1 = 2";
          using (var command = cn.CreateCommand())
          {
@@ -136,14 +177,7 @@ namespace XAdo.DbSchema
             }
 
          }
-         try
-         {
-            schema.ProviderInfo = new DbProviderInfo().Initialize(cn);
-         }
-         catch
-         {
-            
-         }
+         
       }
 
       protected virtual string AllFKeysSql

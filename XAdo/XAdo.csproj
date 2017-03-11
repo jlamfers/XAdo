@@ -48,10 +48,10 @@
     </Compile>
     <Compile Include="Core\Impl\XAdoClassBinderImpl.cs" />
     <Compile Include="Core\Interface\IXAdoContextInitializer.cs" />
-    <Compile Include="Core\Sorting\TopologicalSort.cs">
+    <Compile Include="Core\TopologicalSort.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Sorting\TopologicalSortNode.cs">
+    <Compile Include="Core\TopologicalSortNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\XAdoColumnMeta.cs" />

@@ -37,10 +37,10 @@ SELECT
    ,at.Name -->!
    ,a.City -->../City!
 FROM Person.BusinessEntity AS be -->@
-INNER JOIN Person.Person AS p ON @be.BusinessEntityID = p.BusinessEntityID 
-INNER JOIN Person.BusinessEntityAddress AS bea ON @be.BusinessEntityID = bea.BusinessEntityID 
-INNER JOIN Person.Address AS a ON bea.AddressID = @a.AddressID 
-INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = @at.AddressTypeID
+INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
+INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
+INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
+INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
 ";
    }
    [SqlSelect(Constants.SqlSelect)]
@@ -139,10 +139,12 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = @at.AddressTypeID
       [Test]
       public async void MonkeyTest2()
       {
-         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW"));
+         var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW").EnableDbSchema());
 
          using (var sn = context.CreateSession())
          {
+            var pc = sn.Query<Person>().CastTo<IQuob>().Where("firstname ne null").OrderBy("id").Skip(10).Take(10);
+
             var persons = sn.Query<Person>().CastTo<IQuob>().Where("firstname ne null").OrderBy("id").Skip(10).Take(10).Fetch();
             var sw = new Stopwatch();
             sw.Start();
