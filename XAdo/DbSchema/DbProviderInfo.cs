@@ -9,7 +9,7 @@ namespace XAdo.DbSchema
 {
 
    /// <summary>
-   /// inspired by: https://www.codeproject.com/Articles/52076/Using-Information-from-the-NET-DataProvider
+   /// based on: https://www.codeproject.com/Articles/52076/Using-Information-from-the-NET-DataProvider
    /// </summary>
    public class DbProviderInfo
    {

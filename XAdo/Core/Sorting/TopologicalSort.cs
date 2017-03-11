@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace XAdo.Core.Sorting
@@ -7,15 +6,11 @@ namespace XAdo.Core.Sorting
    /// <summary>
    /// https://en.wikipedia.org/wiki/Topological_sorting
    /// 
-   /// implementation inspired by: 
+   /// implementation base on: 
    /// http://tawani.blogspot.nl/2009/02/topological-sorting-and-cyclic.html
    /// 
-   /// In the field of computer science, a topological sort or topological ordering of a directed graph is a linear ordering of its vertices 
-   /// such that for every directed edge uv from vertex u to vertex v, u comes before v in the ordering. For instance, the vertices of the graph 
-   /// may represent tasks to be performed, and the edges may represent constraints that one task must be performed before another; 
-   /// in this application, a topological ordering is just a valid sequence for the tasks. A topological ordering is possible if and only if the graph 
-   /// has no directed cycles, that is, if it is a directed acyclic graph (DAG). Any DAG has at least one topological ordering, and algorithms 
-   /// are known for constructing a topological ordering of any DAG in linear time.
+   /// to be used for determining delete order/insert order
+   /// 
    /// </summary>
    public class TopologicalSort
    {
@@ -41,7 +36,7 @@ namespace XAdo.Core.Sorting
          return GetTopologicalSortOrder(nodes).Select(index => nodes[index].Item);
       }
 
-      private static IEnumerable<int> GetTopologicalSortOrder<T>(IList<TopologicalSortNode<T>> nodes)
+      private static int[] GetTopologicalSortOrder<T>(IList<TopologicalSortNode<T>> nodes)
       {
          var sorter = new TopologicalSort(nodes.Count);
          var lookup = new Dictionary<T, int>(nodes.Count);
@@ -57,14 +52,13 @@ namespace XAdo.Core.Sorting
          {
             if (nodes[i].DependsOn != null)
             {
-               for (var j = 0; j < nodes[i].DependsOn.Count; j++)
+               foreach (var edge in nodes[i].DependsOn)
                {
-                  sorter.AddEdge(i, lookup[nodes[i].DependsOn[j]]);
+                  sorter.AddEdge(i, lookup[edge]);
                }
             }
          }
-         var result = sorter.Sort();
-         return result;
+         return sorter.Sort();
 
       }
 
