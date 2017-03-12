@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
+using XAdo.DbSchema;
 
 namespace XAdo
 {
@@ -147,12 +148,6 @@ namespace XAdo
             return this;
          }
 
-         public IXAdoContextInitializer SetSqlStatementSeperator(string seperator)
-         {
-            _context.SqlStatementSeperator = seperator;
-            return this;
-         }
-
          public IXAdoContextInitializer OnInitialized(Action<XAdoDbContext> handler)
          {
             _initializeCompletedHandlers.Add(handler);
@@ -210,8 +205,7 @@ namespace XAdo
       {
          CommandTimeout = 30;
          AllowUnbindableFetchResults = true;
-         SqlStatementSeperator = ";";
-
+         
          // bind any type that has no binding yet. It may have been bound by any custom class binder
          TryBind(b => b);
          TryBind(b => this);
@@ -232,6 +226,9 @@ namespace XAdo
          TryBind<IXAdoDbSession, XAdoDbSessionImpl>();
 
          var contextInitializer = new ContextInitializer(this);
+
+         contextInitializer.EnableDbProvider(); 
+ 
          if (initializer != null)
          {
             initializer(contextInitializer);
@@ -261,6 +258,11 @@ namespace XAdo
          AdoParamHelper = _binder.Get<IXAdoParamHelper>();
 
          Items = new ReadOnlyDictionary<object, object>(Items);
+
+         SqlStatementSeperator = SqlStatementSeperator 
+            ?? GetInstance<DbSchemaReader>()
+                  .ReadProviderInfo(ConnectionString,ProviderName)
+                  .StatementSeparator;
 
          contextInitializer.Initialized(this);
 
@@ -324,11 +326,15 @@ namespace XAdo
       /// You may resolve instances from the inner container
       /// </summary>
       /// <typeparam name="TService"></typeparam>
+      /// <param name="throwException">if true an exception is thrown if the requested type could not be resolved</param>
       /// <returns></returns>
-      public virtual TService GetInstance<TService>()
+      public virtual TService GetInstance<TService>(bool throwException = true)
       {
-         return _binder.Get<TService>();
+         return throwException
+            ? _binder.Get<TService>()
+            : (_binder.CanResolve<TService>() ? _binder.Get<TService>() : default(TService));
       }
+
 
       public string ConnectionStringName { get; protected set; }
       public int CommandTimeout { get; protected set; }

@@ -156,7 +156,7 @@ namespace XAdo.DbSchema
       {
          schema.ProviderInfo = GetProviderInfo(cn);
 
-         var tablename = schema.ProviderInfo.FormatIdentifier(new[]{table.TABLE_SCHEMA, table.TABLE_NAME});
+         var tablename = schema.ProviderInfo.QuoteIdentifier(new[]{table.TABLE_SCHEMA, table.TABLE_NAME});
 
          var sql = "SELECT * FROM " + tablename + " WHERE 1 = 2";
          using (var command = cn.CreateCommand())

@@ -4,51 +4,12 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace XAdo.DbSchema
 {
-
-   /// <summary>
-   /// based on: https://www.codeproject.com/Articles/52076/Using-Information-from-the-NET-DataProvider
-   /// </summary>
-   public class DbProviderInfo
+   public class DbProviderInfo : IDbProviderFormatInfo
    {
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] 
-      private static readonly Type 
-         IdentifierCaseType = Enum.GetUnderlyingType(typeof(IdentifierCase));
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-      private static readonly Type 
-         GroupByBehaviorType = Enum.GetUnderlyingType(typeof(GroupByBehavior));
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-      private static readonly Type 
-         SupportedJoinOperatorsType = Enum.GetUnderlyingType(typeof(SupportedJoinOperators));
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _compositeIdentifierSeparatorPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _dataSourceProductName;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _dataSourceProductVersion;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _dataSourceProductVersionNormalized;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _parameterMarkerFormat;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _parameterMarkerPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _identifierPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _parameterNamePattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _quotedIdentifierPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _statementSeparatorPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _stringLiteralPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _quotedIdentifierCase;
-     
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private GroupByBehavior _groupByBehavior;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IdentifierCase _identifierCase;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private bool _orderByColumnsInSelect;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private int _parameterNameMaxLength;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private SupportedJoinOperators _supportedJoinOperators;
-
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _formatIdentifierPattern;
-      [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _compositeIdentifierSeparator;
 
       public virtual DbProviderInfo Initialize(DbConnection cn)
       {
@@ -66,37 +27,64 @@ namespace XAdo.DbSchema
          {
             var columnName = column.ColumnName;
             var value = row[column.Ordinal];
-            if (value == DBNull.Value)
-            {
-               value = null;
-            }
 
-            if (string.IsNullOrEmpty(columnName) || value == null) 
+            if (string.IsNullOrEmpty(columnName) || value == null || value == DBNull.Value)
+            {
                continue;
+            }
 
             switch (columnName)
             {
                case "QuotedIdentifierCase":
-                  _quotedIdentifierCase = value.ToString();
+                  QuotedIdentifierCase = (int) value;
                   break;
                case "GroupByBehavior":
-                  value = Convert.ChangeType(value, GroupByBehaviorType);
-                  _groupByBehavior = (GroupByBehavior) value;
+                  GroupByBehavior = (GroupByBehavior) (int) value;
                   break;
                case "IdentifierCase":
-                  value = Convert.ChangeType(value, IdentifierCaseType);
-                  _identifierCase = (IdentifierCase) value;
+                  IdentifierCase = (IdentifierCase) (int) value;
                   break;
                case "SupportedJoinOperators":
-                  value = Convert.ChangeType(value, SupportedJoinOperatorsType);
-                  _supportedJoinOperators = (SupportedJoinOperators) value;
+                  SupportedJoinOperators = (SupportedJoinOperators) (int) value;
                   break;
-               default:
-                  var field = typeof (DbProviderInfo).GetField("_" + columnName, BindingFlags.IgnoreCase | BindingFlags.NonPublic | BindingFlags.Instance);
-                  if (field != null && field.FieldType.IsAssignableFrom(value.GetType()))
-                  {
-                     field.SetValue(this, value);
-                  }
+               case "DataSourceProductVersion":
+                  DataSourceProductVersion = value.ToString();
+                  break;
+               case "IdentifierPattern":
+                  IdentifierPattern = value.ToString();
+                  break;
+               case "OrderByColumnsInSelect":
+                  OrderByColumnsInSelect = (bool) value;
+                  break;
+               case "ParameterMarkerFormat":
+                  ParameterMarkerFormat = value.ToString();
+                  break;
+               case "ParameterMarkerPattern":
+                  ParameterMarkerPattern = value.ToString();
+                  break;
+               case "CompositeIdentifierSeparatorPattern":
+                  CompositeIdentifierSeparatorPattern = value.ToString();
+                  break;
+               case "DataSourceProductName":
+                  DataSourceProductName = value.ToString();
+                  break;
+               case "DataSourceProductVersionNormalized":
+                  DataSourceProductVersionNormalized = value.ToString();
+                  break;
+               case "ParameterNameMaxLength":
+                  ParameterNameMaxLength = (int) value;
+                  break;
+               case "ParameterNamePattern":
+                  ParameterNamePattern = value.ToString();
+                  break;
+               case "QuotedIdentifierPattern":
+                  QuotedIdentifierPattern = value.ToString();
+                  break;
+               case "StatementSeparatorPattern":
+                  StatementSeparatorPattern = value.ToString();
+                  break;
+               case "StringLiteralPattern":
+                  StringLiteralPattern = value.ToString();
                   break;
             }
          }
@@ -104,118 +92,231 @@ namespace XAdo.DbSchema
          {
             cn.Close();
          }
+         return EnsureInitialized(ParameterFormat, QuotedIdentifierFormat, QuotedStringFormat);
+      }
+
+      private DbProviderInfo EnsureInitialized(params object[] args)
+      {
          return this;
       }
 
+      public virtual int QuotedIdentifierCase { get; private set; }
+      public virtual GroupByBehavior GroupByBehavior { get; private set; }
+      public virtual IdentifierCase IdentifierCase { get; private set; }
+      public virtual SupportedJoinOperators SupportedJoinOperators { get; private set; }
+      public virtual string DataSourceProductVersion { get; private set; }
+      public virtual string IdentifierPattern { get; private set; }
+      public virtual bool OrderByColumnsInSelect { get; private set; }
+      public virtual string ParameterMarkerFormat { get; private set; }
+      public virtual string ParameterMarkerPattern { get; private set; }
+      public virtual string CompositeIdentifierSeparatorPattern { get; private set; }
+      public virtual string DataSourceProductName { get; private set; }
+      public virtual string DataSourceProductVersionNormalized { get; private set; }
+      public virtual int ParameterNameMaxLength { get; private set; }
+      public virtual string ParameterNamePattern { get; private set; }
+      public virtual string QuotedIdentifierPattern { get; private set; }
+      public virtual string StatementSeparatorPattern { get; private set; }
+      public virtual string StringLiteralPattern { get; private set; }
 
-      public virtual string FormatIdentifier(string identifier)
+      #region IDbProviderFormatInfo
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _quotedIdentifierFormat;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _quotedStringFormat;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _parameterFormat;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _compositeIdentifierSeparator;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _statementsperator;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _identifierQuoteLeft;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _identifierQuoteRight;
+      [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+      private string _stringQuote;
+
+      public virtual string QuoteIdentifier(string identifier)
       {
-         if (_formatIdentifierPattern == null)
+         if (identifier == null) return null;
+         if (IdentifierQuoteEscape != null)
          {
-            var probes = new[] {"[a]", "`a`", "\"a\"", "'a'"};
-            var match = probes.FirstOrDefault(p => Regex.IsMatch(p,QuotedIdentifierPattern)) ?? "a";
-            _formatIdentifierPattern = match.Replace("a", "{0}");
+            identifier = identifier.Replace(IdentifierQuoteRight, IdentifierQuoteEscape);
          }
-         return string.Format(_formatIdentifierPattern,identifier);
+         return string.Format(QuotedIdentifierFormat, identifier);
+      }
+      public virtual string QuoteStringLiteral(string literal)
+      {
+         if (literal == null) return null;
+         if (StringQuoteEscape != null)
+         {
+            literal = literal.Replace(StringQuote, StringQuoteEscape);
+         }
+         return string.Format(QuotedStringFormat, literal);
+      }
+      public virtual string QuoteIdentifier(IEnumerable<string> parts)
+      {
+         return string.Join(MultiPartIdentifierSeparator, parts.Select(QuoteIdentifier));
       }
 
-      public virtual string FormatIdentifier(IEnumerable<string> parts)
+      public virtual bool IsQuotedString(string value)
       {
-         if (_compositeIdentifierSeparator == null)
+         if (value == null) return false;
+         value = value.Trim();
+         if (!value.StartsWith(StringQuote)) return false;
+         return Regex.Match(value, StringLiteralPattern, RegexOptions.Compiled).Value == value;
+      }
+      public virtual bool IsQuotedIdentifier(string value)
+      {
+         if (value == null) return false;
+         value = value.Trim();
+         if (!value.StartsWith(IdentifierQuoteLeft)) return false;
+         return Regex.Match(value, IdentifierPattern, RegexOptions.Compiled).Value == value;
+      }
+
+      public virtual string ParameterFormat
+      {
+         get
          {
-            _compositeIdentifierSeparator = CompositeIdentifierSeparatorPattern ?? ".";
-            if (_compositeIdentifierSeparator.First() == '\\')
+            if (_parameterFormat == null)
             {
-               _compositeIdentifierSeparator = _compositeIdentifierSeparator.Substring(1);
+               if (!string.IsNullOrEmpty(ParameterMarkerFormat) && ParameterMarkerFormat != "{0}")
+               {
+                  return _parameterFormat = ParameterMarkerFormat;
+               }
+               _parameterFormat = ParameterMarkerPattern;
+               if (_parameterFormat[0] == '^')
+               {
+                  _parameterFormat = _parameterFormat.Substring(1);
+               }
+               while (_parameterFormat[0] == '\\' )
+               {
+                  _parameterFormat = _parameterFormat.Substring(1);
+               }
+               _parameterFormat = _parameterFormat.Substring(0, 1)+"{0}";
             }
+            return _parameterFormat;
          }
-         return string.Join(_compositeIdentifierSeparator, parts.Select(FormatIdentifier));
-
       }
-
-      public virtual string CompositeIdentifierSeparatorPattern
+      public virtual string QuotedIdentifierFormat
       {
-         get { return _compositeIdentifierSeparatorPattern; }
+         get
+         {
+            if (_quotedIdentifierFormat == null)
+            {
+               var probes = new[] { "[a]", "`a`", "\"a\"", "'a'" };
+               var match = probes.FirstOrDefault(p => Regex.IsMatch(p, QuotedIdentifierPattern)) ?? "a";
+               _quotedIdentifierFormat = match.Replace("a", "{0}");
+               if (match == "{0}") return match;
+
+               var last = _quotedIdentifierFormat.Substring(_quotedIdentifierFormat.Length-1);
+               var probe = string.Format(_quotedIdentifierFormat, "a"+last + last);
+               if (Regex.IsMatch(probe, "^"+QuotedIdentifierPattern+"$"))
+               {
+                  IdentifierQuoteEscape = last + last;
+               }
+               else
+               {
+                  IdentifierQuoteEscape = "\\" + last;
+               }
+            }
+            return _quotedIdentifierFormat;
+         }
+      }
+      public virtual string QuotedStringFormat
+      {
+         get
+         {
+            if (_quotedStringFormat == null)
+            {
+               var probes = new[] { "\"a\"", "'a'" };
+               var match = probes.FirstOrDefault(p => Regex.IsMatch(p, StringLiteralPattern)) ?? "a";
+               _quotedStringFormat = match.Replace("a", "{0}");
+               if (match == "{0}") return match;
+
+               var first = _quotedStringFormat.Substring(0,1);
+               var probe = string.Format(_quotedStringFormat, first + first);
+               if (Regex.IsMatch(probe, "^" + StringLiteralPattern + "$"))
+               {
+                  StringQuoteEscape = first + first;
+               }
+               else
+               {
+                  StringQuoteEscape = "\\" + first;
+               }
+            }
+            return _quotedStringFormat;
+         }
       }
 
-      public virtual string DataSourceProductName
+      public virtual string IdentifierQuoteLeft
       {
-         get { return _dataSourceProductName; }
+         get
+         {
+            if (_identifierQuoteLeft != null) return _identifierQuoteLeft;
+            var left = QuotedIdentifierFormat.First();
+            return _identifierQuoteLeft = (left == '{' ? "" : QuotedIdentifierFormat.Substring(0, 1));
+         }
+      }
+      public virtual string IdentifierQuoteRight
+      {
+         get
+         {
+            if (_identifierQuoteRight != null) return _identifierQuoteRight;
+            var right = QuotedIdentifierFormat.Last();
+            return _identifierQuoteRight = (right == '}' ? "" : QuotedIdentifierFormat.Substring(QuotedIdentifierFormat.Length - 1));
+         }
+      }
+      public virtual string StringQuote
+      {
+         get
+         {
+            if (_stringQuote != null) return _stringQuote;
+            var left = QuotedStringFormat.First();
+            return _stringQuote = (left == '{' ? "" : QuotedStringFormat.Substring(0, 1));
+         }
+      }
+     
+      public virtual string StatementSeparator
+      {
+         get
+         {
+            if (_statementsperator != null) 
+               return _statementsperator;
+
+            if (string.IsNullOrEmpty(StatementSeparatorPattern)) 
+               return _statementsperator=Environment.NewLine;
+
+            var statementsperator = StatementSeparatorPattern;
+            if (statementsperator.First() == '\\')
+            {
+               statementsperator = statementsperator.Substring(1);
+            }
+            statementsperator = statementsperator.Replace("\\\\", "\\");
+            statementsperator = statementsperator.Replace("\\n", "\n");
+            statementsperator = statementsperator.Replace("\\r", "\r");
+            return _statementsperator = statementsperator;
+         }
+      }
+      public virtual string MultiPartIdentifierSeparator
+      {
+         get
+         {
+            if (_compositeIdentifierSeparator == null)
+            {
+               _compositeIdentifierSeparator = CompositeIdentifierSeparatorPattern ?? ".";
+               if (_compositeIdentifierSeparator.First() == '\\')
+               {
+                  _compositeIdentifierSeparator = _compositeIdentifierSeparator.Substring(1);
+               }
+            }
+            return _compositeIdentifierSeparator;
+         }
       }
 
-      public virtual string DataSourceProductVersion
-      {
-         get { return _dataSourceProductVersion; }
-      }
+      public virtual string IdentifierQuoteEscape { get; protected set; }
+      public virtual string StringQuoteEscape { get; protected set; }
+      #endregion
 
-      public virtual string DataSourceProductVersionNormalized
-      {
-         get { return _dataSourceProductVersionNormalized; }
-      }
-
-      public virtual GroupByBehavior GroupByBehavior
-      {
-         get { return _groupByBehavior; }
-      }
-
-      public virtual string IdentifierPattern
-      {
-         get { return _identifierPattern; }
-      }
-
-      public virtual IdentifierCase IdentifierCase
-      {
-         get { return _identifierCase; }
-      }
-
-      public virtual bool OrderByColumnsInSelect
-      {
-         get { return _orderByColumnsInSelect; }
-      }
-
-      public virtual string ParameterMarkerFormat
-      {
-         get { return _parameterMarkerFormat; }
-      }
-
-      public virtual string ParameterMarkerPattern
-      {
-         get { return _parameterMarkerPattern; }
-      }
-
-      public virtual int ParameterNameMaxLength
-      {
-         get { return _parameterNameMaxLength; }
-      }
-
-      public virtual string ParameterNamePattern
-      {
-         get { return _parameterNamePattern; }
-      }
-
-      public virtual string QuotedIdentifierPattern
-      {
-         get { return _quotedIdentifierPattern; }
-      }
-
-      public virtual string QuotedIdentifierCase
-      {
-         get { return _quotedIdentifierCase; }
-      }
-
-      public virtual string StatementSeparatorPattern
-      {
-         get { return _statementSeparatorPattern; }
-      }
-
-      public virtual string StringLiteralPattern
-      {
-         get { return _stringLiteralPattern; }
-      }
-
-      public virtual SupportedJoinOperators SupportedJoinOperators
-      {
-         get { return _supportedJoinOperators; }
-      }
    }
 }

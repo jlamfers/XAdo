@@ -57,22 +57,24 @@ namespace XAdo.DbSchema
          return self;
       }
 
-      public static DbSchema GetDbSchema(this IXAdoDbSession self)
+      public static DbSchema GetDbSchema(this IXAdoDbSession self, bool throwException = true)
       {
          try
          {
-            return self.Context.GetInstance<DbSchemaGetter>().GetSchema();
+            var getter = self.Context.GetInstance<DbSchemaGetter>(throwException);
+            return getter != null ? self.Context.GetInstance<DbSchemaGetter>().GetSchema() : null;
          }
          catch (Exception ex)
          {
             throw new XAdoException("Cannot resolve DbSchema, Did you invoke 'cfg.EnableDbSchema()' at the initializer?",ex);
          }
       }
-      public static DbProviderInfo GetDbProviderInfo(this IXAdoDbSession self)
+      public static DbProviderInfo GetDbProviderInfo(this IXAdoDbSession self, bool throwException = true)
       {
          try
          {
-            return self.Context.GetInstance<DbSchemaReader>().ReadProviderInfo(self.Context.ConnectionString,self.Context.ProviderName);
+            var schema = self.Context.GetInstance<DbSchemaReader>(throwException);
+            return schema != null ? schema.ReadProviderInfo(self.Context.ConnectionString, self.Context.ProviderName) : null;
          }
          catch (Exception ex)
          {

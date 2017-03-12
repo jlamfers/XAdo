@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using XAdo.Core;
 
-namespace XAdo.Core
+namespace XAdo.DbSchema
 {
    /// <summary>
    /// https://en.wikipedia.org/wiki/Topological_sorting

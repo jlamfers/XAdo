@@ -48,10 +48,10 @@
     </Compile>
     <Compile Include="Core\Impl\XAdoClassBinderImpl.cs" />
     <Compile Include="Core\Interface\IXAdoContextInitializer.cs" />
-    <Compile Include="Core\TopologicalSort.cs">
+    <Compile Include="DbSchema\TopologicalSort.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\TopologicalSortNode.cs">
+    <Compile Include="DbSchema\TopologicalSortNode.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\XAdoColumnMeta.cs" />
@@ -85,6 +85,7 @@
     <Compile Include="DbSchema\DbSchemaReader.cs" />
     <Compile Include="DbSchema\DbTableItem.cs" />
     <Compile Include="DbSchema\Extensions.cs" />
+    <Compile Include="DbSchema\IDbProviderFormatInfo.cs" />
     <Compile Include="XAdoDbContext.cs" />
     <Compile Include="Core\XAdoMultiResultReaderAsync.cs">
       <SubType>Code</SubType>
