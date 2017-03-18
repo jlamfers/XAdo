@@ -50,13 +50,17 @@ namespace XAdo.Quobs.Core.Parser.Partials
             c.SetTable(this,true);
          }
       }
-      internal void AttchOwnedColumns(IEnumerable<ColumnPartial> columns)
+      internal void AttachOwnedColumns(IEnumerable<ColumnPartial> columns)
       {
          Columns = columns.Where(IsColumnOwnerOf).ToList().AsReadOnly();
       }
-      internal void AttchColumns(IEnumerable<ColumnPartial> columns)
+      internal void AttachColumns(IEnumerable<ColumnPartial> columns)
       {
          Columns = columns.ToList().AsReadOnly();
+         foreach (var c in Columns)
+         {
+            c.SetTable(this);
+         }
       }
 
 

@@ -162,7 +162,7 @@ namespace XAdo.Quobs.Core.Impl
       {
          var distinct = false;
          var selectChilds = new List<ColumnPartial>();
-         int? limit = null;
+         int? maxRows = null;
 
          SkipComments(scanner);
          if (scanner.NextIs(SQL.DISTINCT))
@@ -174,7 +174,7 @@ namespace XAdo.Quobs.Core.Impl
          if (scanner.NextIs(SQL.TOP))
          {
             SkipComments(scanner);
-            limit = scanner.ReadInt();
+            maxRows = scanner.ReadInt();
          }
 
          while (true)
@@ -188,11 +188,14 @@ namespace XAdo.Quobs.Core.Impl
 
             if (scanner.Peek() == '*')
             {
-               throw new SqlParserException(scanner.Source, scanner.Position, "wildcards in select are not allowed, these cannot be mapped");
+               selectChilds.Add(new ColumnPartial(new[] {"*"}, null, null));
+               scanner.NextChar();
+               //throw new SqlParserException(scanner.Source, scanner.Position, "wildcards in select are not allowed, these cannot be mapped");
             }
-
-            selectChilds.Add(ReadColumn(scanner));
-
+            else
+            {
+               selectChilds.Add(ReadColumn(scanner));
+            }
             SkipComments(scanner);
 
             if (scanner.Peek() == ',')
@@ -206,7 +209,7 @@ namespace XAdo.Quobs.Core.Impl
                throw new SqlParserException(scanner.Source, scanner.Position, "'{0}' expected".FormatWith(SQL.FROM));
             }
 
-            return new SelectPartial(distinct, selectChilds,limit,false);
+            return new SelectPartial(distinct, selectChilds,maxRows,false);
 
          }
 

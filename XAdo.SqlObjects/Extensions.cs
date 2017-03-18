@@ -191,7 +191,6 @@ namespace XAdo.SqlObjects
          if (self == null) throw new ArgumentNullException("self");
          if (formatter == null) throw new ArgumentNullException("formatter");
          self.SetItem(FormatterKey, formatter);
-         self.SetSqlStatementSeperator(formatter.SqlDialect.StatementSeperator);
          return self;
       }
       public static ISqlFormatter GetSqlFormatter(this XAdoDbContext self, bool throwException = true)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using XAdo.Core.Interface;
 using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser.Partials;
 
@@ -17,7 +18,7 @@ namespace XAdo.Quobs.Core.Impl
       {
          
       }
-      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser urlParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResource(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser urlParser, ISqlPredicateGenerator sqlPredicateGenerator, ISqlTemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
          : base(partials, dialect, urlParser, sqlPredicateGenerator, templateFormatter, sqlBuilder)
       {
           }

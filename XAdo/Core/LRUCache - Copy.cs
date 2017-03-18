@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -15,11 +14,13 @@ namespace XAdo.Core
       private readonly int
           _capacity;
 
-      private readonly ConcurrentDictionary<TKey, LinkedListNode<KeyValuePair<TKey,TValue>>>
-          _dict = new ConcurrentDictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>();
+      private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey,TValue>>>
+          _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>();
 
       private readonly LinkedList<KeyValuePair<TKey,TValue>>
           _list = new LinkedList<KeyValuePair<TKey, TValue>>();
+
+      private readonly object _syncRoot = new object();
 
       public LRUCache(string capacityKey, int defaultCapacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
       {
@@ -28,7 +29,7 @@ namespace XAdo.Core
 
          if (comparer != null)
          {
-            _dict = new ConcurrentDictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(comparer);
+            _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(comparer);
          }
       }
       public LRUCache(int capacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
@@ -36,7 +37,7 @@ namespace XAdo.Core
          _capacity = capacity;
          if (comparer != null)
          {
-            _dict = new ConcurrentDictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(comparer);
+            _dict = new Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>>(comparer);
          }
       }
       public LRUCache(IEnumerable<KeyValuePair<TKey, TValue>> other, string capacityKey = null, int capacity = DefaultCapacity, IEqualityComparer<TKey> comparer = null)
@@ -68,123 +69,103 @@ namespace XAdo.Core
       public bool TryGetValue(TKey key, out TValue value)
       {
          value = default(TValue);
-         LinkedListNode<KeyValuePair<TKey, TValue>> node;
-         if (!_dict.TryGetValue(key, out node))
+         lock (_syncRoot)
          {
-            return false;
-         }
-         lock (_list)
-         {
-            value = node.Value.Value;
-            if (node.List != null)
+            LinkedListNode<KeyValuePair<TKey, TValue>> node;
+            if (!_dict.TryGetValue(key, out node))
             {
-               _list.Remove(node);
-               _list.AddLast(node);
+               return false;
             }
+            value = node.Value.Value;
+            _list.Remove(node);
+            _list.AddLast(node);
          }
          return true;
       }
 
       public TValue GetOrAdd(TKey key, Func<TKey, TValue> factory)
       {
-         LinkedListNode<KeyValuePair<TKey, TValue>> node=null;
-
-         var result = _dict.GetOrAdd(key, k => node = new LinkedListNode<KeyValuePair<TKey, TValue>>(new KeyValuePair<TKey, TValue>(k, factory(k))));
-
-         var removeKey = default(TKey);
-
-         lock (_list)
+         TValue value;
+         if (TryGetValue(key, out value))
          {
-            if (ReferenceEquals(result, node))
-            {
-               _list.AddLast(result);
-               if ((_capacity > 0 && _dict.Count >= _capacity))
-               {
-                  var first = _list.First;
-                  if (first != null)
-                  {
-                     _list.RemoveFirst();
-                     removeKey = first.Value.Key;
-                  }
-               }
-            }
-            else
-            {
-               if (result.List != null)
-               {
-                  _list.Remove(result);
-                  _list.AddLast(result);
-               }
-            }
+            return value;
          }
-         if (!Equals(removeKey, default(TKey)))
+
+         // invoke factory outside locks => it may be invoked more than once
+         var v = factory(key);
+
+         lock (_syncRoot)
          {
-            _dict.TryRemove(removeKey, out node);
+            if (TryGetValue(key, out value))
+            {
+               return value;
+            }
+            Add(key, v);
+            return v;
          }
-         return result.Value.Value;
       }
 
       public void Add(TKey key, TValue value)
       {
-         if (!TryAdd(key, value))
+         lock (_syncRoot)
          {
-            throw new InvalidOperationException("key already exists");
+            if ((_capacity > 0 && _dict.Count >= _capacity))
+            {
+               PurgeOne();
+            }
+            var node = new LinkedListNode<KeyValuePair<TKey, TValue>>(new KeyValuePair<TKey, TValue>(key,value));
+            _list.AddLast(node);
+            _dict.Add(key, node);
          }
+
       }
 
       public bool TryAdd(TKey key, TValue value)
       {
-         var node = new LinkedListNode<KeyValuePair<TKey, TValue>>(new KeyValuePair<TKey, TValue>(key,value));
-         if (!_dict.TryAdd(key, node))
+         lock (_syncRoot)
          {
-            return false;
-         }
-         var removeKey = default(TKey);
-         lock (_list)
-         {
-            _list.AddLast(node);
-            if ((_capacity > 0 && _dict.Count >= _capacity))
+            if (_dict.ContainsKey(key))
             {
-               var first = _list.First;
-               if (first != null)
-               {
-                  _list.RemoveFirst();
-                  removeKey = first.Value.Key;
-               }
+               return false;
             }
+            Add(key, value);
+            return true;
          }
-         if (!Equals(removeKey, default(TKey)))
-         {
-            _dict.TryRemove(removeKey, out node);
-         }
-         return true;
       }
 
       public bool TryRemove(TKey key, out TValue value)
       {
          value = default(TValue);
 
-         LinkedListNode<KeyValuePair<TKey, TValue>> node;
-         if (!_dict.TryRemove(key, out node))
+         lock (_syncRoot)
          {
-            return false;
-         }
-
-         lock (_list)
-         {
-            if (node.List != null)
+            LinkedListNode<KeyValuePair<TKey, TValue>> node;
+            if (!_dict.TryGetValue(key, out node))
             {
-               _list.Remove(node);
+               return false;
             }
+            _list.Remove(node);
+            return true;
          }
+      }
 
-         return true;
-    
+      private void PurgeOne()
+      {
+         lock (_syncRoot)
+         {
+            if (_list.Count == 0) return;
+            var first = _list.First;
+            _list.RemoveFirst();
+            _dict.Remove(first.Value.Key);
+         }
       }
 
       public bool ContainsKey(TKey key)
       {
-         return _dict.ContainsKey(key);
+         lock (_syncRoot)
+         {
+            return _dict.ContainsKey(key);
+         }
       }
 
       public bool Remove(TKey key)
@@ -206,34 +187,13 @@ namespace XAdo.Core
          }
          set
          {
-            var node = new LinkedListNode<KeyValuePair<TKey, TValue>>(new KeyValuePair<TKey, TValue>(key, value));
-            var removedValue = default(LinkedListNode<KeyValuePair<TKey, TValue>>);
-            _dict.AddOrUpdate(key, k => node, (k, v) =>
+            lock (_syncRoot)
             {
-               removedValue = v;
-               return node;
-            });
-            var removeKey = default(TKey);
-            lock (_list)
-            {
-               if (removedValue != null && removedValue.List != null)
+               if (ContainsKey(key))
                {
-                  _list.Remove(removedValue);
+                  Remove(key);
                }
-               _list.AddLast(node);
-               if ((_capacity > 0 && _dict.Count >= _capacity))
-               {
-                  var first = _list.First;
-                  if (first != null)
-                  {
-                     _list.RemoveFirst();
-                     removeKey = first.Value.Key;
-                  }
-               }
-            }
-            if (!Equals(removeKey, default(TKey)))
-            {
-               _dict.TryRemove(removeKey, out node);
+               Add(key, value);
             }
          }
       }
@@ -242,7 +202,10 @@ namespace XAdo.Core
       {
          get
          {
-            return _dict.Keys.ToArray();
+            lock (_syncRoot)
+            {
+               return _dict.Keys.ToArray();
+            }
          }
       }
 
@@ -250,13 +213,19 @@ namespace XAdo.Core
       {
          get
          {
-            return _dict.Values.Select(v => v.Value.Value).ToArray();
-          }
+            lock (_syncRoot)
+            {
+               return _dict.Values.Select(v => v.Value.Value).ToArray();
+            }
+         }
       }
 
       public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
       {
-         return _dict.ToDictionary(e => e.Key, e => e.Value.Value.Value).GetEnumerator();
+         lock (_syncRoot)
+         {
+            return _list.Select(b => new KeyValuePair<TKey, TValue>(b.Key, b.Value)).GetEnumerator();
+         }
       }
 
       IEnumerator IEnumerable.GetEnumerator()
@@ -271,23 +240,28 @@ namespace XAdo.Core
 
       public void Clear()
       {
-         lock (_list)
+         lock (_syncRoot)
          {
             _dict.Clear();
             _list.Clear();
          }
-
       }
 
       public bool Contains(KeyValuePair<TKey, TValue> item)
       {
-         TValue value;
-         return TryGetValue(item.Key, out value) && Equals(item.Value, value);
+         lock (_syncRoot)
+         {
+            TValue value;
+            return TryGetValue(item.Key, out value) && Equals(item.Value, value);
+         }
       }
 
       public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
       {
-         _dict.Select(b => new KeyValuePair<TKey, TValue>(b.Key, b.Value.Value.Value)).ToArray().CopyTo(array, arrayIndex);
+         lock (_syncRoot)
+         {
+            _list.Select(b => new KeyValuePair<TKey, TValue>(b.Key, b.Value)).ToArray().CopyTo(array, arrayIndex);
+         }
       }
 
       public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -299,8 +273,10 @@ namespace XAdo.Core
       {
          get
          {
-            return _dict.Count;
-            
+            lock (_syncRoot)
+            {
+               return _dict.Count;
+            }
          }
       }
 
@@ -323,7 +299,10 @@ namespace XAdo.Core
 
       IDictionaryEnumerator IDictionary.GetEnumerator()
       {
-         return _dict.ToDictionary(k => k, v => v.Value.Value.Value).GetEnumerator();
+         lock (_syncRoot)
+         {
+            return _dict.ToDictionary(k => k, v => v).GetEnumerator();
+         }
       }
 
       bool IDictionary.IsFixedSize
@@ -355,19 +334,19 @@ namespace XAdo.Core
       {
          get
          {
-            TValue value;
-            return TryGetValue((TKey) key, out value) ? (object)value : null;
+            lock (_syncRoot)
+            {
+               return ContainsKey((TKey)key) ? (object)this[(TKey)key] : null;
+            }
          }
          set { this[(TKey)key] = (TValue)value; }
       }
 
       void ICollection.CopyTo(Array array, int index)
       {
-         var tmp = new KeyValuePair<TKey, TValue>[array.Length];
-         CopyTo(tmp, index);
-         for (var i = 0; i < array.Length; i++)
+         lock (_syncRoot)
          {
-            array.SetValue(tmp[i],i);
+            ((IDictionary)_dict).CopyTo(array, index);
          }
       }
 
@@ -381,10 +360,9 @@ namespace XAdo.Core
          get { return true; }
       }
 
-      private readonly object _syncroot = new object();
       object ICollection.SyncRoot
       {
-         get { return _syncroot; }
+         get { return _syncRoot; }
       }
 
    }

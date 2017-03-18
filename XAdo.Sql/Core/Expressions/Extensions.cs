@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using XAdo.Core;
 using XAdo.Quobs.Core.Parser;
 
 namespace XAdo.Quobs.Core.Expressions
@@ -143,34 +144,34 @@ namespace XAdo.Quobs.Core.Expressions
          return args;
       }
 
-      public static IDictionary<MemberInfo, string> GetMemberToFullNameMap(this Type type, IDictionary<MemberInfo, string> map = null, string path = null)
-      {
-         map = map ?? new Dictionary<MemberInfo, string>();
-         path = path ?? "";
-         foreach (var m in type.GetPropertiesAndFields())
-         {
-            if (map.ContainsKey(m)) return map;
-            var p = (path + Constants.Syntax.Chars.NAME_SEP_STR + m.Name).TrimStart(Constants.Syntax.Chars.NAME_SEP);
-            var t = m.GetMemberType();
-            if (!t.IsScalarType())
-            {
-               t.GetMemberToFullNameMap(map, p);
-            }
-            //map[m] = p;
-            else
-            {
-               map[m] = p;
-            }
-         }
-         return map;
+      //public static IDictionary<MemberInfo, string> GetMemberToFullNameMap(this Type type, IDictionary<MemberInfo, string> map = null, string path = null)
+      //{
+      //   map = map ?? new Dictionary<MemberInfo, string>();
+      //   path = path ?? "";
+      //   foreach (var m in type.GetPropertiesAndFields())
+      //   {
+      //      if (map.ContainsKey(m)) return map;
+      //      var p = (path + Constants.Syntax.Chars.NAME_SEP_STR + m.Name).TrimStart(Constants.Syntax.Chars.NAME_SEP);
+      //      var t = m.GetMemberType();
+      //      if (!t.IsScalarType())
+      //      {
+      //         t.GetMemberToFullNameMap(map, p);
+      //      }
+      //      //map[m] = p;
+      //      else
+      //      {
+      //         map[m] = p;
+      //      }
+      //   }
+      //   return map;
 
-      }
+      //}
 
-      public static IDictionary<string, MemberInfo> GetFullNameToMemberMap(this Type type)
-      {
-         var dict = type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
-         return dict;
-      }
+      //public static IDictionary<string, MemberInfo> GetFullNameToMemberMap(this Type type)
+      //{
+      //   var dict = type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
+      //   return dict;
+      //}
 
 
    }

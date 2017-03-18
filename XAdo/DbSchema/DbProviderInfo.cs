@@ -161,17 +161,13 @@ namespace XAdo.DbSchema
 
       public virtual bool IsQuotedString(string value)
       {
-         if (value == null) return false;
-         value = value.Trim();
-         if (!value.StartsWith(StringQuote)) return false;
-         return Regex.Match(value, StringLiteralPattern, RegexOptions.Compiled).Value == value;
+         return value != null 
+            && Regex.IsMatch(value.Trim(), "^" + StringLiteralPattern + "$", RegexOptions.Compiled);
       }
       public virtual bool IsQuotedIdentifier(string value)
       {
-         if (value == null) return false;
-         value = value.Trim();
-         if (!value.StartsWith(IdentifierQuoteLeft)) return false;
-         return Regex.Match(value, IdentifierPattern, RegexOptions.Compiled).Value == value;
+         return value != null 
+            && Regex.IsMatch(value.Trim(), "^" + IdentifierPattern + "$", RegexOptions.Compiled);
       }
 
       public virtual string ParameterFormat

@@ -221,6 +221,9 @@ namespace XAdo
          TryBindSingleton<IXAdoConcreteTypeBuilder, XAdoConcreteTypeBuilderImpl>();
          TryBindSingleton(typeof(IGetterFactory<,>), typeof(GetterFactory<,>));
          TryBindSingleton<IXAdoParamHelper, XAdoParamHelperImpl>();
+
+         TryBindSingleton<ISqlTemplateFormatter, SqlTemplateFormatterImpl>();
+
          TryBind<IXAdoSqlBatch>(b => new XAdoSqlBatchImpl{Seperator = SqlStatementSeperator});
          TryBind<IXAdoParameter>(b => new XAdoParameterImpl());
          TryBind<IXAdoDbSession, XAdoDbSessionImpl>();

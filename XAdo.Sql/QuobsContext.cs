@@ -1,6 +1,7 @@
 ﻿using System;
 using XAdo.Core.Impl;
 using XAdo.Core.Interface;
+using XAdo.DbSchema;
 using XAdo.Quobs.Core.Impl;
 using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Providers;
@@ -18,7 +19,6 @@ namespace XAdo.Quobs
       private static void MyInitialize(IXAdoContextInitializer context, Action<IXAdoContextInitializer> initializer)
       {
          context
-            .BindSingleton<IXAdoCommandFactory, XAdoCommandFactoryImplEx>()
             .BindSingleton<IUrlFilterParser, UrlFilterParserImpl>()
             .BindSingleton<ISqlDialect, SqlServerDialect>()
             .BindSingleton<ISqlResourceRepository, SqlResourceRepositoryImpl>()
@@ -26,14 +26,17 @@ namespace XAdo.Quobs
             .BindSingleton<ISqlScanner, SqlScannerImpl>()
             .BindSingleton<ISqlSelectParser, SqlSelectParserImpl>()
             .BindSingleton<ISqlPredicateGenerator, SqlPredicateGeneratorImpl>()
-            .BindSingleton<ISqlBuilder, SqlBuilderImpl>()
-            .BindSingleton<ITemplateFormatter, TemplateFormatterFull>();
+            .BindSingleton<ISqlBuilder, SqlBuilderImpl>();
 
+         context
+            .EnableDbSchema()
+            .EnableGraphParameterObject();
 
+            
          context
             .KeepConnectionAlive(true)
             .EnableFieldBinding()
-            .EnableEmittedDynamicTypes()
+            //.EnableEmittedDynamicTypes()
             .EnableAutoStringSanitize();
 
          initializer(context);

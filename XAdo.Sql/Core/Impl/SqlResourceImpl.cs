@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using XAdo.Core;
 using XAdo.Core.Interface;
@@ -191,7 +192,7 @@ namespace XAdo.Quobs.Core.Impl
       private ISqlPredicateGenerator 
          _sqlPredicateGenerator;
 
-      private ITemplateFormatter
+      private ISqlTemplateFormatter
          _templateFormatter;
 
       private ISqlBuilder 
@@ -232,6 +233,30 @@ namespace XAdo.Quobs.Core.Impl
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IDictionary<string, string> _mappedExpressions;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private IList<TablePartial> _tables;
       [DebuggerBrowsable(DebuggerBrowsableState.Never)] private static readonly MethodInfo IsDbNull = MemberInfoFinder.GetMethodInfo<IDataRecord>(r => r.IsDBNull(0));
+      
+      protected void ResetCache()
+      {
+         _sqlSelectTemplate = null;
+         _sqlTotalCountTemplate = null;
+         _sqlUpdateTemplate = null;
+
+         _with = null;
+         _select = null;
+         _table = null;
+         _joins = null;
+         _where = null;
+         _groupBy = null;
+         _having = null;
+         _orderBy = null;
+         _mappedColumns = null;
+         _mappedExpressions = null;
+         _tables = null;
+         _withChecked = false;
+         _whereChecked = false;
+         _groupbyChecked = false;
+         _havingChecked = false;
+         _orderbyChecked = false;
+      }
       #endregion
 
       protected SqlResourceImpl(SqlResourceImpl other)
@@ -254,7 +279,7 @@ namespace XAdo.Quobs.Core.Impl
 
       }
 
-      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResourceImpl(IList<SqlPartial> partials, ISqlDialect dialect, IUrlFilterParser filterParser, ISqlPredicateGenerator sqlPredicateGenerator, ISqlTemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
       {
          if (partials == null) throw new ArgumentNullException("partials");
          if (dialect == null) throw new ArgumentNullException("dialect");
@@ -755,23 +780,44 @@ namespace XAdo.Quobs.Core.Impl
       }
 
       private bool _adoMetaDataBound;
-
       private void EnsureAdoMetaDataBound(IXAdoDbSession session)
       {
          if (_adoMetaDataBound)
          {
             return;
          }
-         //var metaList = Tables.ToDictionary(t => t,
-         //   t =>
-         //      session.QueryMetaForTable(t.Expression)
-         //         .ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase));
-         var anyNullTable = false;
-         var schema = session.GetDbSchema();
-         foreach (var table in Tables)
+
+         var select = _partials.OfType<SelectPartial>().Single();
+         if (select.Columns.Any(c => c.ColumnName == "*"))
          {
-            table.DbTable = schema.FindTable(table.Parts);
+            var index = _partials.IndexOf(select);
+            var t = session.GetDbSchema().FindTable(Table.Parts);
+            if (t != null)
+            {
+               select = new SelectPartial(select.Distinct,select.Columns.SelectMany(c => c.ColumnName=="*" ? t.Columns.Select(c2 => new ColumnPartial(c2.GetParts(Table.Alias),null,null)) : new[]{c.Clone()}).ToList(),select.MaxRows,select.WriteColumnsOnly);
+               var partials = _partials.Clone().ToList();
+               partials[index] = select;
+               _partials = partials.EnsureLinked().ToList().AsReadOnly();
+               ResetCache();
+            }
          }
+
+         
+         var anyNullTable = false;
+         var schema = session.GetDbSchema(false);
+         var metaList = schema != null ? Tables.ToDictionary(t => t,
+            t =>
+               session.QueryMetaForTable(t.Expression)
+                  .ToDictionary(mt => mt.ColumnName, mt => mt, StringComparer.OrdinalIgnoreCase)) : null;
+
+         if (schema != null)
+         {
+            foreach (var table in Tables)
+            {
+               table.DbTable = schema.FindTable(table.Parts);
+            }
+         }
+
          for (var i = 0; i < Select.Columns.Count; i++)
          {
             var c = Select.Columns[i];
@@ -782,14 +828,17 @@ namespace XAdo.Quobs.Core.Impl
             }
             var parts = c.Table.Parts.ToList();
             parts.Add(c.ColumnName);
-            var column = schema.FindColumn(parts);
-            if (column != null)
+            if (schema != null)
             {
-               c.Meta.InitializeByDbColumn(column);
+               var column = schema.FindColumn(parts);
+               if (column != null)
+               {
+                  c.Meta.InitializeByDbColumn(column);
+               }
             }
             else
             {
-               //c.Meta.InitializeByAdoMeta(metaList[c.Table][c.ColumnName]);
+               c.Meta.InitializeByAdoMeta(metaList[c.Table][c.ColumnName]);
             }
          }
 

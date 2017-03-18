@@ -16,10 +16,6 @@ namespace XAdo.Quobs.Core
       {
          return self != null && Nullable.GetUnderlyingType(self) != null;
       }
-      public static bool IsScalarType(this Type self)
-      {
-         return self.IsPrimitive || self.IsValueType || (self == typeof(string)) || self == typeof(byte[]);
-      }
       //public static Type EnsureNotNullable(this Type self)
       //{
       //   return self == null ? null : (Nullable.GetUnderlyingType(self) ?? self);

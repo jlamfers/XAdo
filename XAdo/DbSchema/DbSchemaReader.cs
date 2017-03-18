@@ -9,7 +9,6 @@ using XAdo.Core;
 namespace XAdo.DbSchema
 {
 
-   //todo: refacor format table name, use quotes from dbprovider
    public class DbSchemaReader
    {
       private readonly ConcurrentDictionary<string,DbProviderInfo>
@@ -64,11 +63,6 @@ namespace XAdo.DbSchema
             return GetProviderInfo(cn);
          }
       }
-
-      //protected virtual string FormatTableName(string schema, string name)
-      //{
-      //   return string.Format("\"{0}\".\"{1}\"", schema, name);
-      //}
 
       protected virtual DbSchema BuildDbSchema(DbConnection cn, DbProviderFactory f)
       {

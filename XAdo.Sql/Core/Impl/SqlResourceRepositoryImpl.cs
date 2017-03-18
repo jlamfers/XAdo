@@ -1,5 +1,6 @@
 ﻿using System;
 using XAdo.Core;
+using XAdo.Core.Interface;
 using XAdo.Quobs.Core.Interface;
 using XAdo.Quobs.Core.Parser;
 
@@ -15,10 +16,10 @@ namespace XAdo.Quobs.Core.Impl
       private readonly IUrlFilterParser _filterParser;
       private readonly ISqlSelectParser _sqlSelectParser;
       private readonly ISqlPredicateGenerator _sqlPredicateGenerator;
-      private readonly ITemplateFormatter _templateFormatter;
+      private readonly ISqlTemplateFormatter _templateFormatter;
       private readonly ISqlBuilder _sqlBuilder;
 
-      public SqlResourceRepositoryImpl(ISqlDialect dialect, IUrlFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator, ITemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
+      public SqlResourceRepositoryImpl(ISqlDialect dialect, IUrlFilterParser filterParser, ISqlSelectParser sqlSelectParser, ISqlPredicateGenerator sqlPredicateGenerator, ISqlTemplateFormatter templateFormatter, ISqlBuilder sqlBuilder)
       {
          if (dialect == null) throw new ArgumentNullException("dialect");
          if (filterParser == null) throw new ArgumentNullException("filterParser");

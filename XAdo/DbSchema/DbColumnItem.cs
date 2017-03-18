@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -98,6 +100,27 @@ namespace XAdo.DbSchema
          if (ReferenceEquals(obj, this)) return true;
          var other = obj as DbColumnItem;
          return other != null && other.Id == Id;
+      }
+
+      public IList<string> GetParts(string tableAlias)
+      {
+         var parts = new List<string>();
+         if (tableAlias != null)
+         {
+            parts.Add(tableAlias);
+            parts.Add(Name);
+            return parts;
+         }
+         if (TableOwner != null)
+         {
+            parts.Add(TableOwner);
+         }
+         if (Table != null)
+         {
+            parts.Add(TableName);
+         }
+         parts.Add(Name);
+         return parts;
       }
 
       public override string ToString()

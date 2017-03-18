@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using XAdo.Core.Impl;
 using XAdo.DbSchema;
 using XAdo.Quobs;
 using XAdo.Quobs.Core;
@@ -91,7 +92,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          result.OfType<SelectPartial>().Single().Columns.First().Table.SetAlias("oops");
          Debug.WriteLine(sw.ElapsedMilliseconds);
          var q = new SqlResourceImpl(result, new SqlServerDialect(), new UrlFilterParserImpl(),
-            new SqlPredicateGeneratorImpl(new SqlDialectImpl()), new TemplateFormatterFull(), new SqlBuilderImpl());
+            new SqlPredicateGeneratorImpl(new SqlDialectImpl()), new SqlTemplateFormatterImpl(), new SqlBuilderImpl());
 
       }
 
@@ -100,7 +101,6 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       {
          var context = new QuobsContext(cfg => cfg
             .SetConnectionStringName("AW")
-            .EnableDbSchema()
          );
 
          using (var sn = context.CreateSession())
@@ -137,7 +137,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
       }
 
       [Test]
-      public async void MonkeyTest2()
+      public void MonkeyTest2()
       {
          var context = new QuobsContext(cfg => cfg.SetConnectionStringName("AW").EnableDbSchema());
 

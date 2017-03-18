@@ -9,6 +9,45 @@ namespace XAdo.Core
 {
     public static partial class Extensions
     {
+
+       public static string FormatTemplate(this IXAdoDbSession self, string sqlTemplate, object argsObject)
+       {
+          return self.Context.GetInstance<ISqlTemplateFormatter>().Format(sqlTemplate, argsObject);
+       }
+
+       public static bool IsScalarType(this Type self)
+       {
+          return self.IsPrimitive || self.IsValueType || (self == typeof(string)) || self == typeof(byte[]);
+       }
+
+       public static IDictionary<MemberInfo, string> GetMemberToFullNameMap(this Type type, IDictionary<MemberInfo, string> map = null, string path = null)
+       {
+          map = map ?? new Dictionary<MemberInfo, string>();
+          path = path ?? "";
+          foreach (var m in type.GetPropertiesAndFields())
+          {
+             if (map.ContainsKey(m)) return map;
+             var p = (path + "." + m.Name).TrimStart('.');
+             var t = m.GetMemberType();
+             if (!t.IsScalarType())
+             {
+                t.GetMemberToFullNameMap(map, p);
+             }
+             //map[m] = p;
+             else
+             {
+                map[m] = p;
+             }
+          }
+          return map;
+
+       }
+       public static IDictionary<string, MemberInfo> GetFullNameToMemberMap(this Type type)
+       {
+          var dict = type.GetMemberToFullNameMap().ToDictionary(m => m.Value, m => m.Key, StringComparer.OrdinalIgnoreCase);
+          return dict;
+       }
+
        internal static T CastTo<T>(this object self)
         {
             return self == null || self == DBNull.Value ? default(T) : (T) self;
@@ -30,19 +69,6 @@ namespace XAdo.Core
         public static Type EnsureNotNullable(this Type self)
         {
             return self == null ? null : (Nullable.GetUnderlyingType(self) ?? self);
-        }
-
-        public static Type GetMemberType(this MemberInfo self)
-        {
-            switch (self.MemberType)
-            {
-                case MemberTypes.Field:
-                    return ((FieldInfo) self).FieldType;
-                case MemberTypes.Property:
-                    return ((PropertyInfo)self).PropertyType;
-                default:
-                    throw new ArgumentOutOfRangeException("self.MemberType", "Only Field and Properties are supported");
-            }
         }
 
         public static DataTable ToDataTable<T>(this IEnumerable<T> data)

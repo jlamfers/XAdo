@@ -70,12 +70,12 @@ namespace XAdo.Quobs.Core.Parser.Partials
          selectColumns.AddRange(otherColumns);
          if (tables.Count == 1)
          {
-            tables[0].AttchColumns(selectColumns.Where(c => !c.IsCalculated));
+            tables[0].AttachColumns(selectColumns.Where(c => !c.IsCalculated));
          }
          else foreach (var t in tables)
          {
             // do not try to attach columns from additional order expressions
-            t.AttchOwnedColumns(selectColumns);
+            t.AttachOwnedColumns(selectColumns);
          }
 
          //foreach (var c in otherColumns)

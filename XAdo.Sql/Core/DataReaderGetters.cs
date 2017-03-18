@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
+using XAdo.Core;
 using XAdo.Quobs.Core.Expressions;
 
 namespace XAdo.Quobs.Core
@@ -215,9 +216,9 @@ namespace XAdo.Quobs.Core
       public static Expression GetDataRecordRecordGetterExpression(this MemberInfo member, int index, ParameterExpression parameter, bool isRequired)
       {
          if (member == null) throw new ArgumentNullException("member");
-         var method = GetDataRecordGetterMethod(member.GetMemberType(), isRequired);
+         var method = GetDataRecordGetterMethod(MemberInfoFinder.GetMemberType(member), isRequired);
          var getter = method.IsStatic ? Expression.Call(method, parameter, Expression.Constant(index)) : Expression.Call(parameter, method, Expression.Constant(index));
-         return getter.Convert(member.GetMemberType());
+         return getter.Convert(MemberInfoFinder.GetMemberType(member));
       }
       public static MethodInfo GetDataRecordGetterMethod(this Type type, bool isRequired)
       {

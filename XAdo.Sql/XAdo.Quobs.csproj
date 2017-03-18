@@ -41,9 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Impl\SqlBuilderImpl.cs" />
-    <Compile Include="Core\Impl\TemplateFormatterFull.cs" />
     <Compile Include="Core\UrlQuery.cs" />
-    <Compile Include="Core\Impl\XAdoCommandFactoryImplEx.cs" />
     <Compile Include="Core\Interface\IAttachable.cs" />
     <Compile Include="Core\Interface\IUrlFilterParser.cs" />
     <Compile Include="Core\Interface\IQuob.cs" />
@@ -55,7 +53,6 @@
     <Compile Include="Core\Interface\ISqlBuilder.cs" />
     <Compile Include="Core\Interface\ISqlSelectParser.cs" />
     <Compile Include="Core\Interface\ISqlScanner.cs" />
-    <Compile Include="Core\Interface\ITemplateFormatter.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMap.cs" />
     <Compile Include="Core\Parser\Partials\ColumnMeta.cs" />
     <Compile Include="Core\Parser\Partials\ColumnPartial.cs" />
@@ -103,7 +100,6 @@
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\DataReaderException.cs" />
     <Compile Include="Core\DataReaderGetters.cs" />
-    <Compile Include="Core\Expressions\MemberInfoFinder.cs" />
     <Compile Include="Core\ExpressionKey.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -112,7 +108,6 @@
     <Compile Include="Core\Parser\Extensions.cs" />
     <Compile Include="Core\Impl\SqlResourceImpl.cs" />
     <Compile Include="Core\Impl\SqlSelectParserImpl.cs" />
-    <Compile Include="Core\Impl\TemplateFormatterSingleImpl.cs" />
     <Compile Include="Core\Parser\SqlParserException.cs" />
     <Compile Include="Core\Impl\FilterParserImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
