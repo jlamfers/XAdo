@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using XAdo.Core.SimpleJson;
+using XAdo.Quobs.Core;
+using XAdo.Quobs.Core.Parser;
+using XAdo.Quobs.Core.Parser.Partials;
 
 namespace XAdo.UnitTest
 {
@@ -27,6 +30,32 @@ namespace XAdo.UnitTest
          }
          sw.Stop();
          Debug.WriteLine(sw.ElapsedMilliseconds);
+      }
+
+      [Test]
+      public void TestJsonAnnotation()
+      {
+
+         var obj = new JsonAnnotation
+         {
+            @readonly = true,
+            crud = "CRUD",
+            maxLength = 10,
+            outputOnCreate = true,
+            outputOnUpdate = true,
+            type = "int",
+            map = "../Address/Id",
+            notnull = true,
+            pkey = true
+         };
+         var json = SimpleJson.SerializeObject(obj);
+
+         json =
+            "{'onUpdate':3,'onCreate':1,'type':'int','maxLength':10,'map':'../Address/Id','readonly':true,'nullable':true,'pkey':true}";
+         obj = SimpleJson.DeserializeObject<JsonAnnotation>(json);
+
+
+
       }
    }
 }

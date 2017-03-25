@@ -8,7 +8,7 @@ namespace XAdo.Quobs.Core.Parser
    {
       public static class Syntax
       {
-         public static class Chars
+         public static class Chars2
          {
             public const char
 
@@ -122,13 +122,21 @@ namespace XAdo.Quobs.Core.Parser
          }
 
          // Path switches
-         public const string
+         public const string 
             CURRENT_PATH_STR = ".",
             PREV_PATH = "..",
             PREV_PREV_PATH = "...",
 
             TAG_COMMENT = "//",
             TAG_AS_GENERIC_LITERAL = "-- >";
+
+         public static class Chars
+         {
+
+            public const char
+               NAME_SEP = '.',
+               PATH_SEP = '/';
+         }
 
       }
    }

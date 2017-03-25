@@ -21,7 +21,7 @@ namespace XAdo.DbSchema
 
       private DbColumnItem() { }
 
-      public DbColumnItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isAutoIncrement, bool isNullable, bool isUnique, object defaultValue, int maxLength)
+      public DbColumnItem(DbSchema database, string tableName, string tableSchema, string name, Type type, bool isPkey, bool isAutoIncrement, bool isNullable, bool isUnique, object defaultValue, int maxLength, bool isReadOnly)
       {
          Schema = database;
          TableOwner = tableSchema;
@@ -34,6 +34,7 @@ namespace XAdo.DbSchema
          IsPkey = isPkey;
          Type = type;
          Name = name;
+         IsReadOnly = isReadOnly;
       }
 
       public DbTableItem Table
@@ -79,8 +80,10 @@ namespace XAdo.DbSchema
       public bool IsAutoIncrement { get; private set; }
       public bool IsNullable { get; private set; }
       public bool IsUnique { get; private set; }
+      public bool IsReadOnly { get; private set; }
       public object DefaultValue { get; private set; }
       public int MaxLength { get; private set; }
+      
 
       [NonSerialized]
       [DebuggerBrowsable(DebuggerBrowsableState.Never)]

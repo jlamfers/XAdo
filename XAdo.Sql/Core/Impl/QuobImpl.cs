@@ -149,12 +149,12 @@ namespace XAdo.Quobs.Core.Impl
          return sql;
       }
 
-      public virtual List<object> Fetch()
+      public virtual List<object> FetchToList()
       {
          return ToEnumerable().ToList();
       }
 
-      public virtual List<object> Fetch(out int count)
+      public virtual List<object> FetchToList(out int count)
       {
          return ToEnumerable(out count).ToList();
       }

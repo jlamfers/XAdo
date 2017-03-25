@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using XAdo.Quobs.Core;
 
 namespace XAdo.Quobs.Services
@@ -13,8 +14,15 @@ namespace XAdo.Quobs.Services
       T Patch(object key, object instance);
    }
 
-   public interface IHttpResource : IHttpResource<object>
+   public interface IHttpResource
    {
+      dynamic Put(object key, object instance);
+      IList<dynamic> Get(UrlQuery query);
+      bool Delete(UrlQuery query);
+      bool Delete(object key);
+      dynamic Post(object instance);
+      dynamic Patch(object key, object instance);
+      Type GetEntityType();
    }
 
 

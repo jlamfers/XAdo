@@ -15,9 +15,9 @@ namespace XAdo.Quobs.Core.Parser.Partials
 
       public override void Write(TextWriter w)
       {
-         w.Write("WHERE ");
+         w.Write("WHERE (");
          w.Write(WhereClause);
-         w.Write(" ");
+         w.Write(") ");
          base.Write(w);
       }
 

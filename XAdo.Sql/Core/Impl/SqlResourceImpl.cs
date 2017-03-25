@@ -727,7 +727,7 @@ namespace XAdo.Quobs.Core.Impl
             .Where(
                m =>
                   path.Length == 0 || m.Map.Path == path ||
-                  m.Map.Path.StartsWith(path + Constants.Syntax.Chars.NAME_SEP_STR))
+                  m.Map.Path.StartsWith(path + "."))
             .OrderBy(m => m.Map.Path)
             .ThenBy(m => m.Index)
             .ToArray();
@@ -747,7 +747,7 @@ namespace XAdo.Quobs.Core.Impl
                catch (Exception ex)
                {
                   throw new QuobException(
-                     "Invalid member reference: " + refType.Name + Constants.Syntax.Chars.NAME_SEP_STR + m.Map.Name +
+                     "Invalid member reference: " + refType.Name + "." + m.Map.Name +
                      ", map: " + m.Map + " (verify your mapping)", ex);
                }
             }
@@ -766,7 +766,7 @@ namespace XAdo.Quobs.Core.Impl
                   catch (Exception ex)
                   {
                      throw new QuobException(
-                        "Invalid member reference: " + refType.Name + Constants.Syntax.Chars.NAME_SEP_STR + m.Map.Name +
+                        "Invalid member reference: " + refType.Name + "." + m.Map.Name +
                         ", map: " + m.Map + " (verify your mapping)", ex);
                   }
                }

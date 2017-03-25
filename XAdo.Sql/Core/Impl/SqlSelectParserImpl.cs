@@ -139,14 +139,16 @@ namespace XAdo.Quobs.Core.Impl
 
          }
 
-         return partials.Where(p => !string.IsNullOrWhiteSpace(p.Expression)).ToList();
+         return partials.ToList();
+
+         //return partials.Where(p => !string.IsNullOrWhiteSpace(p.Expression)).ToList();
       }
 
       // where clause only can have one template placolder, at the end
       protected virtual WithPartial ReadWith(ISqlScanner scanner)
       {
          SkipComments(scanner);
-         var alias = ReadAlias(scanner,null);
+         var alias = ReadAlias(scanner);
          if (string.IsNullOrEmpty(alias))
          {
             throw new SqlParserException(scanner.Source, scanner.Position, "alias expected");
@@ -226,7 +228,7 @@ namespace XAdo.Quobs.Core.Impl
                      scanner.ReadQuoted()
                      : scanner.ReadIdentifier(null)));
 
-            if (scanner.Peek() == Constants.Syntax.Chars.COLUMN_SEP)
+            if (scanner.Peek() == '.')
             {
                scanner.NextChar();
                continue;
@@ -236,7 +238,7 @@ namespace XAdo.Quobs.Core.Impl
             string alias = null;
             if (scanner.NextIs(SQL.AS))
             {
-               alias = ReadAlias(scanner,null);
+               alias = ReadAlias(scanner);
                scanner.SkipSpaces();
             }
             string tag = null;
@@ -438,14 +440,13 @@ namespace XAdo.Quobs.Core.Impl
       }
 
 
-      protected virtual string ReadAlias(ISqlScanner scanner, ICollection<char> specialColumnChars)
+      protected virtual string ReadAlias(ISqlScanner scanner)
       {
          scanner.SkipSpaces();
-         return scanner.IsStartQuote() ? scanner.ReadQuoted() : scanner.ReadIdentifier(specialColumnChars);
+         return scanner.IsStartQuote() ? scanner.ReadQuoted() : scanner.ReadIdentifier();
       }
       protected virtual ColumnPartial ReadColumn(ISqlScanner scanner, bool aliased = true, bool tagged = true)
       {
-         var specialColumnChars = aliased ? Constants.Syntax.Chars.TagCharsSet : null;
          SkipComments(scanner);
          var parts = new List<string>();
          while (true)
@@ -454,9 +455,9 @@ namespace XAdo.Quobs.Core.Impl
                   scanner.ReadParenthesed()
                   : (scanner.IsStartQuote() ?
                      scanner.ReadQuoted()
-                     : scanner.ReadIdentifier(specialColumnChars)));
+                     : scanner.ReadIdentifier()));
 
-            if (scanner.Peek() == Constants.Syntax.Chars.COLUMN_SEP)
+            if (scanner.Peek() == '.')
             {
                scanner.NextChar();
                continue;
@@ -468,7 +469,7 @@ namespace XAdo.Quobs.Core.Impl
             {
                if (scanner.NextIs(SQL.AS))
                {
-                  alias = ReadAlias(scanner,specialColumnChars);
+                  alias = ReadAlias(scanner);
                   scanner.SkipSpaces();
                }
             }

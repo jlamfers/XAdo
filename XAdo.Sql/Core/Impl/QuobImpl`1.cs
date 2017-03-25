@@ -88,12 +88,12 @@ namespace XAdo.Quobs.Core.Impl
          return reader.Read<TEntity>(false);
       }
 
-      public new List<TEntity> Fetch()
+      public new List<TEntity> FetchToList()
       {
          return ToEnumerable().ToList();
       }
 
-      public new List<TEntity> Fetch(out int count)
+      public new List<TEntity> FetchToList(out int count)
       {
          return ToEnumerable(out count).ToList();
       }

@@ -242,8 +242,10 @@ HAVING {having}
 
                if (markerLookup.TryGetValue(upperP, out idx))
                {
+                  //TODO: fix index error...
                   index = idx + addedCount;
-                  partial = index < partials.Count ? partials[index] : null;
+                  var i2 = index - 1;
+                  partial = i2 >= 0 && i2 < partials.Count ? partials[i2] : null;
                }
                else
                {
@@ -264,7 +266,7 @@ HAVING {having}
                      {
                         wc = wc.Substring(6).Trim();
                      }
-                     partials[index] = new WherePartial(wp.WhereClause, " AND (" + wc + ")");
+                     partials[index-1] = new WherePartial(wp.WhereClause, " AND (" + wc + ")");
                   }
                   partial = null;
                   continue;
@@ -285,7 +287,7 @@ HAVING {having}
                            gc = gc.Substring(3).TrimStart();
                         }
                      }
-                     partials[index] = new GroupByPartial(gp.Columns, ", " + gc);
+                     partials[index-1] = new GroupByPartial(gp.Columns, ", " + gc);
                   }
                   partial = null;
                   continue;
@@ -302,7 +304,7 @@ HAVING {having}
                      {
                         hc = hc.Substring(7).Trim();
                      }
-                     partials[index] = new HavingPartial(hp.HavingClause, " AND (" + hc + ")");
+                     partials[index-1] = new HavingPartial(hp.HavingClause, " AND (" + hc + ")");
                   }
                   partial = null;
                   continue;
@@ -323,7 +325,7 @@ HAVING {having}
                            oc = oc.Substring(3).TrimStart();
                         }
                      }
-                     partials[index] = new OrderByPartial(op.Columns, ", " + oc);
+                     partials[index-1] = new OrderByPartial(op.Columns, ", " + oc);
                   }
                   partial = null;
                   continue;

@@ -22,22 +22,22 @@ namespace XAdo.UnitTest
    {
       public const string SqlSelect = @"
 SELECT        
-   p.BusinessEntityID as id -->*
-   ,p.PersonType -->! 
+   p.BusinessEntityID as id -->{pkey:true}
+   ,p.PersonType  
    ,p.Title 
-   ,p.FirstName -->! 
+   ,p.FirstName  
    ,p.MiddleName 
-   ,p.LastName -->! 
+   ,p.LastName  
    ,p.ModifiedDate as ModifiedAt 
-   ,a.AddressID --> Address/Id* 
-   ,a.AddressLine1 as Line1 -->!
+   --,a.AddressID as [Address/Id] 
+   ,a.AddressLine1 as [Adress/Line1]
    ,a.AddressLine2 as Line2 
-   ,a.PostalCode -->! 
+   ,a.PostalCode
    ,a.ModifiedDate as ModifiedAt
-   ,at.AddressTypeID -->AddressType/Id*
-   ,at.Name -->!
-   ,a.City -->../City!
-FROM Person.BusinessEntity AS be -->@
+   --,at.AddressTypeID as[AddressType/Id]
+   ,at.Name as[AddressType/Name]
+   ,a.City as [../City]
+FROM Person.BusinessEntity AS be -->
 INNER JOIN Person.Person AS p ON be.BusinessEntityID = p.BusinessEntityID 
 INNER JOIN Person.BusinessEntityAddress AS bea ON be.BusinessEntityID = bea.BusinessEntityID 
 INNER JOIN Person.Address AS a ON bea.AddressID = a.AddressID 
@@ -122,7 +122,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
                copy.Remove(t);
             }
 
-            var persons = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).Fetch();
+            var persons = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).FetchToList();
             var count = sn.Query<Person>().Where(p => p.FirstName != null).OrderBy(p => p.Id).Skip(10).Take(10).TotalCount();
 
             var sw = new Stopwatch();
@@ -145,7 +145,7 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          {
             var pc = sn.Query<Person>().CastTo<IQuob>().Where("firstname ne null").OrderBy("id").Skip(10).Take(10);
 
-            var persons = sn.Query<Person>().CastTo<IQuob>().Where("firstname ne null").OrderBy("id").Skip(10).Take(10).Fetch();
+            var persons = sn.Query<Person>().CastTo<IQuob>().Where("firstname ne null").OrderBy("id").Skip(10).Take(10).FetchToList();
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < 1000; i++)
@@ -211,12 +211,6 @@ INNER JOIN Person.AddressType AS at ON bea.AddressTypeID = at.AddressTypeID
          }
       }
 
-      [Test]
-      public void RegExTest()
-      {
-         var m = new ColumnMeta();
-         m.InitializeByTag("* {'onupdate':'input','type':'decimal','maxlength':10}",false);
-      }
 
       [Test]
       public void SortTest()

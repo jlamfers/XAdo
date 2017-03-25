@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using XAdo.Quobs.Core.Impl;
 using XAdo.Quobs.Core.Interface;
 
 namespace XAdo.Quobs.Core
@@ -11,6 +12,7 @@ namespace XAdo.Quobs.Core
       private static class Constants
       {
          public const string
+            Include="include",
             Select = "select",
             Where = "where",
             Order = "order",
@@ -24,15 +26,40 @@ namespace XAdo.Quobs.Core
       private readonly List<Tuple<string, string>> 
          _tokens = new List<Tuple<string, string>>();
 
-      public UrlQuery(string query)
+      public static UrlQuery Filter(string whereClause)
+      {
+         if (whereClause == null) throw new ArgumentNullException("whereClause");
+         return new UrlQuery().AddWhere(whereClause);
+      }
+
+      public UrlQuery(string query = null)
       {
          if (query != null)
          {
+            var commentIndex = query.IndexOf("#");
+            if (commentIndex != -1)
+            {
+               query = query.Substring(0, commentIndex);
+            }
             // order matters!
             _tokens = query.SplitQuery().ToList();
          }
       }
 
+      public IList<string> Include
+      {
+         get
+         {
+            var token = GetTokenByName(Constants.Include);
+            if(token == null) return new string[0];
+            var parser = new UrlFilterParserImpl();
+            return
+               token
+                  .Split(new[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries)
+                  .SelectMany(e => parser.SplitColumns(e).Select(t => t.Item1))
+                  .ToArray();
+         }
+      }
       public string Select
       {
          get { return GetTokenByName(Constants.Select); }

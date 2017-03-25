@@ -14,9 +14,9 @@ namespace XAdo.Quobs.Core.Parser.Partials
          }
          if (fullname == null) throw new ArgumentNullException("fullname");
          FullName = fullname;
-         var parts = FullName.Split(Constants.Syntax.Chars.COLUMN_SEP);
+         var parts = FullName.Split('.');
          Name = parts.Last();
-         Path = parts.Length == 1 ? "" : string.Join(Constants.Syntax.Chars.COLUMN_SEP_STR, parts, 0, parts.Length - 1);
+         Path = parts.Length == 1 ? "" : string.Join(".", parts, 0, parts.Length - 1);
       }
 
       public string Path { get; private set; }

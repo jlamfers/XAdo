@@ -1796,7 +1796,12 @@ namespace XAdo.Core.SimpleJson
 
          public static object ToNullableType(object obj, Type nullableType)
          {
-            return obj == null ? null : Convert.ChangeType(obj, Nullable.GetUnderlyingType(nullableType), CultureInfo.InvariantCulture);
+            var type = Nullable.GetUnderlyingType(nullableType);
+            if (type.IsEnum)
+            {
+               return Enum.ToObject(type, obj);
+            }
+            return obj == null ? null : Convert.ChangeType(obj, type, CultureInfo.InvariantCulture);
          }
 
          public static bool IsValueType(Type type)

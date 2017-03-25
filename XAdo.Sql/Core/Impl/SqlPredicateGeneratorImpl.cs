@@ -232,15 +232,24 @@ namespace XAdo.Quobs.Core.Impl
          var namePath = new StringBuilder();
          if (node.IsParameterDependent(namePath))
          {
-            // throws exception on missing map
-            try
+            var np = namePath.ToString();
+            string map;
+            if (!_fullnameToSqlExpressionMap.TryGetValue(np, out map))
             {
-               _writer.Write(_fullnameToSqlExpressionMap[namePath.ToString()]);
+               var entry =
+                  _fullnameToSqlExpressionMap.FirstOrDefault(
+                     kv => kv.Key.StartsWith(np + ".", StringComparison.OrdinalIgnoreCase));
+               if (entry.Value != null)
+               {
+                  map = entry.Value;
+               }
             }
-            catch (Exception ex)
+            if (map == null)
             {
-               throw new QuobException("Member '" + namePath + "' not found. This member could not be mapped to any database column in select expression " + _expression, ex);
+               throw new QuobException("Member '" + namePath + "' not found. This member could not be mapped to any database column in select expression " + _expression);
             }
+            _writer.Write(map);
+            
          }
          else
          {

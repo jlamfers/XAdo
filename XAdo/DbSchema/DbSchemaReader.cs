@@ -167,7 +167,7 @@ namespace XAdo.DbSchema
             foreach (DataColumn dataColumn in ds.Tables[0].Columns)
             {
                var ispkey = dataColumn.AutoIncrement || dataColumn.Table.PrimaryKey.Contains(dataColumn);
-               schema.Columns.Add(new DbColumnItem(schema, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName,dataColumn.DataType, ispkey, dataColumn.AutoIncrement, dataColumn.AllowDBNull, dataColumn.Unique,dataColumn.DefaultValue, dataColumn.MaxLength));
+               schema.Columns.Add(new DbColumnItem(schema, table.TABLE_NAME, table.TABLE_SCHEMA, dataColumn.ColumnName,dataColumn.DataType, ispkey, dataColumn.AutoIncrement, dataColumn.AllowDBNull, dataColumn.Unique,dataColumn.DefaultValue, dataColumn.MaxLength, dataColumn.ReadOnly));
             }
 
          }

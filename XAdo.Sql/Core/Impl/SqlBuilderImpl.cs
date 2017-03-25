@@ -47,7 +47,7 @@ namespace XAdo.Quobs.Core.Impl
                var selectPartial = partial as SelectPartial;
                if (selectPartial != null)
                {
-                  // always turn limit off when counting the total nimber of records
+                  // always turn threshold off when counting the total number of records
                   selectPartial.MaxRows = null;
                }
                partial.WriteAsTemplate(w);
@@ -62,13 +62,15 @@ namespace XAdo.Quobs.Core.Impl
          var r = sqlResource;
          if (r.Joins == null)
          {
+            if (!r.Table.CanUpdate())
+            {
+               return null;
+            }
             BuildUpdate(r, r.Table, sb);
             return sb.ToString();
          }
 
-         var updateTables =
-            r.Tables.Where(
-               t => r.Select.Columns.Any(c => c.Table == t && c.Meta.Persistency.HasFlag(PersistencyType.Update))).ToArray();
+         var updateTables = r.Tables.Where(t => t.CanUpdate() && t.Columns.Any(c => c.CanUpdate() && !c.Meta.IsPKey && r.Select.Columns.Contains(c))).ToArray();
 
          var sep = "";
          foreach (var t in updateTables)
@@ -102,7 +104,7 @@ namespace XAdo.Quobs.Core.Impl
          w.Write(t.Expression);
          w.WriteLine(" SET");
          var comma = "";
-         foreach (var c in q.Select.Columns.Where(c => c.Table == t && c.Meta.Persistency.HasFlag(PersistencyType.Update)))
+         foreach (var c in q.Select.Columns.Where(c => c.Table == t && c.CanUpdate() && !c.Meta.IsPKey))
          {
             sb
                .Append(comma)
@@ -123,6 +125,39 @@ namespace XAdo.Quobs.Core.Impl
                .AppendFormat(q.Dialect.ParameterFormat, c.Map.FullName.Replace('.', '_'));
             comma = " AND ";
          }
+
+         #region Any output on update?
+         if (q.Select.Columns.Any(c => c.Meta.OutputOnUpdate))
+         {
+            sb.AppendLine().AppendLine(q.Dialect.StatementSeperator);
+            comma = "";
+            sb.Append("SELECT ");
+            foreach (var c in q.Select.Columns.Where(c => c.Meta.OutputOnUpdate))
+            {
+               sb
+                  .Append(comma)
+                  .Append(c.RawParts.Last())
+                  .Append(" AS ")
+                  .Append(q.Dialect.IdentifierDelimiterLeft)
+                  .Append(c.Map.FullName)
+                  .Append(q.Dialect.IdentifierDelimiterRight);
+                  
+               comma = ", ";
+            }
+            sb.AppendLine().AppendFormat("FROM {0}", t.Expression);
+            sb.Append("WHERE ");
+            foreach (var c in keys)
+            {
+               sb
+                  .Append(comma)
+                  .Append(c.RawParts.Last())
+                  .Append(" = ")
+                  .AppendFormat(q.Dialect.ParameterFormat, c.Map.FullName.Replace('.', '_'));
+               comma = " AND ";
+            }
+         }
+         #endregion
+
       }
       protected virtual void BuildPartialUpdate(ISqlResource q, TablePartial t, StringBuilder sb)
       {
@@ -141,7 +176,7 @@ namespace XAdo.Quobs.Core.Impl
          w.Write(t.Alias);
          w.WriteLine(" SET");
          var comma = "";
-         foreach (var c in q.Select.Columns.Where(c => c.Table == t && c.Meta.Persistency.HasFlag(PersistencyType.Update)))
+         foreach (var c in q.Select.Columns.Where(c => c.Table == t && !c.Meta.IsPKey && c.CanUpdate()))
          {
             sb
                .Append(comma)
@@ -170,6 +205,45 @@ namespace XAdo.Quobs.Core.Impl
                .AppendFormat(q.Dialect.ParameterFormat, c.Map.FullName.Replace('.', '_'));
             comma = " AND ";
          }
+         #region Any output on update?
+         if (q.Select.Columns.Any(c => c.Table==t && c.Meta.OutputOnUpdate))
+         {
+            sb.AppendLine().AppendLine(q.Dialect.StatementSeperator);
+            comma = "";
+            sb.Append("SELECT ");
+            foreach (var c in q.Select.Columns.Where(c => c.Table == t && c.Meta.OutputOnUpdate))
+            {
+               sb
+                  .Append(comma)
+                  .Append(c.Expression)
+                  .Append(" AS ")
+                  .Append(q.Dialect.IdentifierDelimiterLeft)
+                  .Append(c.Map.FullName)
+                  .Append(q.Dialect.IdentifierDelimiterRight);
+
+               comma = ", ";
+            }
+            
+            sb.AppendLine().AppendFormat("FROM ");
+            t.WriteAliased(w);
+            sb.AppendLine();
+            foreach (var j in q.Joins)
+            {
+               j.Write(w);
+               w.WriteLine();
+            }
+            sb.Append("WHERE ");
+            foreach (var c in keys)
+            {
+               sb
+                  .Append(comma)
+                  .Append(c.Expression)
+                  .Append(" = ")
+                  .AppendFormat(q.Dialect.ParameterFormat, c.Map.FullName.Replace('.', '_'));
+               comma = " AND ";
+            }
+         }
+         #endregion
       }
 
       protected virtual bool SkipExpressionOnTotalCount(SqlPartial partial)

@@ -19,8 +19,8 @@ namespace XAdo.Quobs.Core.Interface
       IEnumerable<TEntity> ToEnumerable();
       IEnumerable<TEntity> ToEnumerable(out int count);
 
-      List<TEntity> Fetch();
-      List<TEntity> Fetch(out int count);
+      List<TEntity> FetchToList();
+      List<TEntity> FetchToList(out int count);
       TEntity[] FetchToArray();
       TEntity[] FetchToArray(out int count);
       IDictionary<TKey, TValue> FetchToDictionary<TKey, TValue>(Func<TEntity, TKey> keySelector, Func<TEntity, TValue> elementSelector);
@@ -59,8 +59,8 @@ namespace XAdo.Quobs.Core.Interface
       IEnumerable<object> ToEnumerable();
       IEnumerable<object> ToEnumerable(out int count);
 
-      List<object> Fetch();
-      List<object> Fetch(out int count);
+      List<object> FetchToList();
+      List<object> FetchToList(out int count);
       object[] FetchToArray();
       object[] FetchToArray(out int count);
 

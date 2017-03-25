@@ -10,29 +10,30 @@ namespace XAdo.Quobs.Services
    public class HttpResource : IHttpResource
    {
       private readonly ISqlResource _sqlResource;
-      private IXAdoDbSession _dbSession;
+      private IXAdoDbSession _session;
 
-      public HttpResource(ISqlResource resource)
+      public HttpResource(IXAdoDbSession session, string sql, Type entityType = null)
       {
-         _sqlResource = resource;
+         _session = session;
+         _sqlResource = session.GetSqlResource(sql,entityType);
       }
 
-      public object Put(object key, object instance)
+      public virtual dynamic Put(object key, object instance)
       {
          var sqlUpdate = _sqlResource.BuildSqlUpdate(null);
-         _dbSession.Execute(sqlUpdate, instance);
+         _session.Execute(sqlUpdate, instance);
          return instance;
       }
 
-      public IList<object> Get(UrlQuery query)
+      public virtual IList<dynamic> Get(UrlQuery query)
       {
          // /api/persons/?q=select(concat(firstname,' ',lastname)|name).where(firstname~ct~J).order(firstname~lastname).page(1-100)
-         var quob = new QuobImpl(_sqlResource).Attach(_dbSession);
+         var quob = new QuobImpl(_sqlResource).Attach(_session);
          if (query != null)
          {
             query.Apply(ref quob);
          }
-         var list = quob.Fetch();
+         var list = quob.FetchToList();
          if (list.Count > quob.SqlResource.Select.MaxRows.GetValueOrDefault(int.MaxValue))
          {
             throw new QuobException("Too many result rows (> {0}). You need to add a filter of page constraint".FormatWith(quob.SqlResource.Select.MaxRows));
@@ -40,30 +41,29 @@ namespace XAdo.Quobs.Services
          return list;
       }
 
-      public bool Delete(UrlQuery query)
+      public virtual bool Delete(UrlQuery query)
       {
          throw new NotImplementedException();
       }
 
-      public bool Delete(object key)
+      public virtual bool Delete(object key)
       {
          throw new NotImplementedException();
       }
 
-      public object Post(object instance)
+      public virtual object Post(object instance)
       {
          throw new NotImplementedException();
       }
 
-      public object Patch(object key, object instance)
+      public virtual object Patch(object key, object instance)
       {
          throw new NotImplementedException();
       }
 
-      public void AttachDbSession(IXAdoDbSession dbSession)
+      public Type GetEntityType()
       {
-         _dbSession = dbSession;
+         return _sqlResource.GetEntityType(_session);
       }
-
    }
 }

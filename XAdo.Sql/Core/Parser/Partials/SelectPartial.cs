@@ -95,6 +95,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
                column.Path = null;
             }
          }
+         // TODO: always reset aliases??
          var count = columns.Select(m => (m.NameOrAlias).ToLower()).Distinct().Count();
          if (count != columns.Count)
          {
@@ -142,7 +143,7 @@ namespace XAdo.Quobs.Core.Parser.Partials
                   sb.Length = stack.Pop();
                   break;
                default:
-                  if (sb.Length > 0) sb.Append(Constants.Syntax.Chars.NAME_SEP_STR);
+                  if (sb.Length > 0) sb.Append(Constants.Syntax.Chars.NAME_SEP);
                   sb.Append(part);
                   stack.Push(sb.Length - 1);
                   break;
